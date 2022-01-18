@@ -64,7 +64,7 @@ func TestSSL_Valid4(t *testing.T) {
 	}
 
 	err := conf.Valid()
-	assert.NoError(t, err)
+	assert.Error(t, err)
 }
 
 func TestSSL_Valid5(t *testing.T) {

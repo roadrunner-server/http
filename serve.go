@@ -3,6 +3,7 @@ package http
 import (
 	"crypto/tls"
 	"crypto/x509"
+	stderr "errors"
 	"fmt"
 	"net/http"
 	"net/http/fcgi"
@@ -33,7 +34,7 @@ func (p *Plugin) serveFCGI(errCh chan error) {
 	}
 
 	err = fcgi.Serve(l, p.fcgi.Handler)
-	if err != nil && err != http.ErrServerClosed {
+	if err != nil && !stderr.Is(err, http.ErrServerClosed) {
 		errCh <- errors.E(op, err)
 		return
 	}

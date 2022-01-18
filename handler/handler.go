@@ -1,6 +1,7 @@
 package handler
 
 import (
+	stderr "errors"
 	"net"
 	"net/http"
 	"strconv"
@@ -126,7 +127,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// if pipe is broken, there is no sense to write the header
 		// in this case we just report about error
-		if err == errEPIPE {
+		if stderr.Is(err, errEPIPE) {
 			h.putReq(req)
 			h.log.Error("write response error", zap.Time("start", start), zap.Duration("elapsed", time.Since(start)), zap.Error(err))
 			return

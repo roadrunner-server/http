@@ -10,7 +10,7 @@ import (
 
 const (
 	Trailer   string = "Trailer"
-	Http2Push string = "Http2-Push" //nolint:stylecheck
+	HTTP2Push string = "Http2-Push"
 )
 
 // Response handles PSR7 response logic.
@@ -34,12 +34,12 @@ func (h *Handler) Write(pld *payload.Payload, w http.ResponseWriter) (int, error
 	}
 
 	// handle push headers
-	if len(rsp.Headers[Http2Push]) != 0 {
-		push := rsp.Headers[Http2Push]
+	if len(rsp.Headers[HTTP2Push]) != 0 {
+		push := rsp.Headers[HTTP2Push]
 
 		if pusher, ok := w.(http.Pusher); ok {
 			for i := 0; i < len(push); i++ {
-				err = pusher.Push(rsp.Headers[Http2Push][i], nil)
+				err = pusher.Push(rsp.Headers[HTTP2Push][i], nil)
 				if err != nil {
 					return 0, err
 				}

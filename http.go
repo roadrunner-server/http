@@ -1,6 +1,7 @@
 package http
 
 import (
+	stderr "errors"
 	"net/http"
 
 	"github.com/roadrunner-server/errors"
@@ -23,7 +24,7 @@ func (p *Plugin) serveHTTP(errCh chan error) {
 
 	p.log.Debug("http server was started", zap.String("address", p.cfg.Address))
 	err = p.http.Serve(l)
-	if err != nil && err != http.ErrServerClosed {
+	if err != nil && !stderr.Is(err, http.ErrServerClosed) {
 		errCh <- errors.E(op, err)
 		return
 	}

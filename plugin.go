@@ -123,7 +123,7 @@ func (p *Plugin) Serve() chan error {
 	return errCh
 }
 
-func (p *Plugin) serve(errCh chan error) {
+func (p *Plugin) serve(errCh chan error) { //nolint:gocyclo
 	var err error
 	p.pool, err = p.server.NewWorkerPool(context.Background(), &pool.Config{
 		Debug:           p.cfg.Pool.Debug,
@@ -243,21 +243,21 @@ func (p *Plugin) Stop() error {
 
 	if p.fcgi != nil {
 		err := p.fcgi.Shutdown(context.Background())
-		if err != nil && err != http.ErrServerClosed {
+		if err != nil && !stderr.Is(err, http.ErrServerClosed) {
 			p.log.Error("fcgi shutdown", zap.Error(err))
 		}
 	}
 
 	if p.https != nil {
 		err := p.https.Shutdown(context.Background())
-		if err != nil && err != http.ErrServerClosed {
+		if err != nil && !stderr.Is(err, http.ErrServerClosed) {
 			p.log.Error("https shutdown", zap.Error(err))
 		}
 	}
 
 	if p.http != nil {
 		err := p.http.Shutdown(context.Background())
-		if err != nil && err != http.ErrServerClosed {
+		if err != nil && !stderr.Is(err, http.ErrServerClosed) {
 			p.log.Error("http shutdown", zap.Error(err))
 		}
 	}

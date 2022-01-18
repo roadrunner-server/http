@@ -1,6 +1,7 @@
 package http
 
 import (
+	stderr "errors"
 	"net/http"
 
 	"github.com/roadrunner-server/errors"
@@ -30,7 +31,7 @@ func (p *Plugin) serveHTTPS(errCh chan error) {
 			"",
 			"",
 		)
-		if err != nil && err != http.ErrServerClosed {
+		if err != nil && !stderr.Is(err, http.ErrServerClosed) {
 			errCh <- errors.E(op, err)
 			return
 		}
@@ -44,7 +45,7 @@ func (p *Plugin) serveHTTPS(errCh chan error) {
 		p.cfg.SSLConfig.Key,
 	)
 
-	if err != nil && err != http.ErrServerClosed {
+	if err != nil && !stderr.Is(err, http.ErrServerClosed) {
 		errCh <- errors.E(op, err)
 		return
 	}
