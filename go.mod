@@ -4,10 +4,10 @@ go 1.17
 
 require (
 	github.com/caddyserver/certmagic v0.15.2
-	github.com/json-iterator/go v1.1.12
+	github.com/goccy/go-json v0.9.4
 	github.com/mholt/acmez v1.0.1
 	github.com/prometheus/client_golang v1.12.0
-	github.com/roadrunner-server/api/v2 v2.0.0-rc.2
+	github.com/roadrunner-server/api/v2 v2.8.0-rc.1
 	github.com/roadrunner-server/endure v1.2.1
 	github.com/roadrunner-server/errors v1.1.1
 	github.com/roadrunner-server/goridge/v3 v3.3.0
@@ -24,9 +24,9 @@ require (
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
-	github.com/goccy/go-json v0.9.4 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/uuid v1.3.0 // indirect
+	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.9 // indirect
 	github.com/libdns/libdns v0.2.1 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect

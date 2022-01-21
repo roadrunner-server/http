@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	json "github.com/json-iterator/go"
+	"github.com/goccy/go-json"
 	"github.com/roadrunner-server/sdk/v2/payload"
 )
 

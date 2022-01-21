@@ -34,6 +34,9 @@ jobs:
         with:
           go-version: ${{ matrix.go }}
 
+      - name: Check out code
+        uses: actions/checkout@v2
+
       - name: Init Go modules Cache # Docs: <https://git.io/JfAKn#go---modules>
         uses: actions/cache@v2
         with:
