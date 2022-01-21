@@ -15,7 +15,6 @@ import (
 	"github.com/roadrunner-server/api/v2/plugins/status"
 	endure "github.com/roadrunner-server/endure/pkg/container"
 	"github.com/roadrunner-server/errors"
-	"github.com/roadrunner-server/http/v2/attributes"
 	httpConfig "github.com/roadrunner-server/http/v2/config"
 	"github.com/roadrunner-server/http/v2/handler"
 	"github.com/roadrunner-server/sdk/v2/pool"
@@ -288,7 +287,6 @@ func (p *Plugin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	r = attributes.Init(r)
 	// protect the case, when user sendEvent Reset, and we are replacing handler with pool
 	p.mu.RLock()
 	p.handler.ServeHTTP(w, r)

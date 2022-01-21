@@ -9,12 +9,12 @@ require (
 	github.com/prometheus/client_golang v1.12.0
 	github.com/roadrunner-server/api/v2 v2.0.0-rc.2
 	github.com/roadrunner-server/endure v1.2.1
-	github.com/roadrunner-server/errors v1.1.0
+	github.com/roadrunner-server/errors v1.1.1
 	github.com/roadrunner-server/goridge/v3 v3.3.0
 	github.com/roadrunner-server/sdk/v2 v2.0.0-rc.1
 	github.com/stretchr/testify v1.7.0
 	go.uber.org/zap v1.20.0
-	golang.org/x/net v0.0.0-20220114011407-0dd24b26b47d
+	golang.org/x/net v0.0.0-20220121175114-2ed6ce1e1725
 	golang.org/x/sys v0.0.0-20220114195835-da31bd327af9
 )
 
@@ -24,7 +24,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
-	github.com/goccy/go-json v0.9.3 // indirect
+	github.com/goccy/go-json v0.9.4 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.9 // indirect
