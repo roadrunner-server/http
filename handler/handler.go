@@ -128,11 +128,13 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// if pipe is broken, there is no sense to write the header
 		// in this case we just report about error
 		if stderr.Is(err, errEPIPE) {
+			req.Close(h.log)
 			h.putReq(req)
 			h.log.Error("write response error", zap.Time("start", start), zap.Duration("elapsed", time.Since(start)), zap.Error(err))
 			return
 		}
 
+		req.Close(h.log)
 		h.putReq(req)
 		http.Error(w, errors.E(op, err).Error(), 500)
 		h.log.Error("request forming error", zap.Time("start", start), zap.Duration("elapsed", time.Since(start)), zap.Error(err))
@@ -263,7 +265,7 @@ func (h *Handler) resolveIP(r *Request) {
 
 	// The logic here is the following:
 	// In general case, we only expect X-Real-Ip header. If it exist, we get the IP address from header and set request Remote address
-	// But, if there is no X-Real-Ip header, we also trying to check CloudFlare headers
+	// But, if there is no X-Real-Ip header, we're also trying to check CloudFlare headers
 	// True-Client-IP is a general CF header in which copied information from X-Real-Ip in CF.
 	// CF-Connecting-IP is an Enterprise feature and we check it last in order.
 	// This operations are near O(1) because Headers struct are the map type -> type MIMEHeader map[string][]string

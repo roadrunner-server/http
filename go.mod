@@ -7,11 +7,11 @@ require (
 	github.com/goccy/go-json v0.9.4
 	github.com/mholt/acmez v1.0.2
 	github.com/prometheus/client_golang v1.12.1
-	github.com/roadrunner-server/api/v2 v2.8.0-rc.4
+	github.com/roadrunner-server/api/v2 v2.8.0-rc.5
 	github.com/roadrunner-server/endure v1.2.1
 	github.com/roadrunner-server/errors v1.1.1
 	github.com/roadrunner-server/goridge/v3 v3.3.1
-	github.com/roadrunner-server/sdk/v2 v2.8.0-rc.4
+	github.com/roadrunner-server/sdk/v2 v2.8.0-rc.5
 	github.com/stretchr/testify v1.7.0
 	go.uber.org/zap v1.21.0
 	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd
@@ -41,7 +41,7 @@ require (
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.7.0 // indirect
-	golang.org/x/crypto v0.0.0-20220209195652-db638375bc3a // indirect
+	golang.org/x/crypto v0.0.0-20220210151621-f4118a5b28e2 // indirect
 	golang.org/x/mod v0.5.1 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/text v0.3.7 // indirect
