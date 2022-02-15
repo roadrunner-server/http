@@ -13,13 +13,15 @@ import (
 	"github.com/roadrunner-server/api/v2/plugins/middleware"
 	"github.com/roadrunner-server/api/v2/plugins/server"
 	"github.com/roadrunner-server/api/v2/plugins/status"
+	"github.com/roadrunner-server/api/v2/pool"
+	"github.com/roadrunner-server/api/v2/state/process"
+	"github.com/roadrunner-server/api/v2/worker"
 	endure "github.com/roadrunner-server/endure/pkg/container"
 	"github.com/roadrunner-server/errors"
 	httpConfig "github.com/roadrunner-server/http/v2/config"
 	"github.com/roadrunner-server/http/v2/handler"
-	"github.com/roadrunner-server/sdk/v2/pool"
-	"github.com/roadrunner-server/sdk/v2/state/process"
-	"github.com/roadrunner-server/sdk/v2/worker"
+	poolImpl "github.com/roadrunner-server/sdk/v2/pool"
+	pstate "github.com/roadrunner-server/sdk/v2/state/process"
 	"go.uber.org/zap"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
@@ -124,14 +126,14 @@ func (p *Plugin) Serve() chan error {
 
 func (p *Plugin) serve(errCh chan error) { //nolint:gocyclo
 	var err error
-	p.pool, err = p.server.NewWorkerPool(context.Background(), &pool.Config{
+	p.pool, err = p.server.NewWorkerPool(context.Background(), &poolImpl.Config{
 		Debug:           p.cfg.Pool.Debug,
 		NumWorkers:      p.cfg.Pool.NumWorkers,
 		MaxJobs:         p.cfg.Pool.MaxJobs,
 		AllocateTimeout: p.cfg.Pool.AllocateTimeout,
 		DestroyTimeout:  p.cfg.Pool.DestroyTimeout,
 		Supervisor:      p.cfg.Pool.Supervisor,
-	}, p.cfg.Env)
+	}, p.cfg.Env, p.log)
 	if err != nil {
 		errCh <- err
 		return
@@ -307,7 +309,7 @@ func (p *Plugin) Workers() []*process.State {
 
 	ps := make([]*process.State, 0, len(workers))
 	for i := 0; i < len(workers); i++ {
-		state, err := process.WorkerProcessState(workers[i])
+		state, err := pstate.WorkerProcessState(workers[i])
 		if err != nil {
 			return nil
 		}
