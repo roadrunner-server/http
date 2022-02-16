@@ -20,7 +20,6 @@ import (
 	"github.com/roadrunner-server/errors"
 	httpConfig "github.com/roadrunner-server/http/v2/config"
 	"github.com/roadrunner-server/http/v2/handler"
-	poolImpl "github.com/roadrunner-server/sdk/v2/pool"
 	pstate "github.com/roadrunner-server/sdk/v2/state/process"
 	"go.uber.org/zap"
 	"golang.org/x/net/http2"
@@ -126,14 +125,7 @@ func (p *Plugin) Serve() chan error {
 
 func (p *Plugin) serve(errCh chan error) { //nolint:gocyclo
 	var err error
-	p.pool, err = p.server.NewWorkerPool(context.Background(), &poolImpl.Config{
-		Debug:           p.cfg.Pool.Debug,
-		NumWorkers:      p.cfg.Pool.NumWorkers,
-		MaxJobs:         p.cfg.Pool.MaxJobs,
-		AllocateTimeout: p.cfg.Pool.AllocateTimeout,
-		DestroyTimeout:  p.cfg.Pool.DestroyTimeout,
-		Supervisor:      p.cfg.Pool.Supervisor,
-	}, p.cfg.Env, p.log)
+	p.pool, err = p.server.NewWorkerPool(context.Background(), p.cfg.Pool, p.cfg.Env, p.log)
 	if err != nil {
 		errCh <- err
 		return
