@@ -20,6 +20,7 @@ import (
 	"github.com/roadrunner-server/errors"
 	httpConfig "github.com/roadrunner-server/http/v2/config"
 	"github.com/roadrunner-server/http/v2/handler"
+	"github.com/roadrunner-server/http/v2/trusted"
 	pstate "github.com/roadrunner-server/sdk/v2/state/process"
 	"go.uber.org/zap"
 	"golang.org/x/net/http2"
@@ -34,6 +35,8 @@ const (
 	RrMode = "RR_MODE"
 
 	Scheme = "https"
+	// trusted middleware
+	trustedMdwr = "trusted"
 )
 
 // Plugin manages pool, http servers. The main http plugin structure
@@ -60,6 +63,7 @@ type Plugin struct {
 
 	// metrics
 	statsExporter *statsExporter
+	trusted       *trusted.Trusted
 
 	// servers
 	http  *http.Server
@@ -130,6 +134,11 @@ func (p *Plugin) serve(errCh chan error) { //nolint:gocyclo
 		errCh <- err
 		return
 	}
+
+	p.trusted = trusted.NewTrustedResolver(p.cfg.Cidrs)
+	p.mdwr[trustedMdwr] = p.trusted
+	// add it last (will be first applied)
+	p.cfg.Middleware = append(p.cfg.Middleware, trustedMdwr)
 
 	p.handler, err = handler.NewHandler(
 		p.cfg.MaxRequestSize,
@@ -357,7 +366,10 @@ func (p *Plugin) Collects() []interface{} {
 
 // AddMiddleware is base requirement for the middleware (name and Middleware)
 func (p *Plugin) AddMiddleware(name endure.Named, m middleware.Middleware) {
+	// just to be safe
+	p.mu.Lock()
 	p.mdwr[name.Name()] = m
+	p.mu.Unlock()
 }
 
 // Status return status of the particular plugin
