@@ -42,8 +42,7 @@ func (t *Trusted) Middleware(next http.Handler) http.Handler {
 			}
 		}
 
-		isTrusted := t.isTrusted(ip)
-		if !isTrusted {
+		if !t.isTrusted(ip) {
 			http.Error(w, fmt.Sprintf("ip address is not trusted: %s", ip), http.StatusForbidden)
 			return
 		}
