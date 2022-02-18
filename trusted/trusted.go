@@ -1,7 +1,6 @@
 package trusted
 
 import (
-	"fmt"
 	"net"
 	"net/http"
 	"regexp"
@@ -43,7 +42,7 @@ func (t *Trusted) Middleware(next http.Handler) http.Handler {
 		}
 
 		if !t.isTrusted(ip) {
-			http.Error(w, fmt.Sprintf("ip address is not trusted: %s", ip), http.StatusForbidden)
+			http.Error(w, "ip address is not trusted", http.StatusForbidden)
 			return
 		}
 
