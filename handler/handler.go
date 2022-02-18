@@ -2,7 +2,6 @@ package handler
 
 import (
 	stderr "errors"
-	"net"
 	"net/http"
 	"strconv"
 	"strings"
@@ -141,8 +140,6 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// proxy IP resolution
-	h.resolveIP(req)
 	req.Open(h.log, h.uploads.dir, h.uploads.forbid, h.uploads.allow)
 	// get payload from the pool
 	pld := h.getPld()
@@ -239,48 +236,6 @@ func (h *Handler) handleError(w http.ResponseWriter, err error) {
 		errors.Is(errors.Network, err) {
 		// write an internal server error
 		w.WriteHeader(int(h.internalHTTPCode))
-	}
-}
-
-// get real ip passing multiple proxy
-func (h *Handler) resolveIP(r *Request) {
-	if h.trusted.IsTrusted(r.RemoteAddr) == false { //nolint:gosimple
-		return
-	}
-
-	if r.Header.Get("X-Forwarded-For") != "" {
-		ips := strings.Split(r.Header.Get("X-Forwarded-For"), ",")
-		ipCount := len(ips)
-
-		for i := ipCount - 1; i >= 0; i-- {
-			addr := strings.TrimSpace(ips[i])
-			if net.ParseIP(addr) != nil {
-				r.RemoteAddr = addr
-				return
-			}
-		}
-
-		return
-	}
-
-	// The logic here is the following:
-	// In general case, we only expect X-Real-Ip header. If it exist, we get the IP address from header and set request Remote address
-	// But, if there is no X-Real-Ip header, we're also trying to check CloudFlare headers
-	// True-Client-IP is a general CF header in which copied information from X-Real-Ip in CF.
-	// CF-Connecting-IP is an Enterprise feature and we check it last in order.
-	// This operations are near O(1) because Headers struct are the map type -> type MIMEHeader map[string][]string
-	if r.Header.Get("X-Real-Ip") != "" {
-		r.RemoteAddr = FetchIP(r.Header.Get("X-Real-Ip"))
-		return
-	}
-
-	if r.Header.Get("True-Client-IP") != "" {
-		r.RemoteAddr = FetchIP(r.Header.Get("True-Client-IP"))
-		return
-	}
-
-	if r.Header.Get("CF-Connecting-IP") != "" {
-		r.RemoteAddr = FetchIP(r.Header.Get("CF-Connecting-IP"))
 	}
 }
 

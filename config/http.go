@@ -134,11 +134,15 @@ func (c *HTTP) InitDefaults() error {
 
 	if c.TrustedSubnets == nil {
 		// @see https://en.wikipedia.org/wiki/Reserved_IP_addresses
+		// private addresses
 		c.TrustedSubnets = []string{
 			"10.0.0.0/8",
-			"127.0.0.0/8",
+			"100.64.0.0/10",
 			"172.16.0.0/12",
+			"192.0.0.0/24",
 			"192.168.0.0/16",
+			"198.18.0.0/15",
+			"127.0.0.0/8",
 			"::1/128",
 			"fc00::/7",
 			"fe80::/10",
