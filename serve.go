@@ -181,7 +181,7 @@ func (p *Plugin) tlsAddr(host string, forcePort bool) string {
 }
 
 func applyMiddlewares(server *http.Server, middlewares map[string]middleware.Middleware, order []string, log *zap.Logger) {
-	for i := len(order) - 1; i >= 0; i-- {
+	for i := 0; i < len(order); i++ {
 		if mdwr, ok := middlewares[order[i]]; ok {
 			server.Handler = mdwr.Middleware(server.Handler)
 		} else {
