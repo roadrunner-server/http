@@ -13,7 +13,6 @@ import (
 	"github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/goridge/v3/pkg/frame"
 	"github.com/roadrunner-server/http/v2/attributes"
-	"github.com/roadrunner-server/http/v2/config"
 	"go.uber.org/zap"
 )
 
@@ -36,7 +35,6 @@ type uploads struct {
 type Handler struct {
 	maxRequestSize uint64
 	uploads        *uploads
-	trusted        config.Cidrs
 	log            *zap.Logger
 	pool           pool.Pool
 
@@ -50,7 +48,7 @@ type Handler struct {
 }
 
 // NewHandler return handle interface implementation
-func NewHandler(maxReqSize uint64, internalHTTPCode uint64, dir string, allow, forbid map[string]struct{}, trusted config.Cidrs, pool pool.Pool, log *zap.Logger, accessLogs bool) (*Handler, error) {
+func NewHandler(maxReqSize uint64, internalHTTPCode uint64, dir string, allow, forbid map[string]struct{}, pool pool.Pool, log *zap.Logger, accessLogs bool) (*Handler, error) {
 	if pool == nil {
 		return nil, errors.E(errors.Str("pool should be initialized"))
 	}
@@ -64,7 +62,6 @@ func NewHandler(maxReqSize uint64, internalHTTPCode uint64, dir string, allow, f
 		},
 		pool:             pool,
 		log:              log,
-		trusted:          trusted,
 		internalHTTPCode: internalHTTPCode,
 		accessLogs:       accessLogs,
 		reqPool: sync.Pool{

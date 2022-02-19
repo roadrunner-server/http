@@ -135,9 +135,9 @@ func (p *Plugin) serve(errCh chan error) { //nolint:gocyclo
 		return
 	}
 
+	// add it last (will be first applied)
 	p.trusted = trusted.NewTrustedResolver(p.cfg.Cidrs)
 	p.mdwr[trustedMdwr] = p.trusted
-	// add it last (will be first applied)
 	p.cfg.Middleware = append(p.cfg.Middleware, trustedMdwr)
 
 	p.handler, err = handler.NewHandler(
@@ -146,7 +146,6 @@ func (p *Plugin) serve(errCh chan error) { //nolint:gocyclo
 		p.cfg.Uploads.Dir,
 		p.cfg.Uploads.Allowed,
 		p.cfg.Uploads.Forbidden,
-		p.cfg.Cidrs,
 		p.pool,
 		p.log,
 		p.cfg.AccessLogs,
