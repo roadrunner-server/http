@@ -135,10 +135,12 @@ func (p *Plugin) serve(errCh chan error) { //nolint:gocyclo
 		return
 	}
 
-	// add it last (will be first applied)
-	p.trusted = trusted.NewTrustedResolver(p.cfg.Cidrs)
-	p.mdwr[trustedMdwr] = p.trusted
-	p.cfg.Middleware = append(p.cfg.Middleware, trustedMdwr)
+	if len(p.cfg.Cidrs) > 0 {
+		// add it last (will be first applied)
+		p.trusted = trusted.NewTrustedResolver(p.cfg.Cidrs)
+		p.mdwr[trustedMdwr] = p.trusted
+		p.cfg.Middleware = append(p.cfg.Middleware, trustedMdwr)
+	}
 
 	p.handler, err = handler.NewHandler(
 		p.cfg.MaxRequestSize,
