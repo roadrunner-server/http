@@ -41,6 +41,12 @@ func (t *Trusted) Middleware(next http.Handler) http.Handler {
 			}
 		}
 
+		// if user doesn't specify trusted addresses, all addresses are trusted
+		if len(t.trusted) == 0 {
+			next.ServeHTTP(w, r)
+			return
+		}
+
 		if !t.isTrusted(ip) {
 			http.Error(w, "ip address is not trusted", http.StatusForbidden)
 			return
@@ -51,12 +57,6 @@ func (t *Trusted) Middleware(next http.Handler) http.Handler {
 }
 
 func (t *Trusted) isTrusted(ip string) bool {
-	// if user doesn't specify trusted addresses, all addresses are trusted
-	if len(t.trusted) == 0 {
-		// add addr to the cache
-		return true
-	}
-
 	i := net.ParseIP(ip)
 	if i == nil {
 		return false
