@@ -15,7 +15,7 @@ require (
 	github.com/stretchr/testify v1.7.0
 	go.uber.org/zap v1.21.0
 	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd
-	golang.org/x/sys v0.0.0-20220209214540-3681064d5158
+	golang.org/x/sys v0.0.0-20220222200937-f2425489ef4c
 )
 
 require (
@@ -27,7 +27,7 @@ require (
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/uuid v1.3.0 // indirect
-	github.com/klauspost/compress v1.14.3 // indirect
+	github.com/klauspost/compress v1.14.4 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.11 // indirect
 	github.com/libdns/libdns v0.2.1 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
