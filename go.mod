@@ -9,7 +9,7 @@ require (
 	github.com/prometheus/client_golang v1.12.1
 	github.com/roadrunner-server/api/v2 v2.12.0
 	github.com/roadrunner-server/endure v1.2.1
-	github.com/roadrunner-server/errors v1.1.1
+	github.com/roadrunner-server/errors v1.1.2
 	github.com/roadrunner-server/goridge/v3 v3.3.1
 	github.com/roadrunner-server/sdk/v2 v2.11.0
 	github.com/stretchr/testify v1.7.1
