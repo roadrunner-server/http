@@ -151,6 +151,100 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if streamer, ok := h.pool.(pool.Streamer); ok {
+		resp := make(chan *payload.Payload, 1)
+		errCh := make(chan error, 1)
+		var hit bool
+
+		go func() {
+			errS := streamer.ExecStream(pld, resp)
+			if errS != nil {
+				errCh <- errS
+				return
+			}
+		}()
+
+		for {
+			select {
+			case e := <-errCh:
+				req.Close(h.log)
+				h.putReq(req)
+				h.handleError(w, e)
+				h.log.Error("execute", zap.Time("start", start), zap.Duration("elapsed", time.Since(start)), zap.Error(e))
+				return
+
+			case p, cl := <-resp:
+				if !cl {
+					goto log
+				}
+
+				if !hit {
+					_, errWr := h.writeStreamHeader(p, w)
+					if errWr != nil {
+						req.Close(h.log)
+						h.putReq(req)
+						h.handleError(w, errWr)
+						h.log.Error("execute", zap.Time("start", start), zap.Duration("elapsed", time.Since(start)), zap.Error(errWr))
+						return
+					}
+					hit = true
+				}
+
+				err = h.writeStreamBody(p, w)
+				if err != nil {
+					req.Close(h.log)
+					h.putReq(req)
+					h.handleError(w, err)
+					h.log.Error("execute", zap.Time("start", start), zap.Duration("elapsed", time.Since(start)), zap.Error(err))
+					return
+				}
+			}
+		}
+
+		// log request after data have been written
+	log:
+		switch h.accessLogs {
+		case false:
+			h.log.Info("http log",
+				zap.Int("status", 200),
+				zap.String("method", req.Method),
+				zap.String("URI", req.URI),
+				zap.String("remote_address", req.RemoteAddr),
+				zap.Time("start", start),
+				zap.Duration("elapsed", time.Since(start)))
+		case true:
+			// external/cwe/cwe-117
+			usrA := r.UserAgent()
+			usrA = strings.ReplaceAll(usrA, "\n", "")
+			usrA = strings.ReplaceAll(usrA, "\r", "")
+
+			rfr := r.Referer()
+			rfr = strings.ReplaceAll(rfr, "\n", "")
+			rfr = strings.ReplaceAll(rfr, "\r", "")
+
+			h.log.Info("http access log",
+				zap.Int("status", 200),
+				zap.String("method", req.Method),
+				zap.String("URI", req.URI),
+				zap.String("remote_address", req.RemoteAddr),
+				zap.String("query", req.RawQuery),
+				zap.Int64("content_len", r.ContentLength),
+				zap.String("host", r.Host),
+				zap.String("user_agent", usrA),
+				zap.String("referer", rfr),
+				zap.String("time_local", time.Now().Format("02/Jan/06:15:04:05 -0700")),
+				zap.Time("request_time", time.Now()),
+				zap.Time("start", start),
+				zap.Duration("elapsed", time.Since(start)))
+		}
+
+		h.putPld(pld)
+		req.Close(h.log)
+		h.putReq(req)
+
+		return
+	}
+
 	wResp, err := h.pool.Exec(pld)
 	if err != nil {
 		req.Close(h.log)
@@ -289,6 +383,6 @@ func (h *Handler) putPld(pld *payload.Payload) {
 
 func (h *Handler) getPld() *payload.Payload {
 	pld := h.pldPool.Get().(*payload.Payload)
-	pld.Codec = frame.CODEC_JSON
+	pld.Codec = frame.CodecJSON
 	return pld
 }
