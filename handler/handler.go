@@ -289,6 +289,6 @@ func (h *Handler) putPld(pld *payload.Payload) {
 
 func (h *Handler) getPld() *payload.Payload {
 	pld := h.pldPool.Get().(*payload.Payload)
-	pld.Codec = frame.CODEC_JSON
+	pld.Codec = frame.CodecJSON
 	return pld
 }
