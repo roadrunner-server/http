@@ -8,14 +8,14 @@ require (
 	github.com/mholt/acmez v1.0.2
 	github.com/prometheus/client_golang v1.12.1
 	github.com/roadrunner-server/api/v2 v2.13.0
-	github.com/roadrunner-server/endure v1.2.1
+	github.com/roadrunner-server/endure v1.2.2
 	github.com/roadrunner-server/errors v1.1.2
 	github.com/roadrunner-server/goridge/v3 v3.4.0
 	github.com/roadrunner-server/sdk/v2 v2.11.1
 	github.com/stretchr/testify v1.7.1
 	go.uber.org/zap v1.21.0
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f
-	golang.org/x/sys v0.0.0-20220317061510-51cd9980dadf
+	golang.org/x/sys v0.0.0-20220318055525-2edf467146b5
 )
 
 require (
@@ -28,7 +28,7 @@ require (
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/klauspost/compress v1.15.1 // indirect
-	github.com/klauspost/cpuid/v2 v2.0.11 // indirect
+	github.com/klauspost/cpuid/v2 v2.0.12 // indirect
 	github.com/libdns/libdns v0.2.1 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
 	github.com/miekg/dns v1.1.47 // indirect
@@ -36,7 +36,7 @@ require (
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.32.1 // indirect
 	github.com/prometheus/procfs v0.7.3 // indirect
-	github.com/roadrunner-server/tcplisten v1.1.1 // indirect
+	github.com/roadrunner-server/tcplisten v1.1.2 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/tklauser/go-sysconf v0.3.10 // indirect
 	github.com/tklauser/numcpus v0.4.0 // indirect
