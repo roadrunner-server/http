@@ -49,11 +49,37 @@ func (h *Handler) writeStreamHeader(pld *payload.Payload, w http.ResponseWriter)
 	return status, nil
 }
 
-func (h *Handler) writeStreamBody(pld *payload.Payload, w http.ResponseWriter) error {
+func (h *Handler) writeStream(pld *payload.Payload, w http.ResponseWriter, once bool) error {
+	if !once {
+		_, errWr := h.writeStreamHeader(pld, w)
+		if errWr != nil {
+			return errWr
+		}
+	}
+
 	_, err := w.Write(pld.Body)
 	if err != nil {
 		return err
 	}
 
+	// do not use buffers, flush immediately
+	flusher := w.(http.Flusher)
+	flusher.Flush()
+
 	return nil
+}
+
+func (h *Handler) putErrCh(c chan error) {
+	select {
+	case <-c:
+		break
+	default:
+		break
+	}
+
+	h.errPool.Put(c)
+}
+
+func (h *Handler) getErrCh() chan error {
+	return h.errPool.Get().(chan error)
 }

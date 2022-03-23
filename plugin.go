@@ -20,7 +20,6 @@ import (
 	"github.com/roadrunner-server/errors"
 	httpConfig "github.com/roadrunner-server/http/v2/config"
 	"github.com/roadrunner-server/http/v2/handler"
-	"github.com/roadrunner-server/http/v2/trusted"
 	pstate "github.com/roadrunner-server/sdk/v2/state/process"
 	"go.uber.org/zap"
 	"golang.org/x/net/http2"
@@ -35,8 +34,8 @@ const (
 	RrMode = "RR_MODE"
 
 	Scheme = "https"
-	// trusted middleware
-	trustedMdwr = "trusted"
+
+	experimentalKey string = "experimental"
 )
 
 // Plugin manages pool, http servers. The main http plugin structure
@@ -62,8 +61,8 @@ type Plugin struct {
 	handler *handler.Handler
 
 	// metrics
-	statsExporter *statsExporter
-	trusted       *trusted.Trusted
+	statsExporter    *statsExporter
+	unstableFeatures bool
 
 	// servers
 	http  *http.Server
@@ -110,6 +109,16 @@ func (p *Plugin) Init(cfg config.Configurer, rrLogger *zap.Logger, srv server.Se
 	p.statsExporter = newWorkersExporter(p)
 	p.server = srv
 
+	// todo(rustatian): delete in 2.10 when it'll be stable
+	if cfg.Has(experimentalKey) {
+		unstableFeatures := &httpConfig.UnstableFeatures{}
+		err = cfg.UnmarshalKey(experimentalKey, &unstableFeatures)
+		if err != nil {
+			return errors.E(op, err)
+		}
+		p.unstableFeatures = unstableFeatures.HTTPStreamPool
+	}
+
 	return nil
 }
 
@@ -135,11 +144,6 @@ func (p *Plugin) serve(errCh chan error) { //nolint:gocyclo
 		return
 	}
 
-	// add it last (will be first applied)
-	p.trusted = trusted.NewTrustedResolver(p.cfg.Cidrs)
-	p.mdwr[trustedMdwr] = p.trusted
-	p.cfg.Middleware = append(p.cfg.Middleware, trustedMdwr)
-
 	p.handler, err = handler.NewHandler(
 		p.cfg.MaxRequestSize,
 		p.cfg.InternalErrorCode,
@@ -149,6 +153,8 @@ func (p *Plugin) serve(errCh chan error) { //nolint:gocyclo
 		p.pool,
 		p.log,
 		p.cfg.AccessLogs,
+		// todo(rustatian) remove !!! (rr 2.10)
+		p.unstableFeatures,
 	)
 	if err != nil {
 		errCh <- err

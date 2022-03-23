@@ -1,7 +1,6 @@
 package config
 
 import (
-	"net"
 	"runtime"
 	"strings"
 	"time"
@@ -39,17 +38,11 @@ type HTTP struct {
 	// MaxRequestSize specified max size for payload body in megabytes, set 0 to unlimited.
 	MaxRequestSize uint64 `mapstructure:"max_request_size"`
 
-	// TrustedSubnets declare IP subnets which are allowed to set ip using X-Real-Ip and X-Forwarded-For
-	TrustedSubnets []string `mapstructure:"trusted_subnets"`
-
 	// Env is environment variables passed to the  http pool
-	Env map[string]string
+	Env map[string]string `mapstructure:"env"`
 
 	// List of the middleware names (order will be preserved)
-	Middleware []string
-
-	// slice of net.IPNet
-	Cidrs Cidrs
+	Middleware []string `mapstructure:"middleware"`
 }
 
 // EnableHTTP is true when http server must run.
@@ -132,27 +125,7 @@ func (c *HTTP) InitDefaults() error {
 		return err
 	}
 
-	c.Cidrs, err = ParseCIDRs(c.TrustedSubnets)
-	if err != nil {
-		return err
-	}
-
 	return c.Valid()
-}
-
-// ParseCIDRs parse IPNet addresses and return slice of its
-func ParseCIDRs(subnets []string) (Cidrs, error) {
-	c := make(Cidrs, 0, len(subnets))
-	for _, cidr := range subnets {
-		_, cr, err := net.ParseCIDR(cidr)
-		if err != nil {
-			return nil, err
-		}
-
-		c = append(c, cr)
-	}
-
-	return c, nil
 }
 
 // Valid validates the configuration.
