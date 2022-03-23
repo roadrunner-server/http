@@ -18,8 +18,6 @@ require (
 	golang.org/x/sys v0.0.0-20220319134239-a9b59b0215f8
 )
 
-replace github.com/roadrunner-server/sdk/v2 => ../../sdk
-
 require (
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
