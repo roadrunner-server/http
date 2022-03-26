@@ -16,8 +16,7 @@ const (
 	TLSAlpn01 challenge = "tlsalpn-01"
 )
 
-func ObtainCertificates(cacheDir, email, challengeType string, domains []string, useProduction bool, altHTTPPort, altTLSAlpnPort int) (*tls.Config, error) {
-	z, _ := zap.NewProduction()
+func IssueCertificates(cacheDir, email, challengeType string, domains []string, useProduction bool, altHTTPPort, altTLSAlpnPort int, log *zap.Logger) (*tls.Config, error) {
 	cache := certmagic.NewCache(certmagic.CacheOptions{
 		GetConfigForCert: func(c certmagic.Certificate) (*certmagic.Config, error) {
 			return &certmagic.Config{
@@ -25,7 +24,7 @@ func ObtainCertificates(cacheDir, email, challengeType string, domains []string,
 				MustStaple:         false,
 				OCSP:               certmagic.OCSPConfig{},
 				Storage:            &certmagic.FileStorage{Path: cacheDir},
-				Logger:             z,
+				Logger:             log,
 			}, nil
 		},
 		OCSPCheckInterval:  0,
@@ -38,7 +37,7 @@ func ObtainCertificates(cacheDir, email, challengeType string, domains []string,
 		MustStaple:         false,
 		OCSP:               certmagic.OCSPConfig{},
 		Storage:            &certmagic.FileStorage{Path: cacheDir},
-		Logger:             z,
+		Logger:             log,
 	})
 
 	myAcme := certmagic.NewACMEIssuer(cfg, certmagic.ACMEIssuer{
@@ -53,7 +52,7 @@ func ObtainCertificates(cacheDir, email, challengeType string, domains []string,
 		AltTLSALPNPort:          altTLSAlpnPort,
 		CertObtainTimeout:       time.Second * 240,
 		PreferredChains:         certmagic.ChainPreference{},
-		Logger:                  z,
+		Logger:                  log,
 	})
 
 	if !useProduction {

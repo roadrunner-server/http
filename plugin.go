@@ -197,7 +197,7 @@ func (p *Plugin) serve(errCh chan error) { //nolint:gocyclo
 
 		if p.cfg.EnableACME() {
 			// for the first time - generate the certs
-			tlsCfg, errObt := ObtainCertificates(
+			tlsCfg, errObt := IssueCertificates(
 				p.cfg.SSLConfig.Acme.CacheDir,
 				p.cfg.SSLConfig.Acme.Email,
 				p.cfg.SSLConfig.Acme.ChallengeType,
@@ -205,6 +205,7 @@ func (p *Plugin) serve(errCh chan error) { //nolint:gocyclo
 				p.cfg.SSLConfig.Acme.UseProductionEndpoint,
 				p.cfg.SSLConfig.Acme.AltHTTPPort,
 				p.cfg.SSLConfig.Acme.AltTLSALPNPort,
+				p.log,
 			)
 
 			if errObt != nil {
