@@ -41,7 +41,7 @@ func ObtainCertificates(cacheDir, email, challengeType string, domains []string,
 		Logger:             z,
 	})
 
-	myAcme := certmagic.NewACMEManager(cfg, certmagic.ACMEManager{
+	myAcme := certmagic.NewACMEIssuer(cfg, certmagic.ACMEIssuer{
 		CA:                      certmagic.LetsEncryptProductionCA,
 		TestCA:                  certmagic.LetsEncryptStagingCA,
 		Email:                   email,
