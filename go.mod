@@ -3,7 +3,7 @@ module github.com/roadrunner-server/http/v2
 go 1.18
 
 require (
-	github.com/caddyserver/certmagic v0.15.4
+	github.com/caddyserver/certmagic v0.16.0
 	github.com/goccy/go-json v0.9.6
 	github.com/mholt/acmez v1.0.2
 	github.com/prometheus/client_golang v1.12.1
@@ -14,8 +14,8 @@ require (
 	github.com/roadrunner-server/sdk/v2 v2.12.0
 	github.com/stretchr/testify v1.7.1
 	go.uber.org/zap v1.21.0
-	golang.org/x/net v0.0.0-20220225172249-27dd8689420f
-	golang.org/x/sys v0.0.0-20220319134239-a9b59b0215f8
+	golang.org/x/net v0.0.0-20220325170049-de3da57026de
+	golang.org/x/sys v0.0.0-20220325203850-36772127a21f
 )
 
 require (
