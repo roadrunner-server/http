@@ -34,8 +34,6 @@ const (
 	RrMode = "RR_MODE"
 
 	Scheme = "https"
-
-	experimentalKey string = "experimental"
 )
 
 // Plugin manages pool, http servers. The main http plugin structure
@@ -61,8 +59,7 @@ type Plugin struct {
 	handler *handler.Handler
 
 	// metrics
-	statsExporter    *statsExporter
-	unstableFeatures bool
+	statsExporter *statsExporter
 
 	// servers
 	http  *http.Server
@@ -109,16 +106,6 @@ func (p *Plugin) Init(cfg config.Configurer, rrLogger *zap.Logger, srv server.Se
 	p.statsExporter = newWorkersExporter(p)
 	p.server = srv
 
-	// todo(rustatian): delete in 2.10 when it'll be stable
-	if cfg.Has(experimentalKey) {
-		unstableFeatures := &httpConfig.UnstableFeatures{}
-		err = cfg.UnmarshalKey(experimentalKey, &unstableFeatures)
-		if err != nil {
-			return errors.E(op, err)
-		}
-		p.unstableFeatures = unstableFeatures.HTTPStreamPool
-	}
-
 	return nil
 }
 
@@ -153,8 +140,6 @@ func (p *Plugin) serve(errCh chan error) { //nolint:gocyclo
 		p.pool,
 		p.log,
 		p.cfg.AccessLogs,
-		// todo(rustatian) remove !!! (rr 2.10)
-		p.unstableFeatures,
 	)
 	if err != nil {
 		errCh <- err

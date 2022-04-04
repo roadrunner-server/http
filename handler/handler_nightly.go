@@ -1,4 +1,4 @@
-//go:build !nightly
+//go:build nightly
 
 package handler
 
@@ -101,7 +101,7 @@ func NewHandler(maxReqSize uint64, internalHTTPCode uint64, dir string, allow, f
 }
 
 // ServeHTTP transform original request to the PSR-7 passed then to the underlying application. Attempts to serve static files first if enabled.
-func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) { //nolint:gocognit,gocyclo
 	const op = errors.Op("serve_http")
 	start := time.Now()
 
@@ -159,30 +159,68 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wResp, err := h.pool.Exec(pld)
-	if err != nil {
-		req.Close(h.log)
-		h.putReq(req)
-		h.putPld(pld)
-		h.handleError(w, err)
-		h.log.Error("execute", zap.Time("start", start), zap.Duration("elapsed", time.Since(start)), zap.Error(err))
-		return
-	}
+	resp := make(chan *payload.Payload, 1)
+	errCh := h.getErrCh()
+	defer h.putErrCh(errCh)
+	var once bool
 
-	status, err := h.Write(wResp, w)
-	if err != nil {
-		req.Close(h.log)
-		h.putReq(req)
-		h.putPld(pld)
-		h.handleError(w, err)
-		h.log.Error("write response error", zap.Time("start", start), zap.Duration("elapsed", time.Since(start)), zap.Error(err))
-		return
-	}
+	go func() {
+		// todo(rustatian): temporary solution, channel should be used to send a stop signal when connection was
+		// broken on the RR side
+		errS := h.pool.(pool.Streamer).ExecStream(pld, resp, make(chan struct{}))
+		if errS != nil {
+			errCh <- errS
+			return
+		}
+	}()
 
+	for {
+		select {
+		case e := <-errCh:
+			req.Close(h.log)
+			h.putReq(req)
+			h.handleError(w, e)
+			h.log.Error("execute", zap.Time("start", start), zap.Duration("elapsed", time.Since(start)), zap.Error(e))
+			go func() {
+				// read response till the end
+				h.log.Warn("draining response, error occurred, worker is in use")
+				for range resp {
+				}
+				h.log.Warn("draining response: finished, worker is ready to handle next request")
+			}()
+			return
+
+		case p, cl := <-resp:
+			if !cl {
+				goto log
+			}
+
+			err = h.writeStream(p, w, once)
+			if err != nil {
+				req.Close(h.log)
+				h.putReq(req)
+				h.handleError(w, err)
+				h.log.Error("execute", zap.Time("start", start), zap.Duration("elapsed", time.Since(start)), zap.Error(err))
+				go func() {
+					h.log.Warn("draining response, error occurred, worker is in use")
+					// read response till the end
+					for range resp {
+					}
+
+					h.log.Warn("draining response: finished, worker is ready to handle next request")
+				}()
+				return
+			}
+
+			once = true
+		}
+	}
+	// log request after data have been written
+log:
 	switch h.accessLogs {
 	case false:
 		h.log.Info("http log",
-			zap.Int("status", status),
+			zap.Int("status", 200),
 			zap.String("method", req.Method),
 			zap.String("URI", req.URI),
 			zap.String("remote_address", req.RemoteAddr),
@@ -199,7 +237,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		rfr = strings.ReplaceAll(rfr, "\r", "")
 
 		h.log.Info("http access log",
-			zap.Int("status", status),
+			zap.Int("status", 200),
 			zap.String("method", req.Method),
 			zap.String("URI", req.URI),
 			zap.String("remote_address", req.RemoteAddr),
@@ -217,6 +255,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.putPld(pld)
 	req.Close(h.log)
 	h.putReq(req)
+
+	return
 }
 
 func (h *Handler) Dispose() {}

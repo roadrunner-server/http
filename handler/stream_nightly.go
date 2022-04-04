@@ -1,3 +1,5 @@
+//go:build nightly
+
 package handler
 
 import (
