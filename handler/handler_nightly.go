@@ -251,8 +251,6 @@ log:
 	h.putPld(pld)
 	req.Close(h.log)
 	h.putReq(req)
-
-	return
 }
 
 func (h *Handler) Dispose() {}
