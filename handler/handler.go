@@ -52,10 +52,6 @@ type Handler struct {
 
 // NewHandler return handle interface implementation
 func NewHandler(maxReqSize uint64, internalHTTPCode uint64, dir string, allow, forbid map[string]struct{}, pool pool.Pool, log *zap.Logger, accessLogs bool) (*Handler, error) {
-	if pool == nil {
-		return nil, errors.E(errors.Str("pool should be initialized"))
-	}
-
 	return &Handler{
 		maxRequestSize: maxReqSize * MB,
 		uploads: &uploads{

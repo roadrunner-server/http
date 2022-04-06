@@ -131,6 +131,11 @@ func (p *Plugin) serve(errCh chan error) { //nolint:gocyclo
 		return
 	}
 
+	if p.pool == nil {
+		errCh <- errors.Str("pool should be initialized")
+		return
+	}
+
 	p.handler, err = handler.NewHandler(
 		p.cfg.MaxRequestSize,
 		p.cfg.InternalErrorCode,
