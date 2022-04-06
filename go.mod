@@ -11,11 +11,11 @@ require (
 	github.com/roadrunner-server/endure v1.2.2
 	github.com/roadrunner-server/errors v1.1.2
 	github.com/roadrunner-server/goridge/v3 v3.4.0
-	github.com/roadrunner-server/sdk/v2 v2.12.0
+	github.com/roadrunner-server/sdk/v2 v2.13.0
 	github.com/stretchr/testify v1.7.1
 	go.uber.org/zap v1.21.0
 	golang.org/x/net v0.0.0-20220403103023-749bd193bc2b
-	golang.org/x/sys v0.0.0-20220405210540-1e041c57c461
+	golang.org/x/sys v0.0.0-20220406155245-289d7a0edf71
 )
 
 require (

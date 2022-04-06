@@ -20,6 +20,7 @@ import (
 	"github.com/roadrunner-server/errors"
 	httpConfig "github.com/roadrunner-server/http/v2/config"
 	"github.com/roadrunner-server/http/v2/handler"
+	"github.com/roadrunner-server/sdk/v2/metrics"
 	pstate "github.com/roadrunner-server/sdk/v2/state/process"
 	"go.uber.org/zap"
 	"golang.org/x/net/http2"
@@ -59,7 +60,7 @@ type Plugin struct {
 	handler *handler.Handler
 
 	// metrics
-	statsExporter *statsExporter
+	statsExporter *metrics.StatsExporter
 
 	// servers
 	http  *http.Server
