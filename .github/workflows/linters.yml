@@ -1,6 +1,6 @@
 name: Linters
 
-on: [push, pull_request]
+on: [ push, pull_request ]
 
 jobs:
   golangci-lint:
@@ -21,6 +21,18 @@ jobs:
           version: v1.45.1 # without patch version
           only-new-issues: false # show only new issues if it's a pull request
           args: --timeout=10m --build-tags=race
+
+  golangci-lint-on-nightly:
+    name: Golang-CI (lint)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Set up Go 1.18
+        uses: actions/setup-go@v2 # action page: <https://github.com/actions/setup-go>
+        with:
+          go-version: 1.18
 
       - name: Run linter on nightly
         uses: golangci/golangci-lint-action@v3.1.0 # Action page: <https://github.com/golangci/golangci-lint-action>
