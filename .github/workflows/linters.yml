@@ -23,7 +23,7 @@ jobs:
           args: --timeout=10m --build-tags=race
 
   golangci-lint-on-nightly:
-    name: Golang-CI (lint)
+    name: Golang-CI (nightly)
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
