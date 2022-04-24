@@ -1,4 +1,4 @@
-package config
+package https
 
 import (
 	"github.com/roadrunner-server/errors"
