@@ -1,4 +1,4 @@
-package http
+package helpers
 
 import (
 	"github.com/roadrunner-server/sdk/v2/utils"

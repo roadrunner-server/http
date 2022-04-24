@@ -5,7 +5,6 @@ package handler
 import (
 	stderr "errors"
 	"net/http"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -15,15 +14,17 @@ import (
 	"github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/goridge/v3/pkg/frame"
 	"github.com/roadrunner-server/http/v2/attributes"
+	httpConf "github.com/roadrunner-server/http/v2/http"
+	uploadsConf "github.com/roadrunner-server/http/v2/uploads"
 	"go.uber.org/zap"
 )
 
 const (
 	// MB is 1024 bytes
-	MB         uint64 = 1024 * 1024
-	ContentLen string = "Content-Length"
-	noWorkers  string = "No-Workers"
-	trueStr    string = "true"
+	MB uint64 = 1024 * 1024
+
+	noWorkers string = "No-Workers"
+	trueStr   string = "true"
 )
 
 type uploads struct {
@@ -51,18 +52,18 @@ type Handler struct {
 }
 
 // NewHandler return handle interface implementation
-func NewHandler(maxReqSize uint64, internalHTTPCode uint64, dir string, allow, forbid map[string]struct{}, pool pool.Pool, log *zap.Logger, accessLogs bool) (*Handler, error) {
+func NewHandler(httpCfg *httpConf.Config, uploadsCfg *uploadsConf.Uploads, pool pool.Pool, log *zap.Logger) (*Handler, error) {
 	return &Handler{
-		maxRequestSize: maxReqSize * MB,
+		maxRequestSize: httpCfg.MaxRequestSize * MB,
 		uploads: &uploads{
-			dir:    dir,
-			allow:  allow,
-			forbid: forbid,
+			dir:    uploadsCfg.Dir,
+			allow:  uploadsCfg.Allowed,
+			forbid: uploadsCfg.Forbidden,
 		},
 		pool:             pool,
 		log:              log,
-		internalHTTPCode: internalHTTPCode,
-		accessLogs:       accessLogs,
+		internalHTTPCode: httpCfg.InternalErrorCode,
+		accessLogs:       httpCfg.AccessLogs,
 		errPool: sync.Pool{
 			New: func() any {
 				return make(chan error, 1)
@@ -90,6 +91,7 @@ func NewHandler(maxReqSize uint64, internalHTTPCode uint64, dir string, allow, f
 				return &payload.Payload{
 					Body:    make([]byte, 0, 100),
 					Context: make([]byte, 0, 100),
+					Codec:   frame.CodecJSON,
 				}
 			},
 		},
@@ -100,27 +102,6 @@ func NewHandler(maxReqSize uint64, internalHTTPCode uint64, dir string, allow, f
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	const op = errors.Op("serve_http")
 	start := time.Now()
-
-	// validating request size
-	if h.maxRequestSize != 0 {
-		const op = errors.Op("http_handler_max_size")
-		if length := r.Header.Get(ContentLen); length != "" {
-			// try to parse the value from the `content-length` header
-			size, err := strconv.ParseInt(length, 10, 64)
-			if err != nil {
-				// if got an error while parsing -> assign 500 code to the writer and return
-				http.Error(w, "", 500)
-				h.log.Error("error while parsing value from the content-length header", zap.Time("start", start), zap.Duration("elapsed", time.Since(start)))
-				return
-			}
-
-			if size > int64(h.maxRequestSize) {
-				h.log.Error("request max body size is exceeded", zap.Uint64("allowed_size", h.maxRequestSize), zap.Int64("actual_size", size), zap.Time("start", start), zap.Duration("elapsed", time.Since(start)))
-				http.Error(w, errors.E(op, errors.Str("request body max size is exceeded")).Error(), http.StatusBadRequest)
-				return
-			}
-		}
-	}
 
 	req := h.getReq(r)
 	err := request(r, req)

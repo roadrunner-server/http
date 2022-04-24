@@ -8,8 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mholt/acmez"
-	"github.com/roadrunner-server/api/v2/plugins/config"
+	cfgPlugin "github.com/roadrunner-server/api/v2/plugins/config"
 	"github.com/roadrunner-server/api/v2/plugins/middleware"
 	"github.com/roadrunner-server/api/v2/plugins/server"
 	"github.com/roadrunner-server/api/v2/plugins/status"
@@ -18,24 +17,40 @@ import (
 	"github.com/roadrunner-server/api/v2/worker"
 	endure "github.com/roadrunner-server/endure/pkg/container"
 	"github.com/roadrunner-server/errors"
-	httpConfig "github.com/roadrunner-server/http/v2/config"
+	"github.com/roadrunner-server/http/v2/config"
+	"github.com/roadrunner-server/http/v2/fcgi"
 	"github.com/roadrunner-server/http/v2/handler"
+	"github.com/roadrunner-server/http/v2/helpers"
+	httpServer "github.com/roadrunner-server/http/v2/http"
+	tlsServer "github.com/roadrunner-server/http/v2/https"
+	bundledMw "github.com/roadrunner-server/http/v2/middleware"
 	"github.com/roadrunner-server/sdk/v2/metrics"
 	pstate "github.com/roadrunner-server/sdk/v2/state/process"
 	"go.uber.org/zap"
-	"golang.org/x/net/http2"
-	"golang.org/x/net/http2/h2c"
 )
 
 const (
 	// PluginName declares plugin name.
 	PluginName = "http"
 
+	// configuration sections
+	sectionHTTPS   = "http.ssl"
+	sectionHTTP2   = "http.http2"
+	sectionFCGI    = "http.fcgi"
+	sectionUploads = "http.uploads"
+
 	// RrMode RR_HTTP env variable key (internal) if the HTTP presents
 	RrMode = "RR_MODE"
 
 	Scheme = "https"
 )
+
+// internal interface to start-stop http servers
+type internalServer interface {
+	Start(map[string]middleware.Middleware, []string) error
+	GetServer() *http.Server
+	Stop()
+}
 
 // Plugin manages pool, http servers. The main http plugin structure
 type Plugin struct {
@@ -48,35 +63,61 @@ type Plugin struct {
 	stdLog *log.Logger
 
 	// http configuration
-	cfg *httpConfig.HTTP `mapstructure:"http"`
+	cfg *config.Config
 
 	// middlewares to chain
 	mdwr map[string]middleware.Middleware
 
 	// Pool which attached to all servers
 	pool pool.Pool
-
 	// servers RR handler
 	handler *handler.Handler
-
 	// metrics
 	statsExporter *metrics.StatsExporter
-
 	// servers
-	http  *http.Server
-	https *http.Server
-	fcgi  *http.Server
+	servers []internalServer
 }
 
 // Init must return configure svc and return true if svc hasStatus enabled. Must return error in case of
 // misconfiguration. Services must not be used without proper configuration pushed first.
-func (p *Plugin) Init(cfg config.Configurer, rrLogger *zap.Logger, srv server.Server) error {
+func (p *Plugin) Init(cfg cfgPlugin.Configurer, rrLogger *zap.Logger, srv server.Server) error {
 	const op = errors.Op("http_plugin_init")
 	if !cfg.Has(PluginName) {
 		return errors.E(op, errors.Disabled)
 	}
 
+	// unmarshal general section
 	err := cfg.UnmarshalKey(PluginName, &p.cfg)
+	if err != nil {
+		return errors.E(op, err)
+	}
+
+	// unmarshal HTTP section
+	err = cfg.UnmarshalKey(PluginName, &p.cfg.HTTPConfig)
+	if err != nil {
+		return errors.E(op, err)
+	}
+
+	// unmarshal HTTPS section
+	err = cfg.UnmarshalKey(sectionHTTPS, &p.cfg.SSLConfig)
+	if err != nil {
+		return errors.E(op, err)
+	}
+
+	// unmarshal H2C section
+	err = cfg.UnmarshalKey(sectionHTTP2, &p.cfg.HTTP2Config)
+	if err != nil {
+		return errors.E(op, err)
+	}
+
+	// unmarshal uploads section
+	err = cfg.UnmarshalKey(sectionUploads, &p.cfg.Uploads)
+	if err != nil {
+		return errors.E(op, err)
+	}
+
+	// unmarshal fcgi section
+	err = cfg.UnmarshalKey(sectionFCGI, &p.cfg.FCGIConfig)
 	if err != nil {
 		return errors.E(op, err)
 	}
@@ -91,21 +132,17 @@ func (p *Plugin) Init(cfg config.Configurer, rrLogger *zap.Logger, srv server.Se
 	*p.log = *rrLogger
 
 	// use time and date in UTC format
-	p.stdLog = log.New(NewStdAdapter(p.log), "http_plugin: ", log.Ldate|log.Ltime|log.LUTC)
+	p.stdLog = log.New(helpers.NewStdAdapter(p.log), "http_plugin: ", log.Ldate|log.Ltime|log.LUTC)
 	p.mdwr = make(map[string]middleware.Middleware)
+
 	if !p.cfg.EnableHTTP() && !p.cfg.EnableTLS() && !p.cfg.EnableFCGI() {
 		return errors.E(op, errors.Disabled)
 	}
 
-	// init if nil
-	if p.cfg.Env == nil {
-		p.cfg.Env = make(map[string]string)
-	}
-	p.cfg.Env[RrMode] = "http"
-
 	// initialize statsExporter
 	p.statsExporter = newWorkersExporter(p)
 	p.server = srv
+	p.servers = make([]internalServer, 0, 4)
 
 	return nil
 }
@@ -124,114 +161,72 @@ func (p *Plugin) Serve() chan error {
 	return errCh
 }
 
-func (p *Plugin) serve(errCh chan error) { //nolint:gocyclo
+func (p *Plugin) serve(errCh chan error) {
 	var err error
-	p.pool, err = p.server.NewWorkerPool(context.Background(), p.cfg.Pool, p.cfg.Env, p.log)
+	p.pool, err = p.server.NewWorkerPool(context.Background(), p.cfg.Pool, map[string]string{RrMode: "http"}, p.log)
 	if err != nil {
 		errCh <- err
 		return
 	}
 
+	// just to be safe :)
 	if p.pool == nil {
 		errCh <- errors.Str("pool should be initialized")
 		return
 	}
 
 	p.handler, err = handler.NewHandler(
-		p.cfg.MaxRequestSize,
-		p.cfg.InternalErrorCode,
-		p.cfg.Uploads.Dir,
-		p.cfg.Uploads.Allowed,
-		p.cfg.Uploads.Forbidden,
+		p.cfg.HTTPConfig,
+		p.cfg.Uploads,
 		p.pool,
 		p.log,
-		p.cfg.AccessLogs,
 	)
+
 	if err != nil {
 		errCh <- err
 		return
 	}
 
 	if p.cfg.EnableHTTP() {
-		if p.cfg.EnableH2C() {
-			p.http = &http.Server{
-				Handler: h2c.NewHandler(p, &http2.Server{
-					MaxHandlers:                  0,
-					MaxConcurrentStreams:         0,
-					MaxReadFrameSize:             0,
-					PermitProhibitedCipherSuites: false,
-					IdleTimeout:                  0,
-					MaxUploadBufferPerConnection: 0,
-					MaxUploadBufferPerStream:     0,
-					NewWriteScheduler:            nil,
-					CountError:                   nil,
-				}),
-				ErrorLog: p.stdLog,
-			}
+		// handle redirects
+		if p.cfg.SSLConfig != nil {
+			p.servers = append(p.servers, httpServer.NewHTTPServer(p, p.cfg.HTTPConfig, p.stdLog, p.log, p.cfg.EnableH2C(), p.cfg.SSLConfig.Redirect, p.cfg.SSLConfig.Port))
 		} else {
-			p.http = &http.Server{
-				Handler:  p,
-				ErrorLog: p.stdLog,
-			}
+			p.servers = append(p.servers, httpServer.NewHTTPServer(p, p.cfg.HTTPConfig, p.stdLog, p.log, p.cfg.EnableH2C(), false, 0))
 		}
 	}
 
 	if p.cfg.EnableTLS() {
-		p.https = p.initTLS()
-		if p.cfg.SSLConfig.RootCA != "" {
-			err = p.appendRootCa()
-			if err != nil {
-				errCh <- err
-				return
-			}
+		https, errHTTPS := tlsServer.NewHTTPSServer(p, p.cfg.SSLConfig, p.cfg.HTTP2Config, p.stdLog, p.log)
+		if errHTTPS != nil {
+			errCh <- errHTTPS
+			return
 		}
 
-		if p.cfg.EnableACME() {
-			// for the first time - generate the certs
-			tlsCfg, errObt := IssueCertificates(
-				p.cfg.SSLConfig.Acme.CacheDir,
-				p.cfg.SSLConfig.Acme.Email,
-				p.cfg.SSLConfig.Acme.ChallengeType,
-				p.cfg.SSLConfig.Acme.Domains,
-				p.cfg.SSLConfig.Acme.UseProductionEndpoint,
-				p.cfg.SSLConfig.Acme.AltHTTPPort,
-				p.cfg.SSLConfig.Acme.AltTLSALPNPort,
-				p.log,
-			)
-
-			if errObt != nil {
-				errCh <- errObt
-				return
-			}
-
-			p.https.TLSConfig.GetCertificate = tlsCfg.GetCertificate
-			p.https.TLSConfig.NextProtos = append(p.https.TLSConfig.NextProtos, acmez.ACMETLS1Protocol)
-		}
-
-		// if HTTP2Config not nil
-		if p.cfg.HTTP2Config != nil {
-			if err = p.initHTTP2(); err != nil {
-				errCh <- err
-				return
-			}
-		}
+		p.servers = append(p.servers, https)
 	}
 
 	if p.cfg.EnableFCGI() {
-		p.fcgi = &http.Server{Handler: p, ErrorLog: p.stdLog}
+		p.servers = append(p.servers, fcgi.NewFCGIServer(p, p.cfg.FCGIConfig, p.log, p.stdLog))
 	}
 
-	// start http, https and fcgi servers if requested in the config
-	if p.http != nil {
-		go p.serveHTTP(errCh)
+	// if user uses the max_request_size, apply it to all servers
+	if p.cfg.HTTPConfig != nil && p.cfg.HTTPConfig.MaxRequestSize != 0 {
+		for i := 0; i < len(p.servers); i++ {
+			serv := p.servers[i].GetServer()
+			serv.Handler = bundledMw.MaxRequestSize(serv.Handler, p.cfg.HTTPConfig.MaxRequestSize, p.log)
+		}
 	}
 
-	if p.https != nil {
-		go p.serveHTTPS(errCh)
-	}
-
-	if p.fcgi != nil {
-		go p.serveFCGI(errCh)
+	// start all servers
+	for i := 0; i < len(p.servers); i++ {
+		go func(idx int) {
+			errSt := p.servers[idx].Start(p.mdwr, p.cfg.Middleware)
+			if errSt != nil {
+				errCh <- errSt
+				return
+			}
+		}(i)
 	}
 }
 
@@ -240,24 +235,9 @@ func (p *Plugin) Stop() error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	if p.fcgi != nil {
-		err := p.fcgi.Shutdown(context.Background())
-		if err != nil && !stderr.Is(err, http.ErrServerClosed) {
-			p.log.Error("fcgi shutdown", zap.Error(err))
-		}
-	}
-
-	if p.https != nil {
-		err := p.https.Shutdown(context.Background())
-		if err != nil && !stderr.Is(err, http.ErrServerClosed) {
-			p.log.Error("https shutdown", zap.Error(err))
-		}
-	}
-
-	if p.http != nil {
-		err := p.http.Shutdown(context.Background())
-		if err != nil && !stderr.Is(err, http.ErrServerClosed) {
-			p.log.Error("http shutdown", zap.Error(err))
+	for i := 0; i < len(p.servers); i++ {
+		if p.servers[i] != nil {
+			p.servers[i].Stop()
 		}
 	}
 
@@ -267,7 +247,7 @@ func (p *Plugin) Stop() error {
 // ServeHTTP handles connection using set of middleware and pool PSR-7 server.
 func (p *Plugin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// https://go-review.googlesource.com/c/go/+/30812/3/src/net/http/serve_test.go
-	if headerContainsUpgrade(r) {
+	if helpers.HeaderContainsUpgrade(r) {
 		// at this point the connection is hijacked, we can't write into the response writer
 		_, err := w.Write(nil)
 		if stderr.Is(err, http.ErrHijacked) {
@@ -276,14 +256,6 @@ func (p *Plugin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		http.Error(w, "server does not support upgrade header", http.StatusInternalServerError)
-		return
-	}
-
-	if p.https != nil && r.TLS == nil && p.cfg.SSLConfig.Redirect {
-		w.Header().Add("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload")
-		if p.cfg.SSLConfig.Redirect {
-			p.redirect(w, r)
-		}
 		return
 	}
 
