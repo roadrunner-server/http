@@ -52,7 +52,7 @@ type Handler struct {
 }
 
 // NewHandler return handle interface implementation
-func NewHandler(httpCfg *httpConf.Config, uploadsCfg *uploadsConf.Uploads, pool pool.Pool, log *zap.Logger, accessLogs bool) (*Handler, error) {
+func NewHandler(httpCfg *httpConf.Config, uploadsCfg *uploadsConf.Uploads, pool pool.Pool, log *zap.Logger) (*Handler, error) {
 	return &Handler{
 		maxRequestSize: httpCfg.MaxRequestSize * MB,
 		uploads: &uploads{
@@ -63,7 +63,7 @@ func NewHandler(httpCfg *httpConf.Config, uploadsCfg *uploadsConf.Uploads, pool 
 		pool:             pool,
 		log:              log,
 		internalHTTPCode: httpCfg.InternalErrorCode,
-		accessLogs:       accessLogs,
+		accessLogs:       httpCfg.AccessLogs,
 		errPool: sync.Pool{
 			New: func() any {
 				return make(chan error, 1)

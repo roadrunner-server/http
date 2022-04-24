@@ -23,7 +23,7 @@ import (
 	"github.com/roadrunner-server/http/v2/helpers"
 	httpServer "github.com/roadrunner-server/http/v2/http"
 	tlsServer "github.com/roadrunner-server/http/v2/https"
-	middleware2 "github.com/roadrunner-server/http/v2/middleware"
+	bundledMw "github.com/roadrunner-server/http/v2/middleware"
 	"github.com/roadrunner-server/sdk/v2/metrics"
 	pstate "github.com/roadrunner-server/sdk/v2/state/process"
 	"go.uber.org/zap"
@@ -180,8 +180,8 @@ func (p *Plugin) serve(errCh chan error) {
 		p.cfg.Uploads,
 		p.pool,
 		p.log,
-		p.cfg.HTTPConfig.AccessLogs,
 	)
+
 	if err != nil {
 		errCh <- err
 		return
@@ -214,7 +214,7 @@ func (p *Plugin) serve(errCh chan error) {
 	if p.cfg.HTTPConfig != nil && p.cfg.HTTPConfig.MaxRequestSize != 0 {
 		for i := 0; i < len(p.servers); i++ {
 			serv := p.servers[i].GetServer()
-			serv.Handler = middleware2.MaxRequestSize(serv.Handler, p.cfg.HTTPConfig.MaxRequestSize, p.log)
+			serv.Handler = bundledMw.MaxRequestSize(serv.Handler, p.cfg.HTTPConfig.MaxRequestSize, p.log)
 		}
 	}
 
