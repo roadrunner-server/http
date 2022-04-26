@@ -239,6 +239,7 @@ func (h *Handler) putReq(req *Request) {
 	req.Cookies = nil
 	req.Attributes = nil
 	req.Parsed = false
+	req.OTLP = nil
 	req.body = nil
 	h.reqPool.Put(req)
 }
