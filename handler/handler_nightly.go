@@ -103,8 +103,14 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	const op = errors.Op("serve_http")
 	start := time.Now()
 
+	var bw bodyWrapper
+	if r.Body != nil {
+		bw.ReadCloser = r.Body
+		r.Body = &bw
+	}
+
 	req := h.getReq(r)
-	err := request(r, req)
+	err := request(r, req, h.log)
 	if err != nil {
 		// if pipe is broken, there is no sense to write the header
 		// in this case we just report about error
@@ -201,6 +207,7 @@ log:
 			zap.String("method", req.Method),
 			zap.String("URI", req.URI),
 			zap.String("remote_address", req.RemoteAddr),
+			zap.Int("read_bytes", bw.read),
 			zap.Time("start", start),
 			zap.Duration("elapsed", time.Since(start)))
 	case true:
@@ -214,6 +221,7 @@ log:
 		rfr = strings.ReplaceAll(rfr, "\r", "")
 
 		h.log.Info("http access log",
+			zap.Int("read_bytes", bw.read),
 			zap.Int("status", 200),
 			zap.String("method", req.Method),
 			zap.String("URI", req.URI),

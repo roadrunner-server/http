@@ -11,6 +11,8 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/roadrunner-server/api/v2/payload"
 	"github.com/roadrunner-server/errors"
+	"github.com/roadrunner-server/sdk/v2/utils"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
@@ -54,6 +56,9 @@ type Request struct {
 	// Attributes can be set by chained mdwr to safely pass value from Golang to PHP. See: GetAttribute, SetAttribute functions.
 	Attributes map[string]interface{} `json:"attributes"`
 
+	// OTLP span data
+	OTLP []byte `json:"otlp"`
+
 	// request body can be parsedData or []byte
 	body interface{}
 }
@@ -67,11 +72,21 @@ func FetchIP(pair string) string {
 	return addr
 }
 
-func request(r *http.Request, req *Request) error {
+func request(r *http.Request, req *Request, log *zap.Logger) error {
 	for _, c := range r.Cookies() {
 		if v, err := url.QueryUnescape(c.Value); err == nil {
 			req.Cookies[c.Name] = v
 		}
+	}
+
+	// send span if exists
+	if _, ok := r.Context().Value(utils.OtelTracerNameKey).(string); ok {
+		span := trace.SpanFromContext(r.Context())
+		spBytes, err := span.SpanContext().MarshalJSON()
+		if err != nil {
+			log.Warn("failed to marshal span", zap.Error(err))
+		}
+		req.OTLP = spBytes
 	}
 
 	switch req.contentType() {

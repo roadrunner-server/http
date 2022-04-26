@@ -26,6 +26,8 @@ import (
 	bundledMw "github.com/roadrunner-server/http/v2/middleware"
 	"github.com/roadrunner-server/sdk/v2/metrics"
 	pstate "github.com/roadrunner-server/sdk/v2/state/process"
+	"github.com/roadrunner-server/sdk/v2/utils"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
@@ -257,6 +259,13 @@ func (p *Plugin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		http.Error(w, "server does not support upgrade header", http.StatusInternalServerError)
 		return
+	}
+
+	if val, ok := r.Context().Value(utils.OtelTracerNameKey).(string); ok {
+		tp := trace.SpanFromContext(r.Context()).TracerProvider()
+		ctx, span := tp.Tracer(val).Start(r.Context(), PluginName)
+		defer span.End()
+		r = r.WithContext(ctx)
 	}
 
 	// protect the case, when user sendEvent Reset, and we are replacing handler with pool
