@@ -1,11 +1,13 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/goccy/go-json"
 	"github.com/roadrunner-server/api/v2/payload"
+	"github.com/roadrunner-server/errors"
 )
 
 const (
@@ -56,6 +58,11 @@ func (h *Handler) Write(pld *payload.Payload, w http.ResponseWriter) (int, error
 		for kk := range rsp.Headers[k] {
 			w.Header().Add(k, rsp.Headers[k][kk])
 		}
+	}
+
+	if ok := statusExist(rsp.Status); !ok {
+		http.Error(w, fmt.Sprintf("unknown status code from worker: %d", rsp.Status), 500)
+		return 0, errors.Errorf("unknown status code from worker: %d", rsp.Status)
 	}
 
 	w.WriteHeader(rsp.Status)
