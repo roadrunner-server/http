@@ -155,6 +155,8 @@ github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+o
 github.com/klauspost/compress v1.15.0/go.mod h1:/3/Vjq9QcHkK5uEr5lBEmyoZ1iFhe47etQ6QUkpK6sk=
 github.com/klauspost/compress v1.15.2 h1:3WH+AG7s2+T8o3nrM/8u2rdqUEcQhmga7smjrT41nAw=
 github.com/klauspost/compress v1.15.2/go.mod h1:PhcZ0MbTNciWF3rruxRgKxI5NkcHHrHUDtV4Yw2GlzU=
+github.com/klauspost/compress v1.15.3 h1:wmfu2iqj9q22SyMINp1uQ8C2/V4M1phJdmH9fG4nba0=
+github.com/klauspost/compress v1.15.3/go.mod h1:PhcZ0MbTNciWF3rruxRgKxI5NkcHHrHUDtV4Yw2GlzU=
 github.com/klauspost/cpuid/v2 v2.0.12 h1:p9dKCg8i4gmOxtv35DvrYoWqYzQrvEVdjQ762Y0OqZE=
 github.com/klauspost/cpuid/v2 v2.0.12/go.mod h1:g2LTdtYhdyuGPqyWyv7qRAmj1WBqxuObKfj5c0PQa7c=
 github.com/konsorten/go-windows-terminal-sequences v1.0.1/go.mod h1:T0+1ngSBFLxvqU3pZ+m/2kptfBszLMUkC4ZK/EgS/cQ=
@@ -211,6 +213,8 @@ github.com/prometheus/procfs v0.7.3 h1:4jVXhlkAyzOScmCkXBTOLRLTz8EeU+eyjrwB/EPq0
 github.com/prometheus/procfs v0.7.3/go.mod h1:cz+aTbrPOrUb4q7XlbU9ygM+/jj0fzG6c1xBZuNvfVA=
 github.com/roadrunner-server/api/v2 v2.14.0 h1:U7CrMXv5h8qlO9vvqdvPDK0g+zMLwcERUAPcoLy6tYs=
 github.com/roadrunner-server/api/v2 v2.14.0/go.mod h1:COjb3T7DYHydaKIfino/N8gVa8op1jGAXFF+qKHMnk0=
+github.com/roadrunner-server/api/v2 v2.17.0 h1:uB7bi4qt1FhWq4pOosWfyzJjInGztvf4mQcuUCzMGGI=
+github.com/roadrunner-server/api/v2 v2.17.0/go.mod h1:kTic07XUaHlPub5Pe1d9mdukYw840oJ4S/fkH2fUURs=
 github.com/roadrunner-server/endure v1.2.3 h1:Smm+pHDERzeqXsLO602oe5iy0q+w94jAH3UT1pqgZiY=
 github.com/roadrunner-server/endure v1.2.3/go.mod h1:Yahi4Uoabla2o+0N+pbjWwIJnAigYWppGwbLU3D6cLc=
 github.com/roadrunner-server/errors v1.1.2 h1:+LPw9Akgg+8LAGM4wASMWLAoBIbyP+mhNfR+FBS2Slw=
@@ -219,6 +223,8 @@ github.com/roadrunner-server/goridge/v3 v3.4.1 h1:ngamQzKHUN3LV6vGnlEDk2zfftXLzp
 github.com/roadrunner-server/goridge/v3 v3.4.1/go.mod h1:Xmnn1oSEC8cLtd+DixoS7sbCpGYuCPPORUXiWDgUudI=
 github.com/roadrunner-server/sdk/v2 v2.13.3 h1:3SjHlZK9fgF5XbBPoAxNZK38QrutTZhD5nviHjDdgV4=
 github.com/roadrunner-server/sdk/v2 v2.13.3/go.mod h1:H5kq9qkpb07g+ndmwqscxg4E0+y/B07GTIfCSYH44Pk=
+github.com/roadrunner-server/sdk/v2 v2.14.0 h1:Z3GkXGKlWjwOEmTl7VmusgULHDRAj93K7krAolbtBsk=
+github.com/roadrunner-server/sdk/v2 v2.14.0/go.mod h1:CLDScQwC48YBBfKddtaoo3lOG5COsoprFrD1RIJRp28=
 github.com/roadrunner-server/tcplisten v1.1.2 h1:GBjKlSEbA67UB2y83rFWsQKqMQGyalhTN9Q9HCIMBC0=
 github.com/roadrunner-server/tcplisten v1.1.2/go.mod h1:wN2/X46Vo60sC9L5Bf/eC8kL+X3//7KIFmANEXZaLsg=
 github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
