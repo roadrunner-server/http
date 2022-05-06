@@ -110,7 +110,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	req := h.getReq(r)
-	err := request(r, req, h.log)
+	err := request(r, req)
 	if err != nil {
 		// if pipe is broken, there is no sense to write the header
 		// in this case we just report about error
