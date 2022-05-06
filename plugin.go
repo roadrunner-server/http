@@ -26,8 +26,6 @@ import (
 	bundledMw "github.com/roadrunner-server/http/v2/middleware"
 	"github.com/roadrunner-server/sdk/v2/metrics"
 	pstate "github.com/roadrunner-server/sdk/v2/state/process"
-	"github.com/roadrunner-server/sdk/v2/utils"
-	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
@@ -152,7 +150,7 @@ func (p *Plugin) Init(cfg cfgPlugin.Configurer, rrLogger *zap.Logger, srv server
 // Serve serves the svc.
 func (p *Plugin) Serve() chan error {
 	errCh := make(chan error, 2)
-	// run whole process in the goroutine
+	// run whole process in the goroutine, needed for the PHP
 	go func() {
 		// protect http initialization
 		p.mu.Lock()
@@ -161,75 +159,6 @@ func (p *Plugin) Serve() chan error {
 	}()
 
 	return errCh
-}
-
-func (p *Plugin) serve(errCh chan error) {
-	var err error
-	p.pool, err = p.server.NewWorkerPool(context.Background(), p.cfg.Pool, map[string]string{RrMode: "http"}, p.log)
-	if err != nil {
-		errCh <- err
-		return
-	}
-
-	// just to be safe :)
-	if p.pool == nil {
-		errCh <- errors.Str("pool should be initialized")
-		return
-	}
-
-	p.handler, err = handler.NewHandler(
-		p.cfg.HTTPConfig,
-		p.cfg.Uploads,
-		p.pool,
-		p.log,
-	)
-
-	if err != nil {
-		errCh <- err
-		return
-	}
-
-	if p.cfg.EnableHTTP() {
-		// handle redirects
-		if p.cfg.SSLConfig != nil {
-			p.servers = append(p.servers, httpServer.NewHTTPServer(p, p.cfg.HTTPConfig, p.stdLog, p.log, p.cfg.EnableH2C(), p.cfg.SSLConfig.Redirect, p.cfg.SSLConfig.Port))
-		} else {
-			p.servers = append(p.servers, httpServer.NewHTTPServer(p, p.cfg.HTTPConfig, p.stdLog, p.log, p.cfg.EnableH2C(), false, 0))
-		}
-	}
-
-	if p.cfg.EnableTLS() {
-		https, errHTTPS := tlsServer.NewHTTPSServer(p, p.cfg.SSLConfig, p.cfg.HTTP2Config, p.stdLog, p.log)
-		if errHTTPS != nil {
-			errCh <- errHTTPS
-			return
-		}
-
-		p.servers = append(p.servers, https)
-	}
-
-	if p.cfg.EnableFCGI() {
-		p.servers = append(p.servers, fcgi.NewFCGIServer(p, p.cfg.FCGIConfig, p.log, p.stdLog))
-	}
-
-	// if user uses the max_request_size, apply it to all servers
-	if p.cfg.HTTPConfig != nil && p.cfg.HTTPConfig.MaxRequestSize != 0 {
-		for i := 0; i < len(p.servers); i++ {
-			serv := p.servers[i].GetServer()
-			serv.Handler = bundledMw.MaxRequestSize(serv.Handler, p.cfg.HTTPConfig.MaxRequestSize, p.log)
-		}
-	}
-
-	// start all servers
-	for i := 0; i < len(p.servers); i++ {
-		go func(idx int) {
-			errSt := p.servers[idx].Start(p.mdwr, p.cfg.Middleware)
-			if errSt != nil {
-				errCh <- errSt
-				return
-			}
-		}(i)
-	}
 }
 
 // Stop stops the http.
@@ -259,13 +188,6 @@ func (p *Plugin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		http.Error(w, "server does not support upgrade header", http.StatusInternalServerError)
 		return
-	}
-
-	if val, ok := r.Context().Value(utils.OtelTracerNameKey).(string); ok {
-		tp := trace.SpanFromContext(r.Context()).TracerProvider()
-		ctx, span := tp.Tracer(val).Start(r.Context(), PluginName)
-		defer span.End()
-		r = r.WithContext(ctx)
 	}
 
 	// protect the case, when user sendEvent Reset, and we are replacing handler with pool
@@ -388,4 +310,73 @@ func (p *Plugin) Ready() (*status.Status, error) {
 	return &status.Status{
 		Code: http.StatusServiceUnavailable,
 	}, nil
+}
+
+func (p *Plugin) serve(errCh chan error) {
+	var err error
+	p.pool, err = p.server.NewWorkerPool(context.Background(), p.cfg.Pool, map[string]string{RrMode: "http"}, p.log)
+	if err != nil {
+		errCh <- err
+		return
+	}
+
+	// just to be safe :)
+	if p.pool == nil {
+		errCh <- errors.Str("pool should be initialized")
+		return
+	}
+
+	p.handler, err = handler.NewHandler(
+		p.cfg.HTTPConfig,
+		p.cfg.Uploads,
+		p.pool,
+		p.log,
+	)
+
+	if err != nil {
+		errCh <- err
+		return
+	}
+
+	if p.cfg.EnableHTTP() {
+		// handle redirects
+		if p.cfg.SSLConfig != nil {
+			p.servers = append(p.servers, httpServer.NewHTTPServer(p, p.cfg.HTTPConfig, p.stdLog, p.log, p.cfg.EnableH2C(), p.cfg.SSLConfig.Redirect, p.cfg.SSLConfig.Port))
+		} else {
+			p.servers = append(p.servers, httpServer.NewHTTPServer(p, p.cfg.HTTPConfig, p.stdLog, p.log, p.cfg.EnableH2C(), false, 0))
+		}
+	}
+
+	if p.cfg.EnableTLS() {
+		https, errHTTPS := tlsServer.NewHTTPSServer(p, p.cfg.SSLConfig, p.cfg.HTTP2Config, p.stdLog, p.log)
+		if errHTTPS != nil {
+			errCh <- errHTTPS
+			return
+		}
+
+		p.servers = append(p.servers, https)
+	}
+
+	if p.cfg.EnableFCGI() {
+		p.servers = append(p.servers, fcgi.NewFCGIServer(p, p.cfg.FCGIConfig, p.log, p.stdLog))
+	}
+
+	// if user uses the max_request_size, apply it to all servers
+	if p.cfg.HTTPConfig != nil && p.cfg.HTTPConfig.MaxRequestSize != 0 {
+		for i := 0; i < len(p.servers); i++ {
+			serv := p.servers[i].GetServer()
+			serv.Handler = bundledMw.MaxRequestSize(serv.Handler, p.cfg.HTTPConfig.MaxRequestSize, p.log)
+		}
+	}
+
+	// start all servers
+	for i := 0; i < len(p.servers); i++ {
+		go func(idx int) {
+			errSt := p.servers[idx].Start(p.mdwr, p.cfg.Middleware)
+			if errSt != nil {
+				errCh <- errSt
+				return
+			}
+		}(i)
+	}
 }

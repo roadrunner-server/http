@@ -110,7 +110,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	req := h.getReq(r)
-	err := request(r, req, h.log)
+	err := request(r, req)
 	if err != nil {
 		// if pipe is broken, there is no sense to write the header
 		// in this case we just report about error
@@ -230,17 +230,18 @@ func (h *Handler) handleError(w http.ResponseWriter, err error) {
 }
 
 func (h *Handler) putReq(req *Request) {
-	req.RawQuery = ""
 	req.RemoteAddr = ""
 	req.Protocol = ""
 	req.Method = ""
 	req.URI = ""
 	req.Header = nil
 	req.Cookies = nil
-	req.Attributes = nil
+	req.RawQuery = ""
 	req.Parsed = false
-	req.OTLP = nil
+	req.Uploads = nil
+	req.Attributes = nil
 	req.body = nil
+
 	h.reqPool.Put(req)
 }
 
