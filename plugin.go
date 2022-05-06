@@ -31,7 +31,8 @@ import (
 
 const (
 	// PluginName declares plugin name.
-	PluginName = "http"
+	PluginName        = "http"
+	MB         uint64 = 1024 * 1024
 
 	// configuration sections
 	sectionHTTPS   = "http.ssl"
@@ -365,7 +366,7 @@ func (p *Plugin) serve(errCh chan error) {
 	if p.cfg.HTTPConfig != nil && p.cfg.HTTPConfig.MaxRequestSize != 0 {
 		for i := 0; i < len(p.servers); i++ {
 			serv := p.servers[i].GetServer()
-			serv.Handler = bundledMw.MaxRequestSize(serv.Handler, p.cfg.HTTPConfig.MaxRequestSize, p.log)
+			serv.Handler = bundledMw.MaxRequestSize(serv.Handler, p.cfg.HTTPConfig.MaxRequestSize*MB, p.log)
 		}
 	}
 
