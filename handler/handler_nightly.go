@@ -20,11 +20,8 @@ import (
 )
 
 const (
-	// MB is 1024 bytes
-	MB         uint64 = 1024 * 1024
-	ContentLen string = "Content-Length"
-	noWorkers  string = "No-Workers"
-	trueStr    string = "true"
+	noWorkers string = "No-Workers"
+	trueStr   string = "true"
 )
 
 type uploads struct {
@@ -36,10 +33,9 @@ type uploads struct {
 // Handler serves http connections to underlying PHP application using PSR-7 protocol. Context will include request headers,
 // parsed files and query, payload will include parsed form dataTree (if any).
 type Handler struct {
-	maxRequestSize uint64
-	uploads        *uploads
-	log            *zap.Logger
-	pool           pool.Pool
+	uploads *uploads
+	log     *zap.Logger
+	pool    pool.Pool
 
 	accessLogs       bool
 	internalHTTPCode uint64
@@ -54,7 +50,6 @@ type Handler struct {
 // NewHandler return handle interface implementation
 func NewHandler(httpCfg *httpConf.Config, uploadsCfg *uploadsConf.Uploads, pool pool.Pool, log *zap.Logger) (*Handler, error) {
 	return &Handler{
-		maxRequestSize: httpCfg.MaxRequestSize * MB,
 		uploads: &uploads{
 			dir:    uploadsCfg.Dir,
 			allow:  uploadsCfg.Allowed,
