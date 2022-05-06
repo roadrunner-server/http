@@ -13,10 +13,9 @@ require (
 	github.com/roadrunner-server/goridge/v3 v3.4.1
 	github.com/roadrunner-server/sdk/v2 v2.14.0
 	github.com/stretchr/testify v1.7.1
-	go.opentelemetry.io/otel/trace v1.7.0
 	go.uber.org/zap v1.21.0
 	golang.org/x/net v0.0.0-20220425223048-2871e0cb64e4
-	golang.org/x/sys v0.0.0-20220502124256-b6088ccd6cba
+	golang.org/x/sys v0.0.0-20220503163025-988cb79eb6c6
 )
 
 require (
@@ -27,6 +26,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/google/go-cmp v0.5.7 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/klauspost/compress v1.15.2 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.12 // indirect
@@ -44,7 +44,6 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.36.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
-	go.opentelemetry.io/otel v1.7.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
 	golang.org/x/crypto v0.0.0-20220427172511-eb4f295cb31f // indirect
