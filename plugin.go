@@ -26,6 +26,11 @@ import (
 	bundledMw "github.com/roadrunner-server/http/v2/middleware"
 	"github.com/roadrunner-server/sdk/v2/metrics"
 	pstate "github.com/roadrunner-server/sdk/v2/state/process"
+	"github.com/roadrunner-server/sdk/v2/utils"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel/propagation"
+	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
@@ -56,6 +61,9 @@ type internalServer interface {
 // Plugin manages pool, http servers. The main http plugin structure
 type Plugin struct {
 	mu sync.RWMutex
+
+	// otel propagators
+	prop propagation.TextMapPropagator
 
 	// plugins
 	server server.Server
@@ -144,6 +152,7 @@ func (p *Plugin) Init(cfg cfgPlugin.Configurer, rrLogger *zap.Logger, srv server
 	p.statsExporter = newWorkersExporter(p)
 	p.server = srv
 	p.servers = make([]internalServer, 0, 4)
+	p.prop = propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{})
 
 	return nil
 }
@@ -189,6 +198,18 @@ func (p *Plugin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		http.Error(w, "server does not support upgrade header", http.StatusInternalServerError)
 		return
+	}
+
+	if val, ok := r.Context().Value(utils.OtelTracerNameKey).(string); ok {
+		tp := trace.SpanFromContext(r.Context()).TracerProvider()
+		ctx, span := tp.Tracer(val, trace.WithSchemaURL(semconv.SchemaURL),
+			trace.WithInstrumentationVersion(otelhttp.SemVersion())).
+			Start(r.Context(), PluginName, trace.WithSpanKind(trace.SpanKindServer))
+		defer span.End()
+
+		// inject
+		p.prop.Inject(r.Context(), propagation.HeaderCarrier(r.Header))
+		r = r.WithContext(ctx)
 	}
 
 	// protect the case, when user sendEvent Reset, and we are replacing handler with pool
