@@ -208,7 +208,7 @@ func (p *Plugin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		defer span.End()
 
 		// inject
-		p.prop.Inject(r.Context(), propagation.HeaderCarrier(r.Header))
+		p.prop.Inject(ctx, propagation.HeaderCarrier(r.Header))
 		r = r.WithContext(ctx)
 	}
 
