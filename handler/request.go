@@ -112,12 +112,15 @@ func (r *Request) Open(log *zap.Logger, dir string, forbid, allow map[string]str
 }
 
 // Close clears all temp file uploads
-func (r *Request) Close(log *zap.Logger) {
+func (r *Request) Close(log *zap.Logger, hr *http.Request) {
 	if r.Uploads == nil {
 		return
 	}
 
 	r.Uploads.Clear(log)
+	if hr.MultipartForm != nil {
+		_ = hr.MultipartForm.RemoveAll()
+	}
 }
 
 // Payload request marshaled RoadRunner payload based on PSR7 data. values encode method is JSON. Make sure to open
