@@ -110,13 +110,13 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// if pipe is broken, there is no sense to write the header
 		// in this case we just report about error
 		if stderr.Is(err, errEPIPE) {
-			req.Close(h.log)
+			req.Close(h.log, r)
 			h.putReq(req)
 			h.log.Error("write response error", zap.Time("start", start), zap.Duration("elapsed", time.Since(start)), zap.Error(err))
 			return
 		}
 
-		req.Close(h.log)
+		req.Close(h.log, r)
 		h.putReq(req)
 		http.Error(w, errors.E(op, err).Error(), 500)
 		h.log.Error("request forming error", zap.Time("start", start), zap.Duration("elapsed", time.Since(start)), zap.Error(err))
@@ -129,7 +129,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	err = req.Payload(pld)
 	if err != nil {
-		req.Close(h.log)
+		req.Close(h.log, r)
 		h.putReq(req)
 		h.putPld(pld)
 		h.handleError(w, err)
@@ -155,7 +155,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	for {
 		select {
 		case e := <-errCh:
-			req.Close(h.log)
+			req.Close(h.log, r)
 			h.putReq(req)
 			h.handleError(w, e)
 			h.log.Error("execute", zap.Time("start", start), zap.Duration("elapsed", time.Since(start)), zap.Error(e))
@@ -175,7 +175,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 			err = h.writeStream(p, w, once)
 			if err != nil {
-				req.Close(h.log)
+				req.Close(h.log, r)
 				h.putReq(req)
 				h.handleError(w, err)
 				h.log.Error("execute", zap.Time("start", start), zap.Duration("elapsed", time.Since(start)), zap.Error(err))
@@ -233,7 +233,7 @@ log:
 	}
 
 	h.putPld(pld)
-	req.Close(h.log)
+	req.Close(h.log, r)
 	h.putReq(req)
 }
 
