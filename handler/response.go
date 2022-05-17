@@ -60,7 +60,8 @@ func (h *Handler) Write(pld *payload.Payload, w http.ResponseWriter) (int, error
 		}
 	}
 
-	if ok := statusExist(rsp.Status); !ok {
+	// The provided code must be a valid HTTP 1xx-5xx status code.
+	if rsp.Status < 100 || rsp.Status >= 600 {
 		http.Error(w, fmt.Sprintf("unknown status code from worker: %d", rsp.Status), 500)
 		return 0, errors.Errorf("unknown status code from worker: %d", rsp.Status)
 	}
