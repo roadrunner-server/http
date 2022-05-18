@@ -8,6 +8,16 @@ import (
 	"github.com/roadrunner-server/errors"
 )
 
+type ClientAuthType string
+
+const (
+	NoClientCert               ClientAuthType = "no_client_cert"
+	RequestClientCert          ClientAuthType = "request_client_cert"
+	RequireAnyClientCert       ClientAuthType = "require_any_client_cert"
+	VerifyClientCertIfGiven    ClientAuthType = "verify_client_cert_if_given"
+	RequireAndVerifyClientCert ClientAuthType = "require_and_verify_client_cert"
+)
+
 // HTTP2 HTTP/2 server customizations.
 type HTTP2 struct {
 	// h2cHandler is a Handler which implements h2c by hijacking the HTTP/1 traffic
@@ -50,6 +60,9 @@ type SSL struct {
 	// Root CA file
 	RootCA string `mapstructure:"root_ca"`
 
+	// mTLS auth
+	AuthType ClientAuthType `mapstructure:"client_auth_type"`
+
 	// internal
 	host string
 	// internal
@@ -76,6 +89,9 @@ func (s *SSL) InitDefaults() error {
 	if s.Address == "" {
 		s.Address = "127.0.0.1:443"
 	}
+
+	// default - no certs
+	s.AuthType = NoClientCert
 
 	return nil
 }

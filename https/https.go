@@ -35,6 +35,21 @@ func NewHTTPSServer(handler http.Handler, cfg *SSL, cfgHTTP2 *HTTP2, errLog *log
 
 		if pool != nil {
 			httpsServer.TLSConfig.RootCAs = pool
+			// auth type used only for the CA
+			switch cfg.AuthType {
+			case NoClientCert:
+				httpsServer.TLSConfig.ClientAuth = tls.NoClientCert
+			case RequestClientCert:
+				httpsServer.TLSConfig.ClientAuth = tls.RequestClientCert
+			case RequireAnyClientCert:
+				httpsServer.TLSConfig.ClientAuth = tls.RequireAnyClientCert
+			case VerifyClientCertIfGiven:
+				httpsServer.TLSConfig.ClientAuth = tls.VerifyClientCertIfGiven
+			case RequireAndVerifyClientCert:
+				httpsServer.TLSConfig.ClientAuth = tls.RequireAndVerifyClientCert
+			default:
+				httpsServer.TLSConfig.ClientAuth = tls.NoClientCert
+			}
 		}
 	}
 
