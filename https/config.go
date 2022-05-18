@@ -90,9 +90,6 @@ func (s *SSL) InitDefaults() error {
 		s.Address = "127.0.0.1:443"
 	}
 
-	// default - no certs
-	s.AuthType = NoClientCert
-
 	return nil
 }
 
