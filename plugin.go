@@ -2,7 +2,6 @@ package http
 
 import (
 	"context"
-	stderr "errors"
 	"log"
 	"net/http"
 	"sync"
@@ -188,19 +187,6 @@ func (p *Plugin) Stop() error {
 
 // ServeHTTP handles connection using set of middleware and pool PSR-7 server.
 func (p *Plugin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// https://go-review.googlesource.com/c/go/+/30812/3/src/net/http/serve_test.go
-	if helpers.HeaderContainsUpgrade(r) {
-		// at this point the connection is hijacked, we can't write into the response writer
-		_, err := w.Write(nil)
-		if stderr.Is(err, http.ErrHijacked) {
-			p.log.Error("the connection has been hijacked", zap.Error(err))
-			return
-		}
-
-		http.Error(w, "server does not support upgrade header", http.StatusInternalServerError)
-		return
-	}
-
 	if val, ok := r.Context().Value(utils.OtelTracerNameKey).(string); ok {
 		tp := trace.SpanFromContext(r.Context()).TracerProvider()
 		ctx, span := tp.Tracer(val, trace.WithSchemaURL(semconv.SchemaURL),
