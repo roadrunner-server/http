@@ -10,15 +10,15 @@ require (
 	github.com/roadrunner-server/api/v2 v2.17.1
 	github.com/roadrunner-server/endure v1.3.0
 	github.com/roadrunner-server/errors v1.1.2
-	github.com/roadrunner-server/goridge/v3 v3.4.1
-	github.com/roadrunner-server/sdk/v2 v2.14.1
+	github.com/roadrunner-server/goridge/v3 v3.4.2
+	github.com/roadrunner-server/sdk/v2 v2.14.2
 	github.com/stretchr/testify v1.7.1
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.32.0
 	go.opentelemetry.io/contrib/propagators/jaeger v1.7.0
 	go.opentelemetry.io/otel v1.7.0
 	go.opentelemetry.io/otel/trace v1.7.0
 	go.uber.org/zap v1.21.0
-	golang.org/x/net v0.0.0-20220520000938-2e3eb7b945c2
+	golang.org/x/net v0.0.0-20220524220425-1d687d428aca
 	golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a
 )
 
