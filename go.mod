@@ -12,14 +12,14 @@ require (
 	github.com/roadrunner-server/errors v1.1.2
 	github.com/roadrunner-server/goridge/v3 v3.4.2
 	github.com/roadrunner-server/sdk/v2 v2.15.0
-	github.com/stretchr/testify v1.7.2
+	github.com/stretchr/testify v1.7.4
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.32.0
 	go.opentelemetry.io/contrib/propagators/jaeger v1.7.0
 	go.opentelemetry.io/otel v1.7.0
 	go.opentelemetry.io/otel/trace v1.7.0
 	go.uber.org/zap v1.21.0
-	golang.org/x/net v0.0.0-20220607020251-c690dde0001d
-	golang.org/x/sys v0.0.0-20220610221304-9f5ed59c137d
+	golang.org/x/net v0.0.0-20220621193019-9d032be2e588
+	golang.org/x/sys v0.0.0-20220615213510-4f61da869c0c
 )
 
 require (
@@ -34,13 +34,13 @@ require (
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/klauspost/compress v1.15.6 // indirect
-	github.com/klauspost/cpuid/v2 v2.0.13 // indirect
+	github.com/klauspost/cpuid/v2 v2.0.14 // indirect
 	github.com/libdns/libdns v0.2.1 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
-	github.com/miekg/dns v1.1.49 // indirect
+	github.com/miekg/dns v1.1.50 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
-	github.com/prometheus/common v0.34.0 // indirect
+	github.com/prometheus/common v0.35.0 // indirect
 	github.com/prometheus/procfs v0.7.3 // indirect
 	github.com/roadrunner-server/tcplisten v1.1.2 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
