@@ -94,13 +94,17 @@ func (l *lm) writeLog(accessLog bool, r *http.Request, bw *wrapper, start time.T
 		rfr = strings.ReplaceAll(rfr, "\n", "")
 		rfr = strings.ReplaceAll(rfr, "\r", "")
 
+		rq := r.URL.RawQuery
+		rq = strings.ReplaceAll(rq, "\n", "")
+		rq = strings.ReplaceAll(rq, "\r", "")
+
 		l.log.Info("http access log",
 			zap.Int("read_bytes", bw.read),
 			zap.Int("status", bw.code),
 			zap.String("method", r.Method),
 			zap.String("URI", r.RequestURI),
 			zap.String("remote_address", r.RemoteAddr),
-			zap.String("query", r.URL.RawQuery),
+			zap.String("query", rq),
 			zap.Int64("content_len", r.ContentLength),
 			zap.String("host", r.Host),
 			zap.String("user_agent", usrA),
