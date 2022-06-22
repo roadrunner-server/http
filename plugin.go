@@ -199,7 +199,7 @@ func (p *Plugin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		r = r.WithContext(ctx)
 	}
 
-	// protect the case, when user sendEvent Reset, and we are replacing handler with pool
+	// protect the case, when user send Reset, and we are replacing handler with pool
 	p.mu.RLock()
 	p.handler.ServeHTTP(w, r)
 	p.mu.RUnlock()
@@ -348,12 +348,7 @@ func (p *Plugin) serve(errCh chan error) {
 	}
 
 	if p.cfg.EnableHTTP() {
-		// handle redirects
-		if p.cfg.SSLConfig != nil {
-			p.servers = append(p.servers, httpServer.NewHTTPServer(p, p.cfg.HTTPConfig, p.stdLog, p.log, p.cfg.EnableH2C(), p.cfg.SSLConfig.Redirect, p.cfg.SSLConfig.Port))
-		} else {
-			p.servers = append(p.servers, httpServer.NewHTTPServer(p, p.cfg.HTTPConfig, p.stdLog, p.log, p.cfg.EnableH2C(), false, 0))
-		}
+		p.servers = append(p.servers, httpServer.NewHTTPServer(p, p.cfg.HTTPConfig, p.cfg.HTTP2Config, p.cfg.SSLConfig, p.stdLog, p.log))
 	}
 
 	if p.cfg.EnableTLS() {
@@ -371,11 +366,17 @@ func (p *Plugin) serve(errCh chan error) {
 	}
 
 	// if user uses the max_request_size, apply it to all servers
-	if p.cfg.HTTPConfig != nil && p.cfg.HTTPConfig.MaxRequestSize != 0 {
+	if p.cfg.HTTPConfig.MaxRequestSize != 0 {
 		for i := 0; i < len(p.servers); i++ {
 			serv := p.servers[i].GetServer()
-			serv.Handler = bundledMw.MaxRequestSize(serv.Handler, p.cfg.HTTPConfig.MaxRequestSize*MB, p.log)
+			serv.Handler = bundledMw.MaxRequestSize(serv.Handler, p.cfg.HTTPConfig.MaxRequestSize*MB)
 		}
+	}
+
+	// apply logger middleware
+	for i := 0; i < len(p.servers); i++ {
+		serv := p.servers[i].GetServer()
+		serv.Handler = bundledMw.NewLogMiddleware(serv.Handler, p.cfg.HTTPConfig.AccessLogs, p.log)
 	}
 
 	// start all servers
