@@ -321,6 +321,8 @@ func (p *Plugin) Ready() (*status.Status, error) {
 	}, nil
 }
 
+// ------- PRIVATE ---------
+
 func (p *Plugin) serve(errCh chan error) {
 	var err error
 	p.pool, err = p.server.NewWorkerPool(context.Background(), p.cfg.Pool, map[string]string{RrMode: "http"}, p.log)
@@ -341,21 +343,40 @@ func (p *Plugin) serve(errCh chan error) {
 		p.pool,
 		p.log,
 	)
-
 	if err != nil {
 		errCh <- err
 		return
 	}
 
+	err = p.collectServers()
+	if err != nil {
+		errCh <- err
+		return
+	}
+
+	p.applyBundledMiddleware()
+
+	// start all servers
+	for i := 0; i < len(p.servers); i++ {
+		go func(idx int) {
+			errSt := p.servers[idx].Start(p.mdwr, p.cfg.Middleware)
+			if errSt != nil {
+				errCh <- errSt
+				return
+			}
+		}(i)
+	}
+}
+
+func (p *Plugin) collectServers() error {
 	if p.cfg.EnableHTTP() {
 		p.servers = append(p.servers, httpServer.NewHTTPServer(p, p.cfg.HTTPConfig, p.cfg.HTTP2Config, p.cfg.SSLConfig, p.stdLog, p.log))
 	}
 
 	if p.cfg.EnableTLS() {
-		https, errHTTPS := tlsServer.NewHTTPSServer(p, p.cfg.SSLConfig, p.cfg.HTTP2Config, p.stdLog, p.log)
-		if errHTTPS != nil {
-			errCh <- errHTTPS
-			return
+		https, err := tlsServer.NewHTTPSServer(p, p.cfg.SSLConfig, p.cfg.HTTP2Config, p.stdLog, p.log)
+		if err != nil {
+			return err
 		}
 
 		p.servers = append(p.servers, https)
@@ -365,6 +386,10 @@ func (p *Plugin) serve(errCh chan error) {
 		p.servers = append(p.servers, fcgi.NewFCGIServer(p, p.cfg.FCGIConfig, p.log, p.stdLog))
 	}
 
+	return nil
+}
+
+func (p *Plugin) applyBundledMiddleware() {
 	// if user uses the max_request_size, apply it to all servers
 	if p.cfg.HTTPConfig.MaxRequestSize != 0 {
 		for i := 0; i < len(p.servers); i++ {
@@ -377,16 +402,5 @@ func (p *Plugin) serve(errCh chan error) {
 	for i := 0; i < len(p.servers); i++ {
 		serv := p.servers[i].GetServer()
 		serv.Handler = bundledMw.NewLogMiddleware(serv.Handler, p.cfg.HTTPConfig.AccessLogs, p.log)
-	}
-
-	// start all servers
-	for i := 0; i < len(p.servers); i++ {
-		go func(idx int) {
-			errSt := p.servers[idx].Start(p.mdwr, p.cfg.Middleware)
-			if errSt != nil {
-				errCh <- errSt
-				return
-			}
-		}(i)
 	}
 }
