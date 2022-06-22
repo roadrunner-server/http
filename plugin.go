@@ -390,17 +390,10 @@ func (p *Plugin) collectServers() error {
 }
 
 func (p *Plugin) applyBundledMiddleware() {
-	// if user uses the max_request_size, apply it to all servers
-	if p.cfg.HTTPConfig.MaxRequestSize != 0 {
-		for i := 0; i < len(p.servers); i++ {
-			serv := p.servers[i].GetServer()
-			serv.Handler = bundledMw.MaxRequestSize(serv.Handler, p.cfg.HTTPConfig.MaxRequestSize*MB)
-		}
-	}
-
-	// apply logger middleware
+	// apply max_req_size and logger middleware
 	for i := 0; i < len(p.servers); i++ {
 		serv := p.servers[i].GetServer()
+		serv.Handler = bundledMw.MaxRequestSize(serv.Handler, p.cfg.HTTPConfig.MaxRequestSize*MB)
 		serv.Handler = bundledMw.NewLogMiddleware(serv.Handler, p.cfg.HTTPConfig.AccessLogs, p.log)
 	}
 }

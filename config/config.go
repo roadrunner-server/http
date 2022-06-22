@@ -83,6 +83,11 @@ func (c *Config) InitDefaults() error {
 		c.HTTPConfig.InternalErrorCode = 500
 	}
 
+	if c.HTTPConfig.MaxRequestSize == 0 {
+		// 1Gb
+		c.HTTPConfig.MaxRequestSize = 1000
+	}
+
 	if c.HTTP2Config != nil {
 		err := c.HTTP2Config.InitDefaults()
 		if err != nil {
