@@ -81,17 +81,23 @@ func request(r *http.Request, req *Request) error {
 	case contentStream:
 		var err error
 		req.body, err = io.ReadAll(r.Body)
-		return err
+		if err != nil {
+			return err
+		}
+
+		return nil
 
 	case contentMultipart:
-		if err := r.ParseMultipartForm(defaultMaxMemory); err != nil {
+		err := r.ParseMultipartForm(defaultMaxMemory)
+		if err != nil {
 			return err
 		}
 
 		req.Uploads = parseUploads(r)
 		fallthrough
 	case contentFormData:
-		if err := r.ParseForm(); err != nil {
+		err := r.ParseForm()
+		if err != nil {
 			return err
 		}
 

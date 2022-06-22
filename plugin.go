@@ -199,7 +199,7 @@ func (p *Plugin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		r = r.WithContext(ctx)
 	}
 
-	// protect the case, when user sendEvent Reset, and we are replacing handler with pool
+	// protect the case, when user send Reset, and we are replacing handler with pool
 	p.mu.RLock()
 	p.handler.ServeHTTP(w, r)
 	p.mu.RUnlock()
@@ -321,6 +321,8 @@ func (p *Plugin) Ready() (*status.Status, error) {
 	}, nil
 }
 
+// ------- PRIVATE ---------
+
 func (p *Plugin) serve(errCh chan error) {
 	var err error
 	p.pool, err = p.server.NewWorkerPool(context.Background(), p.cfg.Pool, map[string]string{RrMode: "http"}, p.log)
@@ -341,42 +343,18 @@ func (p *Plugin) serve(errCh chan error) {
 		p.pool,
 		p.log,
 	)
-
 	if err != nil {
 		errCh <- err
 		return
 	}
 
-	if p.cfg.EnableHTTP() {
-		// handle redirects
-		if p.cfg.SSLConfig != nil {
-			p.servers = append(p.servers, httpServer.NewHTTPServer(p, p.cfg.HTTPConfig, p.stdLog, p.log, p.cfg.EnableH2C(), p.cfg.SSLConfig.Redirect, p.cfg.SSLConfig.Port))
-		} else {
-			p.servers = append(p.servers, httpServer.NewHTTPServer(p, p.cfg.HTTPConfig, p.stdLog, p.log, p.cfg.EnableH2C(), false, 0))
-		}
+	err = p.collectServers()
+	if err != nil {
+		errCh <- err
+		return
 	}
 
-	if p.cfg.EnableTLS() {
-		https, errHTTPS := tlsServer.NewHTTPSServer(p, p.cfg.SSLConfig, p.cfg.HTTP2Config, p.stdLog, p.log)
-		if errHTTPS != nil {
-			errCh <- errHTTPS
-			return
-		}
-
-		p.servers = append(p.servers, https)
-	}
-
-	if p.cfg.EnableFCGI() {
-		p.servers = append(p.servers, fcgi.NewFCGIServer(p, p.cfg.FCGIConfig, p.log, p.stdLog))
-	}
-
-	// if user uses the max_request_size, apply it to all servers
-	if p.cfg.HTTPConfig != nil && p.cfg.HTTPConfig.MaxRequestSize != 0 {
-		for i := 0; i < len(p.servers); i++ {
-			serv := p.servers[i].GetServer()
-			serv.Handler = bundledMw.MaxRequestSize(serv.Handler, p.cfg.HTTPConfig.MaxRequestSize*MB, p.log)
-		}
-	}
+	p.applyBundledMiddleware()
 
 	// start all servers
 	for i := 0; i < len(p.servers); i++ {
@@ -387,5 +365,42 @@ func (p *Plugin) serve(errCh chan error) {
 				return
 			}
 		}(i)
+	}
+}
+
+func (p *Plugin) collectServers() error {
+	if p.cfg.EnableHTTP() {
+		p.servers = append(p.servers, httpServer.NewHTTPServer(p, p.cfg.HTTPConfig, p.cfg.HTTP2Config, p.cfg.SSLConfig, p.stdLog, p.log))
+	}
+
+	if p.cfg.EnableTLS() {
+		https, err := tlsServer.NewHTTPSServer(p, p.cfg.SSLConfig, p.cfg.HTTP2Config, p.stdLog, p.log)
+		if err != nil {
+			return err
+		}
+
+		p.servers = append(p.servers, https)
+	}
+
+	if p.cfg.EnableFCGI() {
+		p.servers = append(p.servers, fcgi.NewFCGIServer(p, p.cfg.FCGIConfig, p.log, p.stdLog))
+	}
+
+	return nil
+}
+
+func (p *Plugin) applyBundledMiddleware() {
+	// if user uses the max_request_size, apply it to all servers
+	if p.cfg.HTTPConfig.MaxRequestSize != 0 {
+		for i := 0; i < len(p.servers); i++ {
+			serv := p.servers[i].GetServer()
+			serv.Handler = bundledMw.MaxRequestSize(serv.Handler, p.cfg.HTTPConfig.MaxRequestSize*MB)
+		}
+	}
+
+	// apply logger middleware
+	for i := 0; i < len(p.servers); i++ {
+		serv := p.servers[i].GetServer()
+		serv.Handler = bundledMw.NewLogMiddleware(serv.Handler, p.cfg.HTTPConfig.AccessLogs, p.log)
 	}
 }

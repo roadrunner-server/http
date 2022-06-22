@@ -5,10 +5,12 @@ import (
 	stderr "errors"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/roadrunner-server/api/v2/plugins/middleware"
 	"github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/http/v2/helpers"
+	"github.com/roadrunner-server/http/v2/https"
 	bundledmwr "github.com/roadrunner-server/http/v2/middleware"
 	"github.com/roadrunner-server/sdk/v2/utils"
 	"go.uber.org/zap"
@@ -24,26 +26,30 @@ type Server struct {
 	redirectPort int
 }
 
-func NewHTTPServer(handler http.Handler, cfg *Config, errLog *log.Logger, log *zap.Logger, enableH2C bool, redirect bool, redirectPort int) *Server {
-	if enableH2C {
+func NewHTTPServer(handler http.Handler, httpConf *Config, http2Conf *https.HTTP2, sslCfg *https.SSL, errLog *log.Logger, log *zap.Logger) *Server {
+	var redirect bool
+	var redirectPort int
+
+	if sslCfg != nil {
+		redirect = sslCfg.Redirect
+		redirectPort = sslCfg.Port
+	}
+
+	if http2Conf != nil && http2Conf.H2C {
 		return &Server{
 			log:          log,
 			redirect:     redirect,
 			redirectPort: redirectPort,
-			cfg:          cfg,
+			cfg:          httpConf,
 			http: &http.Server{
 				Handler: h2c.NewHandler(handler, &http2.Server{
-					MaxHandlers:                  0,
-					MaxConcurrentStreams:         0,
-					MaxReadFrameSize:             0,
+					MaxConcurrentStreams:         http2Conf.MaxConcurrentStreams,
 					PermitProhibitedCipherSuites: false,
-					IdleTimeout:                  0,
-					MaxUploadBufferPerConnection: 0,
-					MaxUploadBufferPerStream:     0,
-					NewWriteScheduler:            nil,
-					CountError:                   nil,
 				}),
-				ErrorLog: errLog,
+				ReadTimeout:       time.Minute,
+				ReadHeaderTimeout: time.Minute,
+				WriteTimeout:      time.Minute,
+				ErrorLog:          errLog,
 			},
 		}
 	}
@@ -51,7 +57,7 @@ func NewHTTPServer(handler http.Handler, cfg *Config, errLog *log.Logger, log *z
 		log:          log,
 		redirect:     redirect,
 		redirectPort: redirectPort,
-		cfg:          cfg,
+		cfg:          httpConf,
 		http: &http.Server{
 			Handler:  handler,
 			ErrorLog: errLog,

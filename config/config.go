@@ -53,14 +53,6 @@ func (c *Config) EnableTLS() bool {
 	return c.SSLConfig.Key != "" || c.SSLConfig.Cert != ""
 }
 
-// EnableH2C when HTTP/2 extension must be enabled on TCP.
-func (c *Config) EnableH2C() bool {
-	if c.HTTP2Config == nil {
-		return false
-	}
-	return c.HTTP2Config.H2C
-}
-
 // EnableFCGI is true when FastCGI server must be enabled.
 func (c *Config) EnableFCGI() bool {
 	if c.FCGIConfig == nil {

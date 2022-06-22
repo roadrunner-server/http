@@ -37,7 +37,6 @@ type Handler struct {
 	log     *zap.Logger
 	pool    pool.Pool
 
-	accessLogs       bool
 	internalHTTPCode uint64
 
 	// internal
@@ -58,7 +57,6 @@ func NewHandler(httpCfg *httpConf.Config, uploadsCfg *uploadsConf.Uploads, pool 
 		pool:             pool,
 		log:              log,
 		internalHTTPCode: httpCfg.InternalErrorCode,
-		accessLogs:       httpCfg.AccessLogs,
 		errPool: sync.Pool{
 			New: func() any {
 				return make(chan error, 1)
@@ -97,12 +95,6 @@ func NewHandler(httpCfg *httpConf.Config, uploadsCfg *uploadsConf.Uploads, pool 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	const op = errors.Op("serve_http")
 	start := time.Now()
-
-	var bw bodyWrapper
-	if r.Body != nil {
-		bw.ReadCloser = r.Body
-		r.Body = &bw
-	}
 
 	req := h.getReq(r)
 	err := request(r, req)
@@ -147,7 +139,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	status, err := h.Write(wResp, w)
+	err = h.Write(wResp, w)
 	if err != nil {
 		req.Close(h.log, r)
 		h.putReq(req)
@@ -155,43 +147,6 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.handleError(w, err)
 		h.log.Error("write response error", zap.Time("start", start), zap.Duration("elapsed", time.Since(start)), zap.Error(err))
 		return
-	}
-
-	switch h.accessLogs {
-	case false:
-		h.log.Info("http log",
-			zap.Int("status", status),
-			zap.String("method", req.Method),
-			zap.String("URI", req.URI),
-			zap.String("remote_address", req.RemoteAddr),
-			zap.Int("read_bytes", bw.read),
-			zap.Time("start", start),
-			zap.Duration("elapsed", time.Since(start)))
-	case true:
-		// external/cwe/cwe-117
-		usrA := r.UserAgent()
-		usrA = strings.ReplaceAll(usrA, "\n", "")
-		usrA = strings.ReplaceAll(usrA, "\r", "")
-
-		rfr := r.Referer()
-		rfr = strings.ReplaceAll(rfr, "\n", "")
-		rfr = strings.ReplaceAll(rfr, "\r", "")
-
-		h.log.Info("http access log",
-			zap.Int("read_bytes", bw.read),
-			zap.Int("status", status),
-			zap.String("method", req.Method),
-			zap.String("URI", req.URI),
-			zap.String("remote_address", req.RemoteAddr),
-			zap.String("query", req.RawQuery),
-			zap.Int64("content_len", r.ContentLength),
-			zap.String("host", r.Host),
-			zap.String("user_agent", usrA),
-			zap.String("referer", rfr),
-			zap.String("time_local", time.Now().Format("02/Jan/06:15:04:05 -0700")),
-			zap.Time("request_time", time.Now()),
-			zap.Time("start", start),
-			zap.Duration("elapsed", time.Since(start)))
 	}
 
 	h.putPld(pld)

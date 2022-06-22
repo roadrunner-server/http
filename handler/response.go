@@ -25,14 +25,14 @@ type Response struct {
 }
 
 // Write writes response headers, status and body into ResponseWriter.
-func (h *Handler) Write(pld *payload.Payload, w http.ResponseWriter) (int, error) {
+func (h *Handler) Write(pld *payload.Payload, w http.ResponseWriter) error {
 	rsp := h.getRsp()
 	defer h.putRsp(rsp)
 
 	// unmarshal context into response
 	err := json.Unmarshal(pld.Context, rsp)
 	if err != nil {
-		return 0, err
+		return err
 	}
 
 	// handle push headers
@@ -43,7 +43,7 @@ func (h *Handler) Write(pld *payload.Payload, w http.ResponseWriter) (int, error
 			for i := 0; i < len(push); i++ {
 				err = pusher.Push(rsp.Headers[HTTP2Push][i], nil)
 				if err != nil {
-					return 0, err
+					return err
 				}
 			}
 		}
@@ -63,17 +63,16 @@ func (h *Handler) Write(pld *payload.Payload, w http.ResponseWriter) (int, error
 	// The provided code must be a valid HTTP 1xx-5xx status code.
 	if rsp.Status < 100 || rsp.Status >= 600 {
 		http.Error(w, fmt.Sprintf("unknown status code from worker: %d", rsp.Status), 500)
-		return 0, errors.Errorf("unknown status code from worker: %d", rsp.Status)
+		return errors.Errorf("unknown status code from worker: %d", rsp.Status)
 	}
 
 	w.WriteHeader(rsp.Status)
 	_, err = w.Write(pld.Body)
 	if err != nil {
-		return 0, err
+		return err
 	}
 
-	status := rsp.Status
-	return status, nil
+	return nil
 }
 
 func handleTrailers(h map[string][]string) {
