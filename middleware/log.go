@@ -11,18 +11,36 @@ import (
 )
 
 var _ io.ReadCloser = &wrapper{}
+var _ http.ResponseWriter = &wrapper{}
 
 type wrapper struct {
 	io.ReadCloser
-	read int
+	read  int
+	write int
 
+	w    http.ResponseWriter
 	code int
 	data []byte
 }
 
 func (w *wrapper) Read(b []byte) (int, error) {
 	n, err := w.ReadCloser.Read(b)
-	w.read = n
+	w.read += n
+	return n, err
+}
+
+func (w *wrapper) WriteHeader(code int) {
+	w.code = code
+	w.w.WriteHeader(code)
+}
+
+func (w *wrapper) Header() http.Header {
+	return w.w.Header()
+}
+
+func (w *wrapper) Write(b []byte) (int, error) {
+	n, err := w.w.Write(b)
+	w.write += n
 	return n, err
 }
 
@@ -33,6 +51,8 @@ func (w *wrapper) Close() error {
 func (w *wrapper) reset() {
 	w.code = 0
 	w.read = 0
+	w.write = 0
+	w.w = nil
 	w.data = nil
 	w.ReadCloser = nil
 }
@@ -59,7 +79,7 @@ func (l *lm) Log(next http.Handler, accessLogs bool) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 
-		bw := l.getW()
+		bw := l.getW(w)
 		defer l.putW(bw)
 
 		r2 := *r
@@ -68,7 +88,7 @@ func (l *lm) Log(next http.Handler, accessLogs bool) http.Handler {
 			r2.Body = bw
 		}
 
-		next.ServeHTTP(w, &r2)
+		next.ServeHTTP(bw, &r2)
 		l.writeLog(accessLogs, r, bw, start)
 	})
 }
@@ -82,6 +102,7 @@ func (l *lm) writeLog(accessLog bool, r *http.Request, bw *wrapper, start time.T
 			zap.String("URI", r.RequestURI),
 			zap.String("remote_address", r.RemoteAddr),
 			zap.Int("read_bytes", bw.read),
+			zap.Int("write_bytes", bw.write),
 			zap.Time("start", start),
 			zap.Duration("elapsed", time.Since(start)))
 	case true:
@@ -100,6 +121,7 @@ func (l *lm) writeLog(accessLog bool, r *http.Request, bw *wrapper, start time.T
 
 		l.log.Info("http access log",
 			zap.Int("read_bytes", bw.read),
+			zap.Int("write_bytes", bw.write),
 			zap.Int("status", bw.code),
 			zap.String("method", r.Method),
 			zap.String("URI", r.RequestURI),
@@ -116,8 +138,10 @@ func (l *lm) writeLog(accessLog bool, r *http.Request, bw *wrapper, start time.T
 	}
 }
 
-func (l *lm) getW() *wrapper {
-	return l.pool.Get().(*wrapper)
+func (l *lm) getW(w http.ResponseWriter) *wrapper {
+	wr := l.pool.Get().(*wrapper)
+	wr.w = w
+	return wr
 }
 
 func (l *lm) putW(w *wrapper) {
