@@ -1,12 +1,15 @@
 package middleware
 
 import (
+	"bufio"
 	"io"
+	"net"
 	"net/http"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/roadrunner-server/errors"
 	"go.uber.org/zap"
 )
 
@@ -42,6 +45,20 @@ func (w *wrapper) Write(b []byte) (int, error) {
 	n, err := w.w.Write(b)
 	w.write += n
 	return n, err
+}
+
+func (w *wrapper) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	if hj, ok := w.w.(http.Hijacker); ok {
+		return hj.Hijack()
+	}
+
+	return nil, nil, errors.Str("http.Hijacker interface is not supported")
+}
+
+func (w *wrapper) Flush() {
+	if fl, ok := w.w.(http.Flusher); ok {
+		fl.Flush()
+	}
 }
 
 func (w *wrapper) Close() error {
