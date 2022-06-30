@@ -1,7 +1,6 @@
 package helpers
 
 import (
-	"github.com/roadrunner-server/sdk/v2/utils"
 	"go.uber.org/zap"
 )
 
@@ -13,7 +12,7 @@ type StdLogAdapter struct {
 
 // Write io.Writer interface implementation
 func (s *StdLogAdapter) Write(p []byte) (n int, err error) {
-	s.log.Error("internal server error", zap.String("message", utils.AsString(p)))
+	s.log.Error("internal server error", zap.String("message", string(p)))
 	return len(p), nil
 }
 
