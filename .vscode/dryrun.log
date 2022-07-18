@@ -1,5 +1,0 @@
-make --dry-run --always-make --keep-going --print-directory
-make: Entering directory '/home/valery/projects/opensource/github/spiral/plugins/http'
-go test -v -race -cover -tags=debug ./...
-make: Leaving directory '/home/valery/projects/opensource/github/spiral/plugins/http'
- 
