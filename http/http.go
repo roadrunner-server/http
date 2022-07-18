@@ -59,8 +59,9 @@ func NewHTTPServer(handler http.Handler, httpConf *Config, http2Conf *https.HTTP
 		redirectPort: redirectPort,
 		cfg:          httpConf,
 		http: &http.Server{
-			Handler:  handler,
-			ErrorLog: errLog,
+			ReadHeaderTimeout: time.Minute * 5,
+			Handler:           handler,
+			ErrorLog:          errLog,
 		},
 	}
 }

@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/mholt/acmez"
 	"github.com/roadrunner-server/api/v2/plugins/middleware"
@@ -216,9 +217,10 @@ func initTLS(handler http.Handler, errLog *log.Logger, addr string, port int) *h
 	DefaultCipherSuites = append(DefaultCipherSuites, defaultCipherSuitesTLS13...)
 
 	sslServer := &http.Server{
-		Addr:     helpers.TLSAddr(addr, true, port),
-		Handler:  handler,
-		ErrorLog: errLog,
+		Addr:              helpers.TLSAddr(addr, true, port),
+		Handler:           handler,
+		ErrorLog:          errLog,
+		ReadHeaderTimeout: time.Minute * 5,
 		TLSConfig: &tls.Config{
 			CurvePreferences: []tls.CurveID{
 				tls.X25519,

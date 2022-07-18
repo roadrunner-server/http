@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/fcgi"
+	"time"
 
 	"github.com/roadrunner-server/api/v2/plugins/middleware"
 	"github.com/roadrunner-server/errors"
@@ -25,8 +26,9 @@ func NewFCGIServer(handler http.Handler, cfg *FCGI, log *zap.Logger, errLog *log
 		cfg: cfg,
 		log: log,
 		fcgi: &http.Server{
-			Handler:  handler,
-			ErrorLog: errLog,
+			ReadHeaderTimeout: time.Minute * 5,
+			Handler:           handler,
+			ErrorLog:          errLog,
 		},
 	}
 }
