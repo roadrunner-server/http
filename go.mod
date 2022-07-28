@@ -18,8 +18,8 @@ require (
 	go.opentelemetry.io/otel v1.8.0
 	go.opentelemetry.io/otel/trace v1.8.0
 	go.uber.org/zap v1.21.0
-	golang.org/x/net v0.0.0-20220726230323-06994584191e
-	golang.org/x/sys v0.0.0-20220727055044-e65921a090b8
+	golang.org/x/net v0.0.0-20220728030405-41545e8bf201
+	golang.org/x/sys v0.0.0-20220728004956-3c1f35247d10
 )
 
 require (
