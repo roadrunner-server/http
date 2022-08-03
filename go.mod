@@ -3,9 +3,9 @@ module github.com/roadrunner-server/http/v2
 go 1.18
 
 require (
-	github.com/caddyserver/certmagic v0.16.1
+	github.com/caddyserver/certmagic v0.16.2
 	github.com/goccy/go-json v0.9.10
-	github.com/mholt/acmez v1.0.3
+	github.com/mholt/acmez v1.0.4
 	github.com/prometheus/client_golang v1.12.2
 	github.com/roadrunner-server/api/v2 v2.20.0
 	github.com/roadrunner-server/endure v1.3.1
@@ -13,12 +13,12 @@ require (
 	github.com/roadrunner-server/goridge/v3 v3.4.5
 	github.com/roadrunner-server/sdk/v2 v2.18.2
 	github.com/stretchr/testify v1.8.0
-	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.33.0
-	go.opentelemetry.io/contrib/propagators/jaeger v1.8.0
-	go.opentelemetry.io/otel v1.8.0
-	go.opentelemetry.io/otel/trace v1.8.0
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.34.0
+	go.opentelemetry.io/contrib/propagators/jaeger v1.9.0
+	go.opentelemetry.io/otel v1.9.0
+	go.opentelemetry.io/otel/trace v1.9.0
 	go.uber.org/zap v1.21.0
-	golang.org/x/net v0.0.0-20220728211354-c7608f3a8462
+	golang.org/x/net v0.0.0-20220802222814-0bcc04d9c69b
 	golang.org/x/sys v0.0.0-20220731174439-a90be440212d
 )
 
