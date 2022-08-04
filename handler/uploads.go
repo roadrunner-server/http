@@ -2,7 +2,6 @@ package handler
 
 import (
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"os"
 	"path"
@@ -141,7 +140,7 @@ func (f *FileUpload) Open(dir string, forbid, allow map[string]struct{}) error {
 		err = file.Close()
 	}()
 
-	tmp, err := ioutil.TempFile(dir, pattern)
+	tmp, err := os.CreateTemp(dir, pattern)
 	if err != nil {
 		// most likely cause of this issue is missing tmp dir
 		f.Error = UploadErrorNoTmpDir
