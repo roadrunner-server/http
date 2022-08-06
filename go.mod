@@ -6,7 +6,7 @@ require (
 	github.com/caddyserver/certmagic v0.16.2
 	github.com/goccy/go-json v0.9.10
 	github.com/mholt/acmez v1.0.4
-	github.com/prometheus/client_golang v1.12.2
+	github.com/prometheus/client_golang v1.13.0
 	github.com/roadrunner-server/api/v2 v2.20.1
 	github.com/roadrunner-server/endure v1.4.1
 	github.com/roadrunner-server/errors v1.2.0
