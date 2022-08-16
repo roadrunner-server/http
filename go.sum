@@ -250,8 +250,6 @@ github.com/tklauser/numcpus v0.5.0 h1:ooe7gN0fg6myJ0EKoTAf5hebTZrH52px3New/D9iJ+
 github.com/tklauser/numcpus v0.5.0/go.mod h1:OGzpTxpcIMNGYQdit2BYL1pvk/dSOaJWjKoflh+RQjo=
 github.com/valyala/bytebufferpool v1.0.0 h1:GqA5TC/0021Y/b9FG4Oi9Mr3q7XYx6KllzawFIhcdPw=
 github.com/valyala/bytebufferpool v1.0.0/go.mod h1:6bBcMArwyJ5K/AmCkWv1jt77kVWyCJ6HpOuEn7z0Csc=
-github.com/valyala/fasthttp v1.38.0 h1:yTjSSNjuDi2PPvXY2836bIwLmiTS2T4T9p1coQshpco=
-github.com/valyala/fasthttp v1.38.0/go.mod h1:t/G+3rLek+CyY9bnIE+YlMRddxVAAGjhxndDB4i4C0I=
 github.com/valyala/fasthttp v1.39.0 h1:lW8mGeM7yydOqZKmwyMTaz/PH/A+CLgtmmcjv+OORfU=
 github.com/valyala/fasthttp v1.39.0/go.mod h1:t/G+3rLek+CyY9bnIE+YlMRddxVAAGjhxndDB4i4C0I=
 github.com/valyala/tcplisten v1.0.0/go.mod h1:T0xQ8SeCZGxckz9qRXTfG43PvQ/mcWh7FwZEA7Ioqkc=
