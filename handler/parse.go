@@ -7,8 +7,8 @@ import (
 // MaxLevel defines maximum tree depth for incoming request data and files.
 const MaxLevel = 127
 
-type dataTree map[string]interface{}
-type fileTree map[string]interface{}
+type dataTree map[string]any
+type fileTree map[string]any
 
 // parseData parses incoming request body into data tree.
 func parseData(r *http.Request) dataTree {

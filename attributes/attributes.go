@@ -8,9 +8,9 @@ import (
 	"github.com/roadrunner-server/sdk/v2/utils"
 )
 
-type attrs map[string]interface{}
+type attrs map[string]any
 
-func (v attrs) get(key string) interface{} {
+func (v attrs) get(key string) any {
 	if v == nil {
 		return ""
 	}
@@ -18,7 +18,7 @@ func (v attrs) get(key string) interface{} {
 	return v[key]
 }
 
-func (v attrs) set(key string, value interface{}) {
+func (v attrs) set(key string, value any) {
 	v[key] = value
 }
 
@@ -36,7 +36,7 @@ func Init(r *http.Request) *http.Request {
 }
 
 // All returns all context attributes.
-func All(r *http.Request) map[string]interface{} {
+func All(r *http.Request) map[string]any {
 	v := r.Context().Value(utils.PsrContextKey)
 	if v == nil {
 		return attrs{}
@@ -47,7 +47,7 @@ func All(r *http.Request) map[string]interface{} {
 
 // Get gets the value from request context. It replaces any existing
 // values.
-func Get(r *http.Request, key string) interface{} {
+func Get(r *http.Request, key string) any {
 	v := r.Context().Value(utils.PsrContextKey)
 	if v == nil {
 		return nil
@@ -58,7 +58,7 @@ func Get(r *http.Request, key string) interface{} {
 
 // Set sets the key to value. It replaces any existing
 // values. Context specific.
-func Set(r *http.Request, key string, value interface{}) error {
+func Set(r *http.Request, key string, value any) error {
 	v := r.Context().Value(utils.PsrContextKey)
 	if v == nil {
 		return errors.New("unable to find `psr:attributes` context key")

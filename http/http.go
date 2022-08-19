@@ -19,14 +19,14 @@ import (
 )
 
 type Server struct {
-	cfg          *Config
 	log          *zap.Logger
 	http         *http.Server
+	address      string
 	redirect     bool
 	redirectPort int
 }
 
-func NewHTTPServer(handler http.Handler, httpConf *Config, http2Conf *https.HTTP2, sslCfg *https.SSL, errLog *log.Logger, log *zap.Logger) *Server {
+func NewHTTPServer(handler http.Handler, address string, http2Conf *https.HTTP2, sslCfg *https.SSL, errLog *log.Logger, log *zap.Logger) *Server {
 	var redirect bool
 	var redirectPort int
 
@@ -40,7 +40,7 @@ func NewHTTPServer(handler http.Handler, httpConf *Config, http2Conf *https.HTTP
 			log:          log,
 			redirect:     redirect,
 			redirectPort: redirectPort,
-			cfg:          httpConf,
+			address:      address,
 			http: &http.Server{
 				Handler: h2c.NewHandler(handler, &http2.Server{
 					MaxConcurrentStreams:         http2Conf.MaxConcurrentStreams,
@@ -57,7 +57,7 @@ func NewHTTPServer(handler http.Handler, httpConf *Config, http2Conf *https.HTTP
 		log:          log,
 		redirect:     redirect,
 		redirectPort: redirectPort,
-		cfg:          httpConf,
+		address:      address,
 		http: &http.Server{
 			ReadHeaderTimeout: time.Minute * 5,
 			Handler:           handler,
@@ -79,12 +79,12 @@ func (s *Server) Start(mdwr map[string]middleware.Middleware, order []string) er
 		s.http.Handler = bundledmwr.Redirect(s.http.Handler, s.redirectPort)
 	}
 
-	l, err := utils.CreateListener(s.cfg.Address)
+	l, err := utils.CreateListener(s.address)
 	if err != nil {
 		return errors.E(op, err)
 	}
 
-	s.log.Debug("http server was started", zap.String("address", s.cfg.Address))
+	s.log.Debug("http server was started", zap.String("address", s.address))
 	err = s.http.Serve(l)
 	if err != nil && !stderr.Is(err, http.ErrServerClosed) {
 		return errors.E(op, err)

@@ -7,7 +7,6 @@ import (
 
 	"github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/http/v2/fcgi"
-	"github.com/roadrunner-server/http/v2/http"
 	"github.com/roadrunner-server/http/v2/https"
 	"github.com/roadrunner-server/http/v2/uploads"
 	"github.com/roadrunner-server/sdk/v2/pool"
@@ -15,14 +14,8 @@ import (
 
 // Config configures RoadRunner HTTP server.
 type Config struct {
-	// List of the middleware names (order will be preserved)
-	Middleware []string `mapstructure:"middleware"`
-
-	// Pool configures worker pool.
-	Pool *pool.Config `mapstructure:"pool"`
-
 	// HTTP related configuration
-	HTTPConfig *http.Config `mapstructure:"http"`
+	CommonOptions *CommonOptions `mapstructure:"http"`
 
 	// SSLConfig defines https server options.
 	SSLConfig *https.SSL `mapstructure:"ssl"`
@@ -39,7 +32,7 @@ type Config struct {
 
 // EnableHTTP is true when http server must run.
 func (c *Config) EnableHTTP() bool {
-	return c.HTTPConfig.Address != ""
+	return c.CommonOptions.Address != ""
 }
 
 // EnableTLS returns true if pool must listen TLS connections.
@@ -63,9 +56,13 @@ func (c *Config) EnableFCGI() bool {
 
 // InitDefaults must populate HTTP values using given HTTP source. Must return error if HTTP is not valid.
 func (c *Config) InitDefaults() error {
-	if c.Pool == nil {
+	if c.CommonOptions == nil {
+		c.CommonOptions = &CommonOptions{}
+	}
+
+	if c.CommonOptions.Pool == nil {
 		// default pool
-		c.Pool = &pool.Config{
+		c.CommonOptions.Pool = &pool.Config{
 			Debug:           false,
 			NumWorkers:      uint64(runtime.NumCPU()),
 			MaxJobs:         0,
@@ -75,17 +72,13 @@ func (c *Config) InitDefaults() error {
 		}
 	}
 
-	if c.HTTPConfig == nil {
-		c.HTTPConfig = &http.Config{}
+	if c.CommonOptions.InternalErrorCode == 0 {
+		c.CommonOptions.InternalErrorCode = 500
 	}
 
-	if c.HTTPConfig.InternalErrorCode == 0 {
-		c.HTTPConfig.InternalErrorCode = 500
-	}
-
-	if c.HTTPConfig.MaxRequestSize == 0 {
+	if c.CommonOptions.MaxRequestSize == 0 {
 		// 1Gb
-		c.HTTPConfig.MaxRequestSize = 1000
+		c.CommonOptions.MaxRequestSize = 1000
 	}
 
 	if c.HTTP2Config != nil {
@@ -121,7 +114,7 @@ func (c *Config) Valid() error {
 		return errors.E(op, errors.Str("malformed uploads config"))
 	}
 
-	if c.Pool == nil {
+	if c.CommonOptions.Pool == nil {
 		return errors.E(op, "malformed pool config")
 	}
 
@@ -129,7 +122,7 @@ func (c *Config) Valid() error {
 		return errors.E(op, errors.Str("unable to run http service, no method has been specified (http, https, http/2 or FastCGI)"))
 	}
 
-	if c.HTTPConfig.Address != "" && !strings.Contains(c.HTTPConfig.Address, ":") {
+	if c.CommonOptions.Address != "" && !strings.Contains(c.CommonOptions.Address, ":") {
 		return errors.E(op, errors.Str("malformed http server address"))
 	}
 
