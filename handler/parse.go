@@ -112,6 +112,7 @@ func (d fileTree) mount(i []string, v []*FileUpload) {
 
 // fetchIndexes parses input name and splits it into separate indexes list.
 func fetchIndexes(s string) []string {
+	const empty = ""
 	var (
 		pos  int
 		ch   string
@@ -129,12 +130,12 @@ func fetchIndexes(s string) []string {
 			continue
 		case "]":
 			if pos == 1 {
-				keys = append(keys, "")
+				keys = append(keys, empty)
 			}
 			pos = 2
 		default:
 			if pos == 1 || pos == 2 {
-				keys = append(keys, "")
+				keys = append(keys, empty)
 			}
 
 			keys[len(keys)-1] += ch
