@@ -348,12 +348,14 @@ func (p *Plugin) serve(errCh chan error) {
 		return
 	}
 
-	err = p.collectServers()
+	// initialize servers based on the configuration
+	err = p.initServers()
 	if err != nil {
 		errCh <- err
 		return
 	}
 
+	// apply access_logs, max_request, redirect middleware if specified by user
 	p.applyBundledMiddleware()
 
 	// start all servers
@@ -368,7 +370,7 @@ func (p *Plugin) serve(errCh chan error) {
 	}
 }
 
-func (p *Plugin) collectServers() error {
+func (p *Plugin) initServers() error {
 	if p.cfg.EnableHTTP() {
 		p.servers = append(p.servers, httpServer.NewHTTPServer(p, p.cfg.CommonOptions.Address, p.cfg.HTTP2Config, p.cfg.SSLConfig, p.stdLog, p.log))
 	}

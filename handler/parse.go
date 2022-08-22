@@ -30,7 +30,7 @@ func parseData(r *http.Request) dataTree {
 
 // pushes value into data tree.
 func (d dataTree) push(k string, v []string) {
-	keys := FetchIndexes(k)
+	keys := fetchIndexes(k)
 	if len(keys) <= MaxLevel {
 		d.mount(keys, v)
 	}
@@ -81,7 +81,7 @@ func parseUploads(r *http.Request) *Uploads {
 
 // pushes new file upload into it's proper place.
 func (d fileTree) push(k string, v []*FileUpload) {
-	keys := FetchIndexes(k)
+	keys := fetchIndexes(k)
 	if len(keys) <= MaxLevel {
 		d.mount(keys, v)
 	}
@@ -110,8 +110,8 @@ func (d fileTree) mount(i []string, v []*FileUpload) {
 	d[i[0]].(fileTree).mount(i[1:], v)
 }
 
-// FetchIndexes parses input name and splits it into separate indexes list.
-func FetchIndexes(s string) []string {
+// fetchIndexes parses input name and splits it into separate indexes list.
+func fetchIndexes(s string) []string {
 	var (
 		pos  int
 		ch   string

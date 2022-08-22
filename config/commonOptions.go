@@ -5,8 +5,8 @@ import (
 )
 
 type CommonOptions struct {
-	// SendRawBody if turned on, RR will not parse the incoming HTTP body and will send it as is
-	SendRawBody bool `mapstructure:"send_raw_body"`
+	// RawBody if turned on, RR will not parse the incoming HTTP body and will send it as is
+	RawBody bool `mapstructure:"raw_body"`
 
 	// Host and port to handle as http server.
 	Address string `mapstructure:"address"`

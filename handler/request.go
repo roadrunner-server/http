@@ -20,7 +20,7 @@ const (
 	contentNone      = iota + 900
 	contentStream
 	contentMultipart
-	contentFormData
+	contentURLEncoded
 )
 
 // Request maps net/http requests to PSR7 compatible structure and managed state of temporary uploaded files.
@@ -68,7 +68,7 @@ func FetchIP(pair string) string {
 	return addr
 }
 
-func request(r *http.Request, req *Request, rawBody bool) error {
+func request(r *http.Request, req *Request, sendRawBody bool) error {
 	for _, c := range r.Cookies() {
 		if v, err := url.QueryUnescape(c.Value); err == nil {
 			req.Cookies[c.Name] = v
@@ -96,9 +96,13 @@ func request(r *http.Request, req *Request, rawBody bool) error {
 
 		req.Uploads = parseUploads(r)
 		fallthrough
-	case contentFormData:
-		if rawBody {
-			b, _ := io.ReadAll(r.Body)
+	case contentURLEncoded:
+		if sendRawBody {
+			b, err := io.ReadAll(r.Body)
+			if err != nil {
+				return err
+			}
+
 			data, err := url.QueryUnescape(utils.AsString(b))
 			if err != nil {
 				return err
@@ -107,6 +111,7 @@ func request(r *http.Request, req *Request, rawBody bool) error {
 			req.body = utils.AsBytes(data)
 			return nil
 		}
+
 		err := r.ParseForm()
 		if err != nil {
 			return err
@@ -146,7 +151,7 @@ func (r *Request) Payload(p *payload.Payload, sendRawBody bool) error {
 	const op = errors.Op("marshal_payload")
 
 	var err error
-	p.Context, err = json.Marshal(r)
+	p.Context, err = json.MarshalWithOption(r, json.UnorderedMap())
 	if err != nil {
 		return err
 	}
@@ -182,7 +187,7 @@ func (r *Request) contentType() int {
 
 	ct := r.Header.Get("content-type")
 	if strings.Contains(ct, "application/x-www-form-urlencoded") {
-		return contentFormData
+		return contentURLEncoded
 	}
 
 	if strings.Contains(ct, "multipart/form-data") {

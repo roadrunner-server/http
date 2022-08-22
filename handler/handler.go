@@ -58,7 +58,7 @@ func NewHandler(commonOpts *config.CommonOptions, uploadsCfg *uploadsConf.Upload
 		pool:             pool,
 		log:              log,
 		internalHTTPCode: commonOpts.InternalErrorCode,
-		sendRawBody:      commonOpts.SendRawBody,
+		sendRawBody:      commonOpts.RawBody,
 		errPool: sync.Pool{
 			New: func() any {
 				return make(chan error, 1)
