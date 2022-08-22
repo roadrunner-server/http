@@ -102,7 +102,7 @@ func (p *Plugin) Init(cfg cfgPlugin.Configurer, rrLogger *zap.Logger, srv server
 	}
 
 	// unmarshal HTTP section
-	err = cfg.UnmarshalKey(PluginName, &p.cfg.HTTPConfig)
+	err = cfg.UnmarshalKey(PluginName, &p.cfg.CommonOptions)
 	if err != nil {
 		return errors.E(op, err)
 	}
@@ -267,8 +267,8 @@ func (p *Plugin) Reset() error {
 }
 
 // Collects collecting http middlewares
-func (p *Plugin) Collects() []interface{} {
-	return []interface{}{
+func (p *Plugin) Collects() []any {
+	return []any{
 		p.AddMiddleware,
 	}
 }
@@ -325,7 +325,7 @@ func (p *Plugin) Ready() (*status.Status, error) {
 
 func (p *Plugin) serve(errCh chan error) {
 	var err error
-	p.pool, err = p.server.NewWorkerPool(context.Background(), p.cfg.Pool, map[string]string{RrMode: "http"}, p.log)
+	p.pool, err = p.server.NewWorkerPool(context.Background(), p.cfg.CommonOptions.Pool, map[string]string{RrMode: "http"}, p.log)
 	if err != nil {
 		errCh <- err
 		return
@@ -338,7 +338,7 @@ func (p *Plugin) serve(errCh chan error) {
 	}
 
 	p.handler, err = handler.NewHandler(
-		p.cfg.HTTPConfig,
+		p.cfg.CommonOptions,
 		p.cfg.Uploads,
 		p.pool,
 		p.log,
@@ -348,18 +348,20 @@ func (p *Plugin) serve(errCh chan error) {
 		return
 	}
 
-	err = p.collectServers()
+	// initialize servers based on the configuration
+	err = p.initServers()
 	if err != nil {
 		errCh <- err
 		return
 	}
 
+	// apply access_logs, max_request, redirect middleware if specified by user
 	p.applyBundledMiddleware()
 
 	// start all servers
 	for i := 0; i < len(p.servers); i++ {
 		go func(idx int) {
-			errSt := p.servers[idx].Start(p.mdwr, p.cfg.Middleware)
+			errSt := p.servers[idx].Start(p.mdwr, p.cfg.CommonOptions.Middleware)
 			if errSt != nil {
 				errCh <- errSt
 				return
@@ -368,9 +370,9 @@ func (p *Plugin) serve(errCh chan error) {
 	}
 }
 
-func (p *Plugin) collectServers() error {
+func (p *Plugin) initServers() error {
 	if p.cfg.EnableHTTP() {
-		p.servers = append(p.servers, httpServer.NewHTTPServer(p, p.cfg.HTTPConfig, p.cfg.HTTP2Config, p.cfg.SSLConfig, p.stdLog, p.log))
+		p.servers = append(p.servers, httpServer.NewHTTPServer(p, p.cfg.CommonOptions.Address, p.cfg.HTTP2Config, p.cfg.SSLConfig, p.stdLog, p.log))
 	}
 
 	if p.cfg.EnableTLS() {
@@ -393,7 +395,7 @@ func (p *Plugin) applyBundledMiddleware() {
 	// apply max_req_size and logger middleware
 	for i := 0; i < len(p.servers); i++ {
 		serv := p.servers[i].GetServer()
-		serv.Handler = bundledMw.MaxRequestSize(serv.Handler, p.cfg.HTTPConfig.MaxRequestSize*MB)
-		serv.Handler = bundledMw.NewLogMiddleware(serv.Handler, p.cfg.HTTPConfig.AccessLogs, p.log)
+		serv.Handler = bundledMw.MaxRequestSize(serv.Handler, p.cfg.CommonOptions.MaxRequestSize*MB)
+		serv.Handler = bundledMw.NewLogMiddleware(serv.Handler, p.cfg.CommonOptions.AccessLogs, p.log)
 	}
 }

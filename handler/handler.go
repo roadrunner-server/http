@@ -14,7 +14,7 @@ import (
 	"github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/goridge/v3/pkg/frame"
 	"github.com/roadrunner-server/http/v2/attributes"
-	httpConf "github.com/roadrunner-server/http/v2/http"
+	"github.com/roadrunner-server/http/v2/config"
 	uploadsConf "github.com/roadrunner-server/http/v2/uploads"
 	"go.uber.org/zap"
 )
@@ -38,6 +38,7 @@ type Handler struct {
 	pool    pool.Pool
 
 	internalHTTPCode uint64
+	sendRawBody      bool
 
 	// internal
 	reqPool  sync.Pool
@@ -47,7 +48,7 @@ type Handler struct {
 }
 
 // NewHandler return handle interface implementation
-func NewHandler(httpCfg *httpConf.Config, uploadsCfg *uploadsConf.Uploads, pool pool.Pool, log *zap.Logger) (*Handler, error) {
+func NewHandler(commonOpts *config.CommonOptions, uploadsCfg *uploadsConf.Uploads, pool pool.Pool, log *zap.Logger) (*Handler, error) {
 	return &Handler{
 		uploads: &uploads{
 			dir:    uploadsCfg.Dir,
@@ -56,7 +57,8 @@ func NewHandler(httpCfg *httpConf.Config, uploadsCfg *uploadsConf.Uploads, pool 
 		},
 		pool:             pool,
 		log:              log,
-		internalHTTPCode: httpCfg.InternalErrorCode,
+		internalHTTPCode: commonOpts.InternalErrorCode,
+		sendRawBody:      commonOpts.RawBody,
 		errPool: sync.Pool{
 			New: func() any {
 				return make(chan error, 1)
@@ -65,14 +67,14 @@ func NewHandler(httpCfg *httpConf.Config, uploadsCfg *uploadsConf.Uploads, pool 
 		reqPool: sync.Pool{
 			New: func() any {
 				return &Request{
-					Attributes: make(map[string]interface{}),
+					Attributes: make(map[string]any),
 					Cookies:    make(map[string]string),
 					body:       nil,
 				}
 			},
 		},
 		respPool: sync.Pool{
-			New: func() interface{} {
+			New: func() any {
 				return &Response{
 					Headers: make(map[string][]string),
 					Status:  -1,
@@ -80,7 +82,7 @@ func NewHandler(httpCfg *httpConf.Config, uploadsCfg *uploadsConf.Uploads, pool 
 			},
 		},
 		pldPool: sync.Pool{
-			New: func() interface{} {
+			New: func() any {
 				return &payload.Payload{
 					Body:    make([]byte, 0, 100),
 					Context: make([]byte, 0, 100),
@@ -97,7 +99,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 
 	req := h.getReq(r)
-	err := request(r, req)
+	err := request(r, req, h.sendRawBody)
 	if err != nil {
 		// if pipe is broken, there is no sense to write the header
 		// in this case we just report about error
@@ -119,7 +121,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// get payload from the pool
 	pld := h.getPld()
 
-	err = req.Payload(pld)
+	err = req.Payload(pld, h.sendRawBody)
 	if err != nil {
 		req.Close(h.log, r)
 		h.putReq(req)

@@ -11,6 +11,7 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/roadrunner-server/api/v2/payload"
 	"github.com/roadrunner-server/errors"
+	"github.com/roadrunner-server/sdk/v2/utils"
 	"go.uber.org/zap"
 )
 
@@ -19,7 +20,7 @@ const (
 	contentNone      = iota + 900
 	contentStream
 	contentMultipart
-	contentFormData
+	contentURLEncoded
 )
 
 // Request maps net/http requests to PSR7 compatible structure and managed state of temporary uploaded files.
@@ -52,10 +53,10 @@ type Request struct {
 	Uploads *Uploads `json:"uploads"`
 
 	// Attributes can be set by chained mdwr to safely pass value from Golang to PHP. See: GetAttribute, SetAttribute functions.
-	Attributes map[string]interface{} `json:"attributes"`
+	Attributes map[string]any `json:"attributes"`
 
 	// request body can be parsedData or []byte
-	body interface{}
+	body any
 }
 
 func FetchIP(pair string) string {
@@ -67,7 +68,7 @@ func FetchIP(pair string) string {
 	return addr
 }
 
-func request(r *http.Request, req *Request) error {
+func request(r *http.Request, req *Request, sendRawBody bool) error {
 	for _, c := range r.Cookies() {
 		if v, err := url.QueryUnescape(c.Value); err == nil {
 			req.Cookies[c.Name] = v
@@ -95,7 +96,22 @@ func request(r *http.Request, req *Request) error {
 
 		req.Uploads = parseUploads(r)
 		fallthrough
-	case contentFormData:
+	case contentURLEncoded:
+		if sendRawBody {
+			b, err := io.ReadAll(r.Body)
+			if err != nil {
+				return err
+			}
+
+			data, err := url.QueryUnescape(utils.AsString(b))
+			if err != nil {
+				return err
+			}
+
+			req.body = utils.AsBytes(data)
+			return nil
+		}
+
 		err := r.ParseForm()
 		if err != nil {
 			return err
@@ -131,18 +147,24 @@ func (r *Request) Close(log *zap.Logger, hr *http.Request) {
 
 // Payload request marshaled RoadRunner payload based on PSR7 data. values encode method is JSON. Make sure to open
 // files prior to calling this method.
-func (r *Request) Payload(p *payload.Payload) error {
+func (r *Request) Payload(p *payload.Payload, sendRawBody bool) error {
 	const op = errors.Op("marshal_payload")
 
 	var err error
-	p.Context, err = json.Marshal(r)
+	p.Context, err = json.MarshalWithOption(r, json.UnorderedMap())
 	if err != nil {
 		return err
 	}
 
+	// if user wanted to get a raw body, just send it
+	if sendRawBody {
+		p.Body = r.body.([]byte)
+		return nil
+	}
+
 	// check if body was already parsed
 	if r.Parsed {
-		p.Body, err = json.Marshal(r.body)
+		p.Body, err = json.MarshalWithOption(r.body, json.UnorderedMap())
 		if err != nil {
 			return errors.E(op, errors.Encode, err)
 		}
@@ -165,7 +187,7 @@ func (r *Request) contentType() int {
 
 	ct := r.Header.Get("content-type")
 	if strings.Contains(ct, "application/x-www-form-urlencoded") {
-		return contentFormData
+		return contentURLEncoded
 	}
 
 	if strings.Contains(ct, "multipart/form-data") {

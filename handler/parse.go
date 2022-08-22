@@ -7,8 +7,8 @@ import (
 // MaxLevel defines maximum tree depth for incoming request data and files.
 const MaxLevel = 127
 
-type dataTree map[string]interface{}
-type fileTree map[string]interface{}
+type dataTree map[string]any
+type fileTree map[string]any
 
 // parseData parses incoming request body into data tree.
 func parseData(r *http.Request) dataTree {
@@ -30,7 +30,7 @@ func parseData(r *http.Request) dataTree {
 
 // pushes value into data tree.
 func (d dataTree) push(k string, v []string) {
-	keys := FetchIndexes(k)
+	keys := fetchIndexes(k)
 	if len(keys) <= MaxLevel {
 		d.mount(keys, v)
 	}
@@ -81,7 +81,7 @@ func parseUploads(r *http.Request) *Uploads {
 
 // pushes new file upload into it's proper place.
 func (d fileTree) push(k string, v []*FileUpload) {
-	keys := FetchIndexes(k)
+	keys := fetchIndexes(k)
 	if len(keys) <= MaxLevel {
 		d.mount(keys, v)
 	}
@@ -110,8 +110,9 @@ func (d fileTree) mount(i []string, v []*FileUpload) {
 	d[i[0]].(fileTree).mount(i[1:], v)
 }
 
-// FetchIndexes parses input name and splits it into separate indexes list.
-func FetchIndexes(s string) []string {
+// fetchIndexes parses input name and splits it into separate indexes list.
+func fetchIndexes(s string) []string {
+	const empty = ""
 	var (
 		pos  int
 		ch   string
@@ -129,12 +130,12 @@ func FetchIndexes(s string) []string {
 			continue
 		case "]":
 			if pos == 1 {
-				keys = append(keys, "")
+				keys = append(keys, empty)
 			}
 			pos = 2
 		default:
 			if pos == 1 || pos == 2 {
-				keys = append(keys, "")
+				keys = append(keys, empty)
 			}
 
 			keys[len(keys)-1] += ch
