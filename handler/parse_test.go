@@ -15,7 +15,7 @@ var samples = []struct { //nolint:gochecknoglobals
 	{"key[subkey][value][]", []string{"key", "subkey", "value", ""}},
 	{"key[subkey] [value][]", []string{"key", "subkey", "value", ""}},
 	{"key [ subkey ] [ value ] [ ]", []string{"key", "subkey", "value", ""}},
-	{"ключь [ subkey ] [ value ] [ ]", []string{"ключь", "subkey", "value", ""}}, //test non 1-byte symbols
+	{"ключь [ subkey ] [ value ] [ ]", []string{"ключь", "subkey", "value", ""}}, // test non 1-byte symbols
 }
 
 func Test_FetchIndexes(t *testing.T) {
