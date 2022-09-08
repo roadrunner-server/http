@@ -26,6 +26,7 @@ import (
 	"github.com/roadrunner-server/sdk/v2/metrics"
 	pstate "github.com/roadrunner-server/sdk/v2/state/process"
 	"github.com/roadrunner-server/sdk/v2/utils"
+	"github.com/roadrunner-server/sdk/v2/worker/fsm"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	jprop "go.opentelemetry.io/contrib/propagators/jaeger"
 	"go.opentelemetry.io/otel/propagation"
@@ -208,7 +209,7 @@ func (p *Plugin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // Workers returns slice with the process states for the workers
-func (p *Plugin) Workers() []*process.State {
+func (p *Plugin) Workers() []process.State {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
@@ -217,7 +218,7 @@ func (p *Plugin) Workers() []*process.State {
 		return nil
 	}
 
-	ps := make([]*process.State, 0, len(workers))
+	ps := make([]process.State, 0, len(workers))
 	for i := 0; i < len(workers); i++ {
 		state, err := pstate.WorkerProcessState(workers[i])
 		if err != nil {
@@ -309,7 +310,7 @@ func (p *Plugin) Ready() (*status.Status, error) {
 	for i := 0; i < len(workers); i++ {
 		// If state of the worker is ready (at least 1)
 		// we assume, that plugin's worker pool is ready
-		if workers[i].State().Value() == worker.StateReady {
+		if workers[i].State().Compare(fsm.StateReady) {
 			return &status.Status{
 				Code: http.StatusOK,
 			}, nil
