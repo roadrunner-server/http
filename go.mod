@@ -11,7 +11,7 @@ require (
 	github.com/roadrunner-server/endure v1.4.5
 	github.com/roadrunner-server/errors v1.2.0
 	github.com/roadrunner-server/goridge/v3 v3.5.3
-	github.com/roadrunner-server/sdk/v2 v2.19.0-rc.3
+	github.com/roadrunner-server/sdk/v2 v2.19.0-rc.4
 	github.com/stretchr/testify v1.8.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.34.0
 	go.opentelemetry.io/contrib/propagators/jaeger v1.9.0
@@ -19,7 +19,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.9.0
 	go.uber.org/zap v1.23.0
 	golang.org/x/net v0.0.0-20220907135653-1e95f45603a7
-	golang.org/x/sys v0.0.0-20220907062415-87db552b00fd
+	golang.org/x/sys v0.0.0-20220908164124-27713097b956
 )
 
 require (
