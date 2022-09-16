@@ -33,7 +33,7 @@ require (
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/uuid v1.3.0 // indirect
-	github.com/klauspost/compress v1.15.9 // indirect
+	github.com/klauspost/compress v1.15.10 // indirect
 	github.com/klauspost/cpuid/v2 v2.1.1 // indirect
 	github.com/libdns/libdns v0.2.1 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
