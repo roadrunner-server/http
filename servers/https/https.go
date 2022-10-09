@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/roadrunner-server/http/v2/common"
+	"github.com/roadrunner-server/http/v3/common"
 
 	"github.com/mholt/acmez"
 	"github.com/roadrunner-server/errors"

@@ -8,7 +8,7 @@ import (
 	"net/http/fcgi"
 	"time"
 
-	"github.com/roadrunner-server/http/v2/common"
+	"github.com/roadrunner-server/http/v3/common"
 
 	"github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/sdk/v3/utils"

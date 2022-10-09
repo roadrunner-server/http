@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/roadrunner-server/http/v2/servers/fcgi"
-	"github.com/roadrunner-server/http/v2/servers/https"
+	"github.com/roadrunner-server/http/v3/servers/fcgi"
+	"github.com/roadrunner-server/http/v3/servers/https"
 
 	"github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/sdk/v3/pool"
