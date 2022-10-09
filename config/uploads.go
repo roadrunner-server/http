@@ -1,4 +1,4 @@
-package uploads
+package config
 
 import (
 	"os"

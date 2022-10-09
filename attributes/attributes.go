@@ -5,7 +5,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/roadrunner-server/sdk/v2/utils"
+	"github.com/roadrunner-server/sdk/v3/utils"
 )
 
 type attrs map[string]any

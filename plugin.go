@@ -7,26 +7,21 @@ import (
 	"sync"
 	"time"
 
-	cfgPlugin "github.com/roadrunner-server/api/v2/plugins/config"
-	"github.com/roadrunner-server/api/v2/plugins/middleware"
-	"github.com/roadrunner-server/api/v2/plugins/server"
-	"github.com/roadrunner-server/api/v2/plugins/status"
-	"github.com/roadrunner-server/api/v2/pool"
-	"github.com/roadrunner-server/api/v2/state/process"
-	"github.com/roadrunner-server/api/v2/worker"
+	"github.com/roadrunner-server/http/v2/common"
+
+	"github.com/roadrunner-server/http/v2/servers/fcgi"
+	httpServer "github.com/roadrunner-server/http/v2/servers/http"
+	httpsServer "github.com/roadrunner-server/http/v2/servers/https"
+
 	endure "github.com/roadrunner-server/endure/pkg/container"
 	"github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/http/v2/config"
-	"github.com/roadrunner-server/http/v2/fcgi"
 	"github.com/roadrunner-server/http/v2/handler"
-	"github.com/roadrunner-server/http/v2/helpers"
-	httpServer "github.com/roadrunner-server/http/v2/http"
-	tlsServer "github.com/roadrunner-server/http/v2/https"
 	bundledMw "github.com/roadrunner-server/http/v2/middleware"
-	"github.com/roadrunner-server/sdk/v2/metrics"
-	pstate "github.com/roadrunner-server/sdk/v2/state/process"
-	"github.com/roadrunner-server/sdk/v2/utils"
-	"github.com/roadrunner-server/sdk/v2/worker/fsm"
+	"github.com/roadrunner-server/sdk/v3/metrics"
+	"github.com/roadrunner-server/sdk/v3/state/process"
+	"github.com/roadrunner-server/sdk/v3/utils"
+	"github.com/roadrunner-server/sdk/v3/worker"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	jprop "go.opentelemetry.io/contrib/propagators/jaeger"
 	"go.opentelemetry.io/otel/propagation"
@@ -47,14 +42,15 @@ const (
 	sectionUploads = "http.uploads"
 
 	// RrMode RR_HTTP env variable key (internal) if the HTTP presents
-	RrMode = "RR_MODE"
+	RrMode     = "RR_MODE"
+	RrModeHTTP = "http"
 
 	Scheme = "https"
 )
 
 // internal interface to start-stop http servers
 type internalServer interface {
-	Start(map[string]middleware.Middleware, []string) error
+	Start(map[string]common.Middleware, []string) error
 	GetServer() *http.Server
 	Stop()
 }
@@ -67,7 +63,7 @@ type Plugin struct {
 	prop propagation.TextMapPropagator
 
 	// plugins
-	server server.Server
+	server common.Server
 	log    *zap.Logger
 	// stdlog passed to the http/https/fcgi servers to log their internal messages
 	stdLog *log.Logger
@@ -76,10 +72,10 @@ type Plugin struct {
 	cfg *config.Config
 
 	// middlewares to chain
-	mdwr map[string]middleware.Middleware
+	mdwr map[string]common.Middleware
 
 	// Pool which attached to all servers
-	pool pool.Pool
+	pool common.Pool
 	// servers RR handler
 	handler *handler.Handler
 	// metrics
@@ -90,7 +86,7 @@ type Plugin struct {
 
 // Init must return configure svc and return true if svc hasStatus enabled. Must return error in case of
 // misconfiguration. Services must not be used without proper configuration pushed first.
-func (p *Plugin) Init(cfg cfgPlugin.Configurer, rrLogger *zap.Logger, srv server.Server) error {
+func (p *Plugin) Init(cfg common.Configurer, rrLogger *zap.Logger, srv common.Server) error {
 	const op = errors.Op("http_plugin_init")
 	if !cfg.Has(PluginName) {
 		return errors.E(op, errors.Disabled)
@@ -103,7 +99,7 @@ func (p *Plugin) Init(cfg cfgPlugin.Configurer, rrLogger *zap.Logger, srv server
 	}
 
 	// unmarshal HTTP section
-	err = cfg.UnmarshalKey(PluginName, &p.cfg.CommonOptions)
+	err = cfg.UnmarshalKey(PluginName, &p.cfg)
 	if err != nil {
 		return errors.E(op, err)
 	}
@@ -142,8 +138,8 @@ func (p *Plugin) Init(cfg cfgPlugin.Configurer, rrLogger *zap.Logger, srv server
 	*p.log = *rrLogger
 
 	// use time and date in UTC format
-	p.stdLog = log.New(helpers.NewStdAdapter(p.log), "http_plugin: ", log.Ldate|log.Ltime|log.LUTC)
-	p.mdwr = make(map[string]middleware.Middleware)
+	p.stdLog = log.New(NewStdAdapter(p.log), "http_plugin: ", log.Ldate|log.Ltime|log.LUTC)
+	p.mdwr = make(map[string]common.Middleware)
 
 	if !p.cfg.EnableHTTP() && !p.cfg.EnableTLS() && !p.cfg.EnableFCGI() {
 		return errors.E(op, errors.Disabled)
@@ -220,7 +216,7 @@ func (p *Plugin) Workers() []*process.State {
 
 	ps := make([]*process.State, 0, len(workers))
 	for i := 0; i < len(workers); i++ {
-		state, err := pstate.WorkerProcessState(workers[i])
+		state, err := process.WorkerProcessState(workers[i])
 		if err != nil {
 			return nil
 		}
@@ -231,7 +227,7 @@ func (p *Plugin) Workers() []*process.State {
 }
 
 // internal
-func (p *Plugin) workers() []worker.BaseProcess {
+func (p *Plugin) workers() []*worker.Process {
 	if p == nil || p.pool == nil {
 		return nil
 	}
@@ -275,58 +271,18 @@ func (p *Plugin) Collects() []any {
 }
 
 // AddMiddleware is base requirement for the middleware (name and Middleware)
-func (p *Plugin) AddMiddleware(name endure.Named, m middleware.Middleware) {
+func (p *Plugin) AddMiddleware(name endure.Named, m common.Middleware) {
 	// just to be safe
 	p.mu.Lock()
 	p.mdwr[name.Name()] = m
 	p.mu.Unlock()
 }
 
-// Status return status of the particular plugin
-func (p *Plugin) Status() (*status.Status, error) {
-	p.mu.RLock()
-	defer p.mu.RUnlock()
-
-	workers := p.workers()
-	for i := 0; i < len(workers); i++ {
-		if workers[i].State().IsActive() {
-			return &status.Status{
-				Code: http.StatusOK,
-			}, nil
-		}
-	}
-	// if there are no workers, threat this as error
-	return &status.Status{
-		Code: http.StatusServiceUnavailable,
-	}, nil
-}
-
-// Ready return readiness status of the particular plugin
-func (p *Plugin) Ready() (*status.Status, error) {
-	p.mu.RLock()
-	defer p.mu.RUnlock()
-
-	workers := p.workers()
-	for i := 0; i < len(workers); i++ {
-		// If state of the worker is ready (at least 1)
-		// we assume, that plugin's worker pool is ready
-		if workers[i].State().Compare(fsm.StateReady) {
-			return &status.Status{
-				Code: http.StatusOK,
-			}, nil
-		}
-	}
-	// if there are no workers, threat this as no content error
-	return &status.Status{
-		Code: http.StatusServiceUnavailable,
-	}, nil
-}
-
 // ------- PRIVATE ---------
 
 func (p *Plugin) serve(errCh chan error) {
 	var err error
-	p.pool, err = p.server.NewWorkerPool(context.Background(), p.cfg.CommonOptions.Pool, map[string]string{RrMode: "http"}, p.log)
+	p.pool, err = p.server.NewPool(context.Background(), p.cfg.Pool, map[string]string{RrMode: RrModeHTTP}, p.log)
 	if err != nil {
 		errCh <- err
 		return
@@ -339,8 +295,7 @@ func (p *Plugin) serve(errCh chan error) {
 	}
 
 	p.handler, err = handler.NewHandler(
-		p.cfg.CommonOptions,
-		p.cfg.Uploads,
+		p.cfg,
 		p.pool,
 		p.log,
 	)
@@ -362,7 +317,7 @@ func (p *Plugin) serve(errCh chan error) {
 	// start all servers
 	for i := 0; i < len(p.servers); i++ {
 		go func(idx int) {
-			errSt := p.servers[idx].Start(p.mdwr, p.cfg.CommonOptions.Middleware)
+			errSt := p.servers[idx].Start(p.mdwr, p.cfg.Middleware)
 			if errSt != nil {
 				errCh <- errSt
 				return
@@ -373,11 +328,11 @@ func (p *Plugin) serve(errCh chan error) {
 
 func (p *Plugin) initServers() error {
 	if p.cfg.EnableHTTP() {
-		p.servers = append(p.servers, httpServer.NewHTTPServer(p, p.cfg.CommonOptions.Address, p.cfg.HTTP2Config, p.cfg.SSLConfig, p.stdLog, p.log))
+		p.servers = append(p.servers, httpServer.NewHTTPServer(p, p.cfg, p.stdLog, p.log))
 	}
 
 	if p.cfg.EnableTLS() {
-		https, err := tlsServer.NewHTTPSServer(p, p.cfg.SSLConfig, p.cfg.HTTP2Config, p.stdLog, p.log)
+		https, err := httpsServer.NewHTTPSServer(p, p.cfg.SSLConfig, p.cfg.HTTP2Config, p.stdLog, p.log)
 		if err != nil {
 			return err
 		}
@@ -396,7 +351,7 @@ func (p *Plugin) applyBundledMiddleware() {
 	// apply max_req_size and logger middleware
 	for i := 0; i < len(p.servers); i++ {
 		serv := p.servers[i].GetServer()
-		serv.Handler = bundledMw.MaxRequestSize(serv.Handler, p.cfg.CommonOptions.MaxRequestSize*MB)
-		serv.Handler = bundledMw.NewLogMiddleware(serv.Handler, p.cfg.CommonOptions.AccessLogs, p.log)
+		serv.Handler = bundledMw.MaxRequestSize(serv.Handler, p.cfg.MaxRequestSize*MB)
+		serv.Handler = bundledMw.NewLogMiddleware(serv.Handler, p.cfg.AccessLogs, p.log)
 	}
 }

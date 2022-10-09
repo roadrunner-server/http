@@ -9,9 +9,9 @@ import (
 	"strings"
 
 	"github.com/goccy/go-json"
-	"github.com/roadrunner-server/api/v2/payload"
 	"github.com/roadrunner-server/errors"
-	"github.com/roadrunner-server/sdk/v2/utils"
+	"github.com/roadrunner-server/sdk/v3/payload"
+	"github.com/roadrunner-server/sdk/v3/utils"
 	"go.uber.org/zap"
 )
 

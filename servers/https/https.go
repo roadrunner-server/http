@@ -5,16 +5,18 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	stderr "errors"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
+	"github.com/roadrunner-server/http/v2/common"
+
 	"github.com/mholt/acmez"
-	"github.com/roadrunner-server/api/v2/plugins/middleware"
 	"github.com/roadrunner-server/errors"
-	"github.com/roadrunner-server/http/v2/helpers"
-	"github.com/roadrunner-server/sdk/v2/utils"
+	"github.com/roadrunner-server/sdk/v3/utils"
 	"go.uber.org/zap"
 	"golang.org/x/sys/cpu"
 )
@@ -88,10 +90,10 @@ func NewHTTPSServer(handler http.Handler, cfg *SSL, cfgHTTP2 *HTTP2, errLog *log
 	}, nil
 }
 
-func (s *Server) Start(mdwr map[string]middleware.Middleware, order []string) error {
+func (s *Server) Start(mdwr map[string]common.Middleware, order []string) error {
 	const op = errors.Op("serveHTTPS")
 	if len(mdwr) > 0 {
-		helpers.ApplyMiddleware(s.https, mdwr, order, s.log)
+		applyMiddleware(s.https, mdwr, order, s.log)
 	}
 
 	l, err := utils.CreateListener(s.cfg.Address)
@@ -217,7 +219,7 @@ func initTLS(handler http.Handler, errLog *log.Logger, addr string, port int) *h
 	DefaultCipherSuites = append(DefaultCipherSuites, defaultCipherSuitesTLS13...)
 
 	sslServer := &http.Server{
-		Addr:              helpers.TLSAddr(addr, true, port),
+		Addr:              tlsAddr(addr, true, port),
 		Handler:           handler,
 		ErrorLog:          errLog,
 		ReadHeaderTimeout: time.Minute * 5,
@@ -234,4 +236,26 @@ func initTLS(handler http.Handler, errLog *log.Logger, addr string, port int) *h
 	}
 
 	return sslServer
+}
+
+// tlsAddr replaces listen or host port with port configured by SSLConfig config.
+func tlsAddr(host string, forcePort bool, sslPort int) string {
+	// remove current forcePort first
+	host = strings.Split(host, ":")[0]
+
+	if forcePort || sslPort != 443 {
+		host = fmt.Sprintf("%s:%v", host, sslPort)
+	}
+
+	return host
+}
+
+func applyMiddleware(server *http.Server, middleware map[string]common.Middleware, order []string, log *zap.Logger) {
+	for i := 0; i < len(order); i++ {
+		if mdwr, ok := middleware[order[i]]; ok {
+			server.Handler = mdwr.Middleware(server.Handler)
+		} else {
+			log.Warn("requested middleware does not exist", zap.String("requested", order[i]))
+		}
+	}
 }

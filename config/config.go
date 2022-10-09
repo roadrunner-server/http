@@ -5,17 +5,35 @@ import (
 	"strings"
 	"time"
 
+	"github.com/roadrunner-server/http/v2/servers/fcgi"
+	"github.com/roadrunner-server/http/v2/servers/https"
+
 	"github.com/roadrunner-server/errors"
-	"github.com/roadrunner-server/http/v2/fcgi"
-	"github.com/roadrunner-server/http/v2/https"
-	"github.com/roadrunner-server/http/v2/uploads"
-	"github.com/roadrunner-server/sdk/v2/pool"
+	"github.com/roadrunner-server/sdk/v3/pool"
 )
 
 // Config configures RoadRunner HTTP server.
 type Config struct {
-	// HTTP related configuration
-	CommonOptions *CommonOptions `mapstructure:"http"`
+	// RawBody if turned on, RR will not parse the incoming HTTP body and will send it as is
+	RawBody bool `mapstructure:"raw_body"`
+
+	// Host and port to handle as http server.
+	Address string `mapstructure:"address"`
+
+	// AccessLogs turn on/off, logged at Info log level, default: false
+	AccessLogs bool `mapstructure:"access_logs"`
+
+	// List of the middleware names (order will be preserved)
+	Middleware []string `mapstructure:"middleware"`
+
+	// Pool configures worker pool.
+	Pool *pool.Config `mapstructure:"pool"`
+
+	// InternalErrorCode used to override default 500 (InternalServerError) http code
+	InternalErrorCode uint64 `mapstructure:"internal_error_code"`
+
+	// MaxRequestSize specified max size for payload body in megabytes, set 0 to unlimited.
+	MaxRequestSize uint64 `mapstructure:"max_request_size"`
 
 	// SSLConfig defines https server options.
 	SSLConfig *https.SSL `mapstructure:"ssl"`
@@ -27,12 +45,12 @@ type Config struct {
 	HTTP2Config *https.HTTP2 `mapstructure:"http2"`
 
 	// Uploads configures uploads configuration.
-	Uploads *uploads.Uploads `mapstructure:"uploads"`
+	Uploads *Uploads `mapstructure:"uploads"`
 }
 
 // EnableHTTP is true when http server must run.
 func (c *Config) EnableHTTP() bool {
-	return c.CommonOptions.Address != ""
+	return c.Address != ""
 }
 
 // EnableTLS returns true if pool must listen TLS connections.
@@ -56,13 +74,9 @@ func (c *Config) EnableFCGI() bool {
 
 // InitDefaults must populate HTTP values using given HTTP source. Must return error if HTTP is not valid.
 func (c *Config) InitDefaults() error {
-	if c.CommonOptions == nil {
-		c.CommonOptions = &CommonOptions{}
-	}
-
-	if c.CommonOptions.Pool == nil {
+	if c.Pool == nil {
 		// default pool
-		c.CommonOptions.Pool = &pool.Config{
+		c.Pool = &pool.Config{
 			Debug:           false,
 			NumWorkers:      uint64(runtime.NumCPU()),
 			MaxJobs:         0,
@@ -72,13 +86,13 @@ func (c *Config) InitDefaults() error {
 		}
 	}
 
-	if c.CommonOptions.InternalErrorCode == 0 {
-		c.CommonOptions.InternalErrorCode = 500
+	if c.InternalErrorCode == 0 {
+		c.InternalErrorCode = 500
 	}
 
-	if c.CommonOptions.MaxRequestSize == 0 {
+	if c.MaxRequestSize == 0 {
 		// 1Gb
-		c.CommonOptions.MaxRequestSize = 1000
+		c.MaxRequestSize = 1000
 	}
 
 	if c.HTTP2Config != nil {
@@ -96,7 +110,7 @@ func (c *Config) InitDefaults() error {
 	}
 
 	if c.Uploads == nil {
-		c.Uploads = &uploads.Uploads{}
+		c.Uploads = &Uploads{}
 	}
 
 	err := c.Uploads.InitDefaults()
@@ -114,7 +128,7 @@ func (c *Config) Valid() error {
 		return errors.E(op, errors.Str("malformed uploads config"))
 	}
 
-	if c.CommonOptions.Pool == nil {
+	if c.Pool == nil {
 		return errors.E(op, "malformed pool config")
 	}
 
@@ -122,7 +136,7 @@ func (c *Config) Valid() error {
 		return errors.E(op, errors.Str("unable to run http service, no method has been specified (http, https, http/2 or FastCGI)"))
 	}
 
-	if c.CommonOptions.Address != "" && !strings.Contains(c.CommonOptions.Address, ":") {
+	if c.Address != "" && !strings.Contains(c.Address, ":") {
 		return errors.E(op, errors.Str("malformed http server address"))
 	}
 

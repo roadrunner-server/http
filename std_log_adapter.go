@@ -1,4 +1,4 @@
-package helpers
+package http
 
 import (
 	"go.uber.org/zap"

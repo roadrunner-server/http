@@ -1,21 +1,20 @@
-//go:build !nightly
-
 package handler
 
 import (
+	"context"
 	stderr "errors"
 	"net/http"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/roadrunner-server/api/v2/payload"
-	"github.com/roadrunner-server/api/v2/pool"
+	"github.com/roadrunner-server/http/v2/common"
+
 	"github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/goridge/v3/pkg/frame"
 	"github.com/roadrunner-server/http/v2/attributes"
 	"github.com/roadrunner-server/http/v2/config"
-	uploadsConf "github.com/roadrunner-server/http/v2/uploads"
+	"github.com/roadrunner-server/sdk/v3/payload"
 	"go.uber.org/zap"
 )
 
@@ -35,7 +34,7 @@ type uploads struct {
 type Handler struct {
 	uploads *uploads
 	log     *zap.Logger
-	pool    pool.Pool
+	pool    common.Pool
 
 	internalHTTPCode uint64
 	sendRawBody      bool
@@ -48,17 +47,17 @@ type Handler struct {
 }
 
 // NewHandler return handle interface implementation
-func NewHandler(commonOpts *config.CommonOptions, uploadsCfg *uploadsConf.Uploads, pool pool.Pool, log *zap.Logger) (*Handler, error) {
+func NewHandler(cfg *config.Config, pool common.Pool, log *zap.Logger) (*Handler, error) {
 	return &Handler{
 		uploads: &uploads{
-			dir:    uploadsCfg.Dir,
-			allow:  uploadsCfg.Allowed,
-			forbid: uploadsCfg.Forbidden,
+			dir:    cfg.Uploads.Dir,
+			allow:  cfg.Uploads.Allowed,
+			forbid: cfg.Uploads.Forbidden,
 		},
 		pool:             pool,
 		log:              log,
-		internalHTTPCode: commonOpts.InternalErrorCode,
-		sendRawBody:      commonOpts.RawBody,
+		internalHTTPCode: cfg.InternalErrorCode,
+		sendRawBody:      cfg.RawBody,
 		errPool: sync.Pool{
 			New: func() any {
 				return make(chan error, 1)
@@ -131,7 +130,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wResp, err := h.pool.Exec(pld)
+	wResp, err := h.pool.Exec(context.Background(), pld)
 	if err != nil {
 		req.Close(h.log, r)
 		h.putReq(req)

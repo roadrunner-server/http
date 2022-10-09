@@ -2,15 +2,19 @@ package http
 
 import (
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/roadrunner-server/api/v2/plugins/informer"
-	"github.com/roadrunner-server/sdk/v2/metrics"
+	"github.com/roadrunner-server/sdk/v3/metrics"
+	"github.com/roadrunner-server/sdk/v3/state/process"
 )
+
+type Informer interface {
+	Workers() []*process.State
+}
 
 func (p *Plugin) MetricsCollector() []prometheus.Collector {
 	return []prometheus.Collector{p.statsExporter}
 }
 
-func newWorkersExporter(stats informer.Informer) *metrics.StatsExporter {
+func newWorkersExporter(stats Informer) *metrics.StatsExporter {
 	return &metrics.StatsExporter{
 		TotalWorkersDesc: prometheus.NewDesc("rr_http_total_workers", "Total number of workers used by the HTTP plugin", nil, nil),
 		TotalMemoryDesc:  prometheus.NewDesc("rr_http_workers_memory_bytes", "Memory usage by HTTP workers.", nil, nil),
