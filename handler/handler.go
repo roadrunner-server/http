@@ -23,6 +23,8 @@ const (
 	trueStr   string = "true"
 )
 
+var _ http.Handler = (*Handler)(nil)
+
 type uploads struct {
 	dir    string
 	allow  map[string]struct{}
