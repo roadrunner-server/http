@@ -10,15 +10,15 @@ require (
 	github.com/roadrunner-server/endure v1.4.5
 	github.com/roadrunner-server/errors v1.2.0
 	github.com/roadrunner-server/goridge/v3 v3.6.1
-	github.com/roadrunner-server/sdk/v3 v3.0.0-beta.3
+	github.com/roadrunner-server/sdk/v3 v3.0.0-beta.4
 	github.com/stretchr/testify v1.8.0
-	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.36.1
-	go.opentelemetry.io/contrib/propagators/jaeger v1.10.0
-	go.opentelemetry.io/otel v1.10.0
-	go.opentelemetry.io/otel/trace v1.10.0
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.36.3
+	go.opentelemetry.io/contrib/propagators/jaeger v1.11.0
+	go.opentelemetry.io/otel v1.11.0
+	go.opentelemetry.io/otel/trace v1.11.0
 	go.uber.org/zap v1.23.0
-	golang.org/x/net v0.0.0-20221004154528-8021a29435af
-	golang.org/x/sys v0.0.0-20221006211917-84dc82d7e875
+	golang.org/x/net v0.0.0-20221012135044-0b7e1fb9d458
+	golang.org/x/sys v0.0.0-20221010170243-090e33056c14
 )
 
 require (
@@ -31,7 +31,7 @@ require (
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/uuid v1.3.0 // indirect
-	github.com/klauspost/cpuid/v2 v2.1.1 // indirect
+	github.com/klauspost/cpuid/v2 v2.1.2 // indirect
 	github.com/libdns/libdns v0.2.1 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.2 // indirect
 	github.com/miekg/dns v1.1.50 // indirect
@@ -44,13 +44,13 @@ require (
 	github.com/tklauser/go-sysconf v0.3.10 // indirect
 	github.com/tklauser/numcpus v0.5.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
-	go.opentelemetry.io/otel/metric v0.32.1 // indirect
+	go.opentelemetry.io/otel/metric v0.32.3 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
-	golang.org/x/crypto v0.0.0-20221005025214-4161e89ecf1b // indirect
+	golang.org/x/crypto v0.0.0-20221012134737-56aed061732a // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
 	golang.org/x/sync v0.0.0-20220929204114-8fcdb60fdcc0 // indirect
-	golang.org/x/text v0.3.7 // indirect
+	golang.org/x/text v0.3.8 // indirect
 	golang.org/x/tools v0.1.12 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
