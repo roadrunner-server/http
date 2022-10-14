@@ -41,6 +41,10 @@ type Handler struct {
 	internalHTTPCode uint64
 	sendRawBody      bool
 
+	// permissions
+	uid int
+	gid int
+
 	// internal
 	reqPool  sync.Pool
 	respPool sync.Pool
@@ -60,6 +64,11 @@ func NewHandler(cfg *config.Config, pool common.Pool, log *zap.Logger) (*Handler
 		log:              log,
 		internalHTTPCode: cfg.InternalErrorCode,
 		sendRawBody:      cfg.RawBody,
+
+		// permissions
+		uid: cfg.UID,
+		gid: cfg.GID,
+
 		errPool: sync.Pool{
 			New: func() any {
 				return make(chan error, 1)
@@ -100,7 +109,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 
 	req := h.getReq(r)
-	err := request(r, req, h.sendRawBody)
+	err := request(r, req, h.uid, h.gid, h.sendRawBody)
 	if err != nil {
 		// if pipe is broken, there is no sense to write the header
 		// in this case we just report about error

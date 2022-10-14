@@ -94,15 +94,21 @@ type FileUpload struct {
 
 	// associated file header
 	header *multipart.FileHeader
+
+	// private
+	uid int
+	gid int
 }
 
 // NewUpload wraps net/http upload into PRS-7 compatible structure.
-func NewUpload(f *multipart.FileHeader) *FileUpload {
+func NewUpload(f *multipart.FileHeader, uid, gid int) *FileUpload {
 	return &FileUpload{
 		Name:   f.Filename,
 		Mime:   f.Header.Get("Content-Type"),
 		Error:  UploadErrorOK,
 		header: f,
+		uid:    uid,
+		gid:    gid,
 	}
 }
 
@@ -145,6 +151,14 @@ func (f *FileUpload) Open(dir string, forbid, allow map[string]struct{}) error {
 		// most likely cause of this issue is missing tmp dir
 		f.Error = UploadErrorNoTmpDir
 		return err
+	}
+
+	// set permissions, 0 means root or error
+	if f.uid != 0 && f.gid != 0 {
+		err = tmp.Chown(f.uid, f.gid)
+		if err != nil {
+			return err
+		}
 	}
 
 	f.TempFilename = tmp.Name()

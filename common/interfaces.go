@@ -27,6 +27,8 @@ type Pool interface {
 
 // Server creates workers for the application.
 type Server interface {
+	UID() int
+	GID() int
 	NewPool(ctx context.Context, cfg *pool.Config, env map[string]string, _ *zap.Logger) (*staticPool.Pool, error)
 }
 
