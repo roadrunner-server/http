@@ -133,6 +133,10 @@ func (p *Plugin) Init(cfg common.Configurer, rrLogger *zap.Logger, srv common.Se
 		return errors.E(op, err)
 	}
 
+	// get permissions
+	p.cfg.UID = srv.UID()
+	p.cfg.GID = srv.GID()
+
 	// rr logger (via plugin)
 	p.log = new(zap.Logger)
 	*p.log = *rrLogger

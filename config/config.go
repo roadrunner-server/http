@@ -46,6 +46,10 @@ type Config struct {
 
 	// Uploads configures uploads configuration.
 	Uploads *Uploads `mapstructure:"uploads"`
+
+	// private
+	UID int
+	GID int
 }
 
 // EnableHTTP is true when http server must run.

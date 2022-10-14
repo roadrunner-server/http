@@ -68,7 +68,7 @@ func FetchIP(pair string) string {
 	return addr
 }
 
-func request(r *http.Request, req *Request, sendRawBody bool) error {
+func request(r *http.Request, req *Request, uid, gid int, sendRawBody bool) error {
 	for _, c := range r.Cookies() {
 		if v, err := url.QueryUnescape(c.Value); err == nil {
 			req.Cookies[c.Name] = v
@@ -94,7 +94,7 @@ func request(r *http.Request, req *Request, sendRawBody bool) error {
 			return err
 		}
 
-		req.Uploads = parseUploads(r)
+		req.Uploads = parseUploads(r, uid, gid)
 		fallthrough
 	case contentURLEncoded:
 		if sendRawBody {

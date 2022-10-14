@@ -60,7 +60,7 @@ func (d dataTree) mount(i []string, v []string) {
 }
 
 // parse incoming dataTree request into JSON (including contentMultipart form dataTree)
-func parseUploads(r *http.Request) *Uploads {
+func parseUploads(r *http.Request, uid, gid int) *Uploads {
 	u := &Uploads{
 		tree: make(fileTree),
 		list: make([]*FileUpload, 0),
@@ -69,7 +69,7 @@ func parseUploads(r *http.Request) *Uploads {
 	for k, v := range r.MultipartForm.File {
 		files := make([]*FileUpload, 0, len(v))
 		for _, f := range v {
-			files = append(files, NewUpload(f))
+			files = append(files, NewUpload(f, uid, gid))
 		}
 
 		u.list = append(u.list, files...)
