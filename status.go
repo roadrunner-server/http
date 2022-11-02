@@ -3,8 +3,8 @@ package http
 import (
 	"net/http"
 
+	"github.com/roadrunner-server/sdk/v3/fsm"
 	"github.com/roadrunner-server/sdk/v3/plugins/status"
-	"github.com/roadrunner-server/sdk/v3/worker/fsm"
 )
 
 // Status return status of the particular plugin
