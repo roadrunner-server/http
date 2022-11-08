@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 )
 
@@ -38,10 +39,37 @@ func (d dataTree) push(k string, v []string) {
 
 // mount mounts data tree recursively.
 func (d dataTree) mount(i []string, v []string) {
-	if len(i) == 1 {
-		// single value context (last element)
-		d[i[0]] = v[len(v)-1]
+	if len(i) == 0 {
 		return
+	}
+
+	p, ok := d[i[0]]
+	if ok {
+		_, dataTreeOK := p.(dataTree)
+		if !dataTreeOK {
+			oldV := d[i[0]]
+			oldVString, stringOk := oldV.(string)
+			oldVStringArray, stringArrayOk := oldV.([]string)
+			if stringOk && len(oldVString) == 0 {
+				d[i[0]] = make(dataTree)
+			} else if stringArrayOk && len(oldVStringArray) == 0 {
+				d[i[0]] = make(dataTree)
+			} else {
+				panic(
+					fmt.Sprintf(
+						"invalid value in dataTree. key: %+v, val: %+v, tree: %+v",
+						i[0],
+						v,
+						d,
+					),
+				)
+			}
+		}
+		if dataTreeOK && len(i) == 1 && (len(v) == 0 || len(v[0]) == 0) {
+			return
+		}
+	} else {
+		d[i[0]] = make(dataTree)
 	}
 
 	if len(i) == 2 && i[1] == "" {
@@ -50,12 +78,15 @@ func (d dataTree) mount(i []string, v []string) {
 		return
 	}
 
-	if p, ok := d[i[0]]; ok {
-		p.(dataTree).mount(i[1:], v)
+	if len(i) == 1 {
+		if len(v) == 1 {
+			d[i[0]] = v[0]
+			return
+		}
+		d[i[0]] = v
 		return
 	}
 
-	d[i[0]] = make(dataTree)
 	d[i[0]].(dataTree).mount(i[1:], v)
 }
 
@@ -89,10 +120,37 @@ func (d fileTree) push(k string, v []*FileUpload) {
 
 // mount mounts data tree recursively.
 func (d fileTree) mount(i []string, v []*FileUpload) {
-	if len(i) == 1 {
-		// single value context
-		d[i[0]] = v[0]
+	if len(i) == 0 {
 		return
+	}
+
+	p, ok := d[i[0]]
+	if ok {
+		_, fileTreeOK := p.(fileTree)
+		if !fileTreeOK {
+			oldV := d[i[0]]
+			oldVFileUpload, fileUploadOK := oldV.(*FileUpload)
+			oldVFileUploadArray, fileUploadArrayOK := oldV.([]*FileUpload)
+			if fileUploadOK && oldVFileUpload == nil {
+				d[i[0]] = make(fileTree)
+			} else if fileUploadArrayOK && len(oldVFileUploadArray) == 0 {
+				d[i[0]] = make(fileTree)
+			} else {
+				panic(
+					fmt.Sprintf(
+						"invalid value in fileTree. key: %+v, val: %+v, tree: %+v",
+						i[0],
+						v,
+						d,
+					),
+				)
+			}
+		}
+		if fileTreeOK && len(i) == 1 && (len(v) == 0 || v[0] == nil) {
+			return
+		}
+	} else {
+		d[i[0]] = make(fileTree)
 	}
 
 	if len(i) == 2 && i[1] == "" {
@@ -101,12 +159,15 @@ func (d fileTree) mount(i []string, v []*FileUpload) {
 		return
 	}
 
-	if p, ok := d[i[0]]; ok {
-		p.(fileTree).mount(i[1:], v)
+	if len(i) == 1 {
+		if len(v) == 1 {
+			d[i[0]] = v[0]
+			return
+		}
+		d[i[0]] = v
 		return
 	}
 
-	d[i[0]] = make(fileTree)
 	d[i[0]].(fileTree).mount(i[1:], v)
 }
 
