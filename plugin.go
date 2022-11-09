@@ -247,6 +247,9 @@ func (p *Plugin) Name() string {
 func (p *Plugin) Reset() error {
 	const op = errors.Op("http_plugin_reset")
 
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
 	p.log.Info("reset signal was received")
 
 	ctxTout, cancel := context.WithTimeout(context.Background(), time.Second*60)
