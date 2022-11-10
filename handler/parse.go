@@ -92,6 +92,32 @@ func prepareNewDataNode(dt dataTree, i []string, v []string) (bool, error) {
 }
 
 // mount mounts data tree recursively.
+//
+// # This can handle this edge case
+// # Assume that we have the following POST data
+//
+// _token: NM8eor1JFGRLxfaTNHanGX4en0ZMFtatdz1Muu5Z
+// _method: PUT
+// _http_referrer: http://localhost/admin/article
+// name: Rerum non omnis dicta occaecati dignissimos culpa commodi.
+// category_id: 97b64555-f825-4ca0-927f-4f8da03cdb31
+// options:
+// options[0][id]: 97b64557-24ad-4099-88f2-0d275874d2e8
+// options[0][order_priority]: 1000
+// options[0][name]: Adipisci eaque vero laborum reprehenderit id ipsam deserunt.
+// options[1][id]: 97b64557-2699-4b60-959e-641370c399a7
+// options[1][order_priority]: 1000
+// options[1][name]: Facere laudantium quos sunt eius eveniet est.
+// options[2][id]: 97b64557-28bf-43c2-99bb-be96358a7d8b
+// options[2][order_priority]: 1001
+// options[2][name]: Perferendis et molestiae minus id cupiditate amet dolores.
+// description: Et repudiandae voluptatem aspernatur eum et. Facere et harum cum corporis. Quis assumenda est iusto accusantium. Aliquam autem natus non voluptates.
+// id: 97b64557-19ba-49bd-bdec-783e32fbc6e8
+// _save_action: save_and_back
+//
+// # If we don't ignore empty options we will lose the whole array of data in key options[x]
+// # So we will ignore it and process the array of data in options[x] if those present in the request.
+// # Same is done for fileTree data structure underneath
 func (dt dataTree) mount(i []string, v []string) error {
 	if len(i) == 0 {
 		return nil
