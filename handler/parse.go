@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 )
@@ -12,35 +13,42 @@ type dataTree map[string]any
 type fileTree map[string]any
 
 // parseData parses incoming request body into data tree.
-func parseData(r *http.Request) dataTree {
+func parseData(r *http.Request) (dataTree, error) {
 	data := make(dataTree)
 	if r.PostForm != nil {
 		for k, v := range r.PostForm {
-			data.push(k, v)
+			err := data.push(k, v)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
 	if r.MultipartForm != nil {
 		for k, v := range r.MultipartForm.Value {
-			data.push(k, v)
+			err := data.push(k, v)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
-	return data
+	return data, nil
 }
 
 // pushes value into data tree.
-func (d dataTree) push(k string, v []string) {
+func (d dataTree) push(k string, v []string) error {
 	keys := fetchIndexes(k)
 	if len(keys) <= MaxLevel {
-		d.mount(keys, v)
+		return d.mount(keys, v)
 	}
+	return nil
 }
 
 // mount mounts data tree recursively.
-func (d dataTree) mount(i []string, v []string) {
+func (d dataTree) mount(i []string, v []string) error {
 	if len(i) == 0 {
-		return
+		return nil
 	}
 
 	p, ok := d[i[0]]
@@ -55,7 +63,7 @@ func (d dataTree) mount(i []string, v []string) {
 			} else if stringArrayOk && len(oldVStringArray) == 0 {
 				d[i[0]] = make(dataTree)
 			} else {
-				panic(
+				return errors.New(
 					fmt.Sprintf(
 						"invalid value in dataTree. key: %+v, val: %+v, tree: %+v",
 						i[0],
@@ -66,7 +74,7 @@ func (d dataTree) mount(i []string, v []string) {
 			}
 		}
 		if dataTreeOK && len(i) == 1 && (len(v) == 0 || len(v[0]) == 0) {
-			return
+			return nil
 		}
 	} else {
 		d[i[0]] = make(dataTree)
@@ -75,23 +83,23 @@ func (d dataTree) mount(i []string, v []string) {
 	if len(i) == 2 && i[1] == "" {
 		// non associated array of elements
 		d[i[0]] = v
-		return
+		return nil
 	}
 
 	if len(i) == 1 {
 		if len(v) == 1 {
 			d[i[0]] = v[0]
-			return
+			return nil
 		}
 		d[i[0]] = v
-		return
+		return nil
 	}
 
-	d[i[0]].(dataTree).mount(i[1:], v)
+	return d[i[0]].(dataTree).mount(i[1:], v)
 }
 
 // parse incoming dataTree request into JSON (including contentMultipart form dataTree)
-func parseUploads(r *http.Request, uid, gid int) *Uploads {
+func parseUploads(r *http.Request, uid, gid int) (*Uploads, error) {
 	u := &Uploads{
 		tree: make(fileTree),
 		list: make([]*FileUpload, 0),
@@ -104,24 +112,28 @@ func parseUploads(r *http.Request, uid, gid int) *Uploads {
 		}
 
 		u.list = append(u.list, files...)
-		u.tree.push(k, files)
+		err := u.tree.push(k, files)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return u
+	return u, nil
 }
 
 // pushes new file upload into it's proper place.
-func (d fileTree) push(k string, v []*FileUpload) {
+func (d fileTree) push(k string, v []*FileUpload) error {
 	keys := fetchIndexes(k)
 	if len(keys) <= MaxLevel {
-		d.mount(keys, v)
+		return d.mount(keys, v)
 	}
+	return nil
 }
 
 // mount mounts data tree recursively.
-func (d fileTree) mount(i []string, v []*FileUpload) {
+func (d fileTree) mount(i []string, v []*FileUpload) error {
 	if len(i) == 0 {
-		return
+		return nil
 	}
 
 	p, ok := d[i[0]]
@@ -136,7 +148,7 @@ func (d fileTree) mount(i []string, v []*FileUpload) {
 			} else if fileUploadArrayOK && len(oldVFileUploadArray) == 0 {
 				d[i[0]] = make(fileTree)
 			} else {
-				panic(
+				return errors.New(
 					fmt.Sprintf(
 						"invalid value in fileTree. key: %+v, val: %+v, tree: %+v",
 						i[0],
@@ -147,7 +159,7 @@ func (d fileTree) mount(i []string, v []*FileUpload) {
 			}
 		}
 		if fileTreeOK && len(i) == 1 && (len(v) == 0 || v[0] == nil) {
-			return
+			return nil
 		}
 	} else {
 		d[i[0]] = make(fileTree)
@@ -156,19 +168,19 @@ func (d fileTree) mount(i []string, v []*FileUpload) {
 	if len(i) == 2 && i[1] == "" {
 		// non associated array of elements
 		d[i[0]] = v
-		return
+		return nil
 	}
 
 	if len(i) == 1 {
 		if len(v) == 1 {
 			d[i[0]] = v[0]
-			return
+			return nil
 		}
 		d[i[0]] = v
-		return
+		return nil
 	}
 
-	d[i[0]].(fileTree).mount(i[1:], v)
+	return d[i[0]].(fileTree).mount(i[1:], v)
 }
 
 // fetchIndexes parses input name and splits it into separate indexes list.
