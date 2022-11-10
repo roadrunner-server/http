@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"net/url"
 	"testing"
 )
@@ -100,11 +99,11 @@ func TestPushWithMultipleLevelPostDataNoErr(t *testing.T) {
 	}
 	optionDataTree := d["options"].(dataTree)
 	if len(optionDataTree) != 3 {
-		t.Fatal(fmt.Sprintf("invalid length of options: %+v", optionDataTree))
+		t.Fatalf("invalid length of options: %+v", optionDataTree)
 	}
 	for k, v := range optionDataTree {
 		if len(v.(dataTree)) != 3 {
-			t.Fatal(fmt.Sprintf("invalid length of options[%s]: %+v", k, v))
+			t.Fatalf("invalid length of options[%s]: %+v", k, v)
 		}
 	}
 }
@@ -207,11 +206,11 @@ func TestPushWithMultipleLevelFileUploadNoErr(t *testing.T) {
 	}
 	optionFileTree := d["options"].(fileTree)
 	if len(optionFileTree) != 2 {
-		t.Fatal(fmt.Sprintf("invalid length of options: %+v", optionFileTree))
+		t.Fatalf("invalid length of options: %+v", optionFileTree)
 	}
 	for k, v := range optionFileTree {
 		if len(v.(fileTree)) != 3 {
-			t.Fatal(fmt.Sprintf("invalid length of options[%s]: %+v", k, d))
+			t.Fatalf("invalid length of options[%s]: %+v", k, d)
 		}
 	}
 }
