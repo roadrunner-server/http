@@ -58,9 +58,6 @@ func TestPushWithMultipleLevelPostDataNoErr(t *testing.T) {
 		"id": []string{
 			"97b27435-38e3-44d2-b97b-89d82fd6c212",
 		},
-		"options": []string{
-			"",
-		},
 		"options[0][id]": []string{
 			"97b27435-3cb7-40f1-9637-e406465e63ed",
 		},
@@ -90,9 +87,15 @@ func TestPushWithMultipleLevelPostDataNoErr(t *testing.T) {
 		},
 	}
 
+	// request has empty plain value to same key
+	// which will have structured value later
 	d := make(dataTree)
+	err := d.push("options", []string{""})
+	if err != nil {
+		t.Fatalf("%+v", err)
+	}
 	for k, v := range postForm {
-		err := d.push(k, v)
+		err = d.push(k, v)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -106,15 +109,40 @@ func TestPushWithMultipleLevelPostDataNoErr(t *testing.T) {
 			t.Fatalf("invalid length of options[%s]: %+v", k, v)
 		}
 	}
+
+	// request has empty array value to a key,
+	// which will have structured value later
+	d = make(dataTree)
+	err = d.push("options[]", []string{})
+	if err != nil {
+		t.Fatalf("%+v", err)
+	}
+	for k, v := range postForm {
+		err = d.push(k, v)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// request has empty array value to a key,
+	// which previously have structured value
+	d = make(dataTree)
+	for k, v := range postForm {
+		err = d.push(k, v)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	err = d.push("options[]", []string{})
+	if err != nil {
+		t.Fatalf("%+v", err)
+	}
 }
 
 func TestPushWithMultipleLevelPostDataWithErr(t *testing.T) {
 	postForm := url.Values{
 		"id": []string{
 			"97b27435-38e3-44d2-b97b-89d82fd6c212",
-		},
-		"options": []string{
-			"invalid-data",
 		},
 		"options[0][id]": []string{
 			"97b27435-3cb7-40f1-9637-e406465e63ed",
@@ -149,6 +177,23 @@ func TestPushWithMultipleLevelPostDataWithErr(t *testing.T) {
 		d   = make(dataTree)
 		err error
 	)
+	for k, v := range postForm {
+		err = d.push(k, v)
+		if err != nil {
+			t.Fatalf("%+v", err)
+		}
+	}
+	err = d.push("options", []string{"invalid-data"})
+	if err == nil {
+		t.Fatal("there should have error")
+	}
+	t.Logf("got err: %+v", err)
+
+	d = make(dataTree)
+	err = d.push("options", []string{"invalid-data"})
+	if err != nil {
+		t.Fatalf("%+v", err)
+	}
 	for k, v := range postForm {
 		err = d.push(k, v)
 		if err != nil {

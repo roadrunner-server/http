@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 )
@@ -36,74 +37,89 @@ func parseData(r *http.Request) (dataTree, error) {
 }
 
 // pushes value into data tree.
-func (d dataTree) push(k string, v []string) error {
+func (dt dataTree) push(k string, v []string) error {
 	keys := fetchIndexes(k)
 	if len(keys) <= MaxLevel {
-		return d.mount(keys, v)
+		return dt.mount(keys, v)
 	}
 	return nil
 }
 
-func prepareNewDataNode(d dataTree, i []string, v []string) (bool, error) {
-	p, ok := d[i[0]]
-	_, dataTreeOK := p.(dataTree)
-	if ok && dataTreeOK && len(i) == 1 && (len(v) == 0 || len(v[0]) == 0) {
+func prepareNewDataNode(dt dataTree, i []string, v []string) (bool, error) {
+	if len(i) == 0 {
+		return false, errors.New("should not prepare new node")
+	}
+
+	_, ok := dt[i[0]]
+	if !ok {
+		dt[i[0]] = make(dataTree)
+		return true, nil
+	}
+
+	potentialErr := fmt.Errorf(
+		"invalid value in dataTree. key: %+v, val: %+v, tree: %+v",
+		i[0],
+		v,
+		dt,
+	)
+
+	_, dataTreeOK := dt[i[0]].(dataTree)
+	if !dataTreeOK {
+		switch oldV := dt[i[0]].(type) {
+		case string:
+			if len(oldV) == 0 {
+				dt[i[0]] = make(dataTree)
+				return true, nil
+			}
+		case []string:
+			if len(oldV) == 0 {
+				dt[i[0]] = make(dataTree)
+				return true, nil
+			}
+		}
+		return false, potentialErr
+	}
+
+	if len(i) > 1 {
+		return true, nil
+	}
+
+	if len(v) == 0 || len(v[0]) == 0 {
 		return false, nil
 	}
-	if ok && !dataTreeOK {
-		oldV := d[i[0]]
-		oldVString, stringOk := oldV.(string)
-		oldVStringArray, stringArrayOk := oldV.([]string)
 
-		switch {
-		case stringOk && len(oldVString) == 0,
-			stringArrayOk && len(oldVStringArray) == 0:
-			d[i[0]] = make(dataTree)
-		default:
-			return false, fmt.Errorf(
-				"invalid value in dataTree. key: %+v, val: %+v, tree: %+v",
-				i[0],
-				v,
-				d,
-			)
-		}
-	}
-	if !ok {
-		d[i[0]] = make(dataTree)
-	}
-	return true, nil
+	return false, potentialErr
 }
 
 // mount mounts data tree recursively.
-func (d dataTree) mount(i []string, v []string) error {
+func (dt dataTree) mount(i []string, v []string) error {
 	if len(i) == 0 {
 		return nil
 	}
 
-	ok, err := prepareNewDataNode(d, i, v)
+	shouldContinue, err := prepareNewDataNode(dt, i, v)
 	if err != nil {
 		return err
 	}
-	if !ok {
+	if !shouldContinue {
 		return nil
 	}
 
 	if len(i) == 2 && i[1] == "" {
 		// non associated array of elements
-		d[i[0]] = v
+		dt[i[0]] = v
 		return nil
 	}
-
+	if len(i) == 1 && len(v) == 1 {
+		dt[i[0]] = v[0]
+		return nil
+	}
 	if len(i) == 1 {
-		if len(v) == 1 {
-			d[i[0]] = v[0]
-			return nil
-		}
-		d[i[0]] = v
+		dt[i[0]] = v
 		return nil
 	}
 
-	return d[i[0]].(dataTree).mount(i[1:], v)
+	return dt[i[0]].(dataTree).mount(i[1:], v)
 }
 
 // parse incoming dataTree request into JSON (including contentMultipart form dataTree)
@@ -130,72 +146,89 @@ func parseUploads(r *http.Request, uid, gid int) (*Uploads, error) {
 }
 
 // pushes new file upload into it's proper place.
-func (d fileTree) push(k string, v []*FileUpload) error {
+func (ft fileTree) push(k string, v []*FileUpload) error {
 	keys := fetchIndexes(k)
 	if len(keys) <= MaxLevel {
-		return d.mount(keys, v)
+		return ft.mount(keys, v)
 	}
 	return nil
 }
 
-func prepareNewFileNode(d fileTree, i []string, v []*FileUpload) (bool, error) {
-	p, ok := d[i[0]]
-	_, fileTreeOK := p.(fileTree)
-	if ok && fileTreeOK && len(i) == 1 && (len(v) == 0 || v[0] == nil) {
+func prepareNewFileNode(ft fileTree, i []string, v []*FileUpload) (bool, error) {
+	if len(i) == 0 {
+		return false, errors.New("should not prepare new node")
+	}
+
+	_, ok := ft[i[0]]
+	if !ok {
+		ft[i[0]] = make(fileTree)
+		return true, nil
+	}
+
+	potentialErr := fmt.Errorf(
+		"invalid value in fileTree. key: %+v, val: %+v, tree: %+v",
+		i[0],
+		v,
+		ft,
+	)
+
+	_, fileTreeOK := ft[i[0]].(fileTree)
+	if !fileTreeOK {
+		switch oldV := ft[i[0]].(type) {
+		case *FileUpload:
+			if oldV == nil {
+				ft[i[0]] = make(fileTree)
+				return true, nil
+			}
+		case []*FileUpload:
+			if len(oldV) == 0 {
+				ft[i[0]] = make(fileTree)
+				return true, nil
+			}
+		}
+
+		return false, potentialErr
+	}
+
+	if len(i) > 1 {
+		return true, nil
+	}
+
+	if len(v) == 0 || v[0] == nil {
 		return false, nil
 	}
-	if ok && !fileTreeOK {
-		oldV := d[i[0]]
-		oldVFileUpload, fileUploadOK := oldV.(*FileUpload)
-		oldVFileUploadArray, fileUploadArrayOK := oldV.([]*FileUpload)
-		switch {
-		case fileUploadOK && oldVFileUpload == nil,
-			fileUploadArrayOK && len(oldVFileUploadArray) == 0:
-			d[i[0]] = make(fileTree)
-		default:
-			return false, fmt.Errorf(
-				"invalid value in fileTree. key: %+v, val: %+v, tree: %+v",
-				i[0],
-				v,
-				d,
-			)
-		}
-	}
-	if !ok {
-		d[i[0]] = make(fileTree)
-	}
-	return true, nil
+
+	return false, potentialErr
 }
 
 // mount mounts data tree recursively.
-func (d fileTree) mount(i []string, v []*FileUpload) error {
+func (ft fileTree) mount(i []string, v []*FileUpload) error {
 	if len(i) == 0 {
 		return nil
 	}
 
-	ok, err := prepareNewFileNode(d, i, v)
+	shouldContinue, err := prepareNewFileNode(ft, i, v)
 	if err != nil {
 		return err
 	}
-	if !ok {
+	if !shouldContinue {
 		return nil
 	}
 
-	if len(i) == 2 && i[1] == "" {
+	switch {
+	case len(i) == 2 && i[1] == "":
 		// non associated array of elements
-		d[i[0]] = v
+		ft[i[0]] = v
 		return nil
-	}
-	if len(i) == 1 && len(v) == 1 {
-		d[i[0]] = v[0]
+	case len(i) == 1 && len(v) == 1:
+		ft[i[0]] = v[0]
 		return nil
-	}
-	if len(i) == 1 {
-		d[i[0]] = v
+	case len(i) == 1:
+		ft[i[0]] = v
 		return nil
 	}
 
-	return d[i[0]].(fileTree).mount(i[1:], v)
+	return ft[i[0]].(fileTree).mount(i[1:], v)
 }
 
 // fetchIndexes parses input name and splits it into separate indexes list.
