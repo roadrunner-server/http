@@ -45,18 +45,16 @@ func (dt dataTree) push(k string, v []string) error {
 	return nil
 }
 
-func errWhenCreateNode(tree any, keys []string, value any) error {
+func invalidMultipleValuesErr(key string) error {
 	return fmt.Errorf(
-		"invalid value in tree. key: %+v, val: %+v, tree: %+v",
-		keys[0],
-		value,
-		tree,
+		"invalid multiple values to key '%+v' in tree",
+		key,
 	)
 }
 
 func prepareNewDataNode(dt dataTree, i []string, v []string) (bool, error) {
 	if len(i) == 0 {
-		return false, errors.New("should not prepare new node")
+		return false, errors.New("create new node with path traversal")
 	}
 
 	_, ok := dt[i[0]]
@@ -79,7 +77,7 @@ func prepareNewDataNode(dt dataTree, i []string, v []string) (bool, error) {
 				return true, nil
 			}
 		}
-		return false, errWhenCreateNode(dt, i, v)
+		return false, invalidMultipleValuesErr(i[0])
 	}
 
 	if len(i) > 1 {
@@ -90,7 +88,7 @@ func prepareNewDataNode(dt dataTree, i []string, v []string) (bool, error) {
 		return false, nil
 	}
 
-	return false, errWhenCreateNode(dt, i, v)
+	return false, invalidMultipleValuesErr(i[0])
 }
 
 // mount mounts data tree recursively.
@@ -184,7 +182,7 @@ func (ft fileTree) push(k string, v []*FileUpload) error {
 
 func prepareNewFileNode(ft fileTree, i []string, v []*FileUpload) (bool, error) {
 	if len(i) == 0 {
-		return false, errors.New("should not prepare new node")
+		return false, errors.New("create new node with path traversal")
 	}
 
 	_, ok := ft[i[0]]
@@ -208,7 +206,7 @@ func prepareNewFileNode(ft fileTree, i []string, v []*FileUpload) (bool, error) 
 			}
 		}
 
-		return false, errWhenCreateNode(ft, i, v)
+		return false, invalidMultipleValuesErr(i[0])
 	}
 
 	if len(i) > 1 {
@@ -219,7 +217,7 @@ func prepareNewFileNode(ft fileTree, i []string, v []*FileUpload) (bool, error) 
 		return false, nil
 	}
 
-	return false, errWhenCreateNode(ft, i, v)
+	return false, invalidMultipleValuesErr(i[0])
 }
 
 // mount mounts data tree recursively.
