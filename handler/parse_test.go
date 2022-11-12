@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/url"
+	"reflect"
 	"testing"
 )
 
@@ -53,6 +54,34 @@ func same(in, out []string) bool {
 	return true
 }
 
+func TestPushWithOneLevelPostWithOverwrite(t *testing.T) {
+	form := url.Values{}
+	form.Add("key", "value")
+	form.Add("key", "value2")
+	form.Add("name[]", "name1")
+	form.Add("name[]", "name2")
+	form.Add("name[]", "name3")
+	form.Add("arr[x][y][z]", "y")
+	form.Add("arr[x][y][e]", "f")
+	form.Add("arr[c]p", "l")
+	form.Add("arr[c]z", "")
+
+	var (
+		d   = make(dataTree)
+		err error
+	)
+	for k, v := range form {
+		err = d.push(k, v)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if !reflect.DeepEqual(d["key"], "value2") {
+		t.Fatalf("overwriting expected. tree is %+v", d)
+	}
+}
+
 func TestPushWithMultipleLevelPostDataNoErr(t *testing.T) {
 	postForm := url.Values{
 		"id": []string{
@@ -76,15 +105,6 @@ func TestPushWithMultipleLevelPostDataNoErr(t *testing.T) {
 		"options[1][value]": []string{
 			"",
 		},
-		"options[2][id]": []string{
-			"97b27435-3e5a-461a-abee-3c7b3d50ef14",
-		},
-		"options[2][value]": []string{
-			"",
-		},
-		"options[2][name]": []string{
-			"Libero ipsa doloremque non rerum enim.",
-		},
 	}
 
 	// request has empty plain value to same key
@@ -101,7 +121,7 @@ func TestPushWithMultipleLevelPostDataNoErr(t *testing.T) {
 		}
 	}
 	optionDataTree := d["options"].(dataTree)
-	if len(optionDataTree) != 3 {
+	if len(optionDataTree) != 2 {
 		t.Fatalf("invalid length of options: %+v", optionDataTree)
 	}
 	for k, v := range optionDataTree {
@@ -161,15 +181,6 @@ func TestPushWithMultipleLevelPostDataWithErr(t *testing.T) {
 		},
 		"options[1][value]": []string{
 			"",
-		},
-		"options[2][id]": []string{
-			"97b27435-3e5a-461a-abee-3c7b3d50ef14",
-		},
-		"options[2][value]": []string{
-			"",
-		},
-		"options[2][name]": []string{
-			"Libero ipsa doloremque non rerum enim.",
 		},
 	}
 

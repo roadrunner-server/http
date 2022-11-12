@@ -136,12 +136,8 @@ func (dt dataTree) mount(i []string, v []string) error {
 		dt[i[0]] = v
 		return nil
 	}
-	if len(i) == 1 && len(v) == 1 {
-		dt[i[0]] = v[0]
-		return nil
-	}
 	if len(i) == 1 {
-		dt[i[0]] = v
+		dt[i[0]] = v[len(v)-1]
 		return nil
 	}
 
@@ -239,11 +235,8 @@ func (ft fileTree) mount(i []string, v []*FileUpload) error {
 		// non associated array of elements
 		ft[i[0]] = v
 		return nil
-	case len(i) == 1 && len(v) == 1:
-		ft[i[0]] = v[0]
-		return nil
 	case len(i) == 1:
-		ft[i[0]] = v
+		ft[i[0]] = v[0]
 		return nil
 	}
 
