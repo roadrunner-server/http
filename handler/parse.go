@@ -54,7 +54,7 @@ func invalidMultipleValuesErr(key string) error {
 
 func prepareNewDataNode(dt dataTree, i []string, v []string) (bool, error) {
 	if len(i) == 0 {
-		return false, errors.New("create new node with path traversal")
+		return false, errors.New("key indexes must not be empty")
 	}
 
 	_, ok := dt[i[0]]
@@ -136,8 +136,12 @@ func (dt dataTree) mount(i []string, v []string) error {
 		dt[i[0]] = v
 		return nil
 	}
-	if len(i) == 1 {
+	if len(i) == 1 && len(v) > 0 {
 		dt[i[0]] = v[len(v)-1]
+		return nil
+	}
+	if len(i) == 1 {
+		dt[i[0]] = v
 		return nil
 	}
 
@@ -178,7 +182,7 @@ func (ft fileTree) push(k string, v []*FileUpload) error {
 
 func prepareNewFileNode(ft fileTree, i []string, v []*FileUpload) (bool, error) {
 	if len(i) == 0 {
-		return false, errors.New("create new node with path traversal")
+		return false, errors.New("key indexes must not be empty")
 	}
 
 	_, ok := ft[i[0]]
@@ -235,8 +239,11 @@ func (ft fileTree) mount(i []string, v []*FileUpload) error {
 		// non associated array of elements
 		ft[i[0]] = v
 		return nil
-	case len(i) == 1:
+	case len(i) == 1 && len(v) > 0:
 		ft[i[0]] = v[0]
+		return nil
+	case len(i) == 1:
+		ft[i[0]] = v
 		return nil
 	}
 
