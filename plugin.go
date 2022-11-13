@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"sync"
-	"time"
 
 	"github.com/roadrunner-server/http/v3/common"
 
@@ -252,14 +251,12 @@ func (p *Plugin) Reset() error {
 
 	p.log.Info("reset signal was received")
 
-	ctxTout, cancel := context.WithTimeout(context.Background(), time.Second*60)
-	defer cancel()
 	if p.pool == nil {
 		p.log.Info("pool is nil, nothing to reset")
 		return nil
 	}
 
-	err := p.pool.Reset(ctxTout)
+	err := p.pool.Reset(context.Background())
 	if err != nil {
 		return errors.E(op, err)
 	}
