@@ -94,7 +94,10 @@ func request(r *http.Request, req *Request, uid, gid int, sendRawBody bool) erro
 			return err
 		}
 
-		req.Uploads = parseUploads(r, uid, gid)
+		req.Uploads, err = parseUploads(r, uid, gid)
+		if err != nil {
+			return err
+		}
 		fallthrough
 	case contentURLEncoded:
 		if sendRawBody {
@@ -117,7 +120,10 @@ func request(r *http.Request, req *Request, uid, gid int, sendRawBody bool) erro
 			return err
 		}
 
-		req.body = parseData(r)
+		req.body, err = parseData(r)
+		if err != nil {
+			return err
+		}
 	}
 
 	req.Parsed = true
