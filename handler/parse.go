@@ -51,7 +51,56 @@ func invalidMultipleValuesErr(key string) error {
 	)
 }
 
-func prepareNewDataNode(dt dataTree, i []string, v []string) (bool, error) {
+// mount mounts data tree recursively.
+//
+// This can handle this edge case
+// Assume that we have the following POST data
+//
+// _token: NM8eor1JFGRLxfaTNHanGX4en0ZMFtatdz1Muu5Z
+// _method: PUT
+// _http_referrer: http://localhost/admin/article
+// name: Rerum non omnis dicta occaecati dignissimos culpa commodi.
+// options:
+// options[0][id]: 97b64557-24ad-4099-88f2-0d275874d2e8
+// options[0][order_priority]: 1000
+// options[0][name]: Adipisci eaque vero laborum reprehenderit id ipsam deserunt.
+// id: 97b64557-19ba-49bd-bdec-783e32fbc6e8
+// _save_action: save_and_back
+//
+// If we don't ignore empty options we will lose the whole array of data in key options[x]
+// So we will ignore it and process the array of data in options[x] if those present in the request.
+// Same is done for fileTree data structure underneath
+func (dt dataTree) mount(i, v []string) error {
+	if len(i) == 0 {
+		return nil
+	}
+
+	shouldContinue, err := dt.prepareNewDataNode(i, v)
+	if err != nil {
+		return err
+	}
+	if !shouldContinue {
+		return nil
+	}
+
+	if len(i) == 2 && i[1] == "" {
+		// non associated array of elements
+		dt[i[0]] = v
+		return nil
+	}
+	if len(i) == 1 && len(v) > 0 {
+		dt[i[0]] = v[len(v)-1]
+		return nil
+	}
+	if len(i) == 1 {
+		dt[i[0]] = v
+		return nil
+	}
+
+	return dt[i[0]].(dataTree).mount(i[1:], v)
+}
+
+func (dt dataTree) prepareNewDataNode(i, v []string) (bool, error) {
 	_, ok := dt[i[0]]
 	if !ok {
 		dt[i[0]] = make(dataTree)
@@ -93,55 +142,6 @@ func prepareNewDataNode(dt dataTree, i []string, v []string) (bool, error) {
 	return false, invalidMultipleValuesErr(i[0])
 }
 
-// mount mounts data tree recursively.
-//
-// This can handle this edge case
-// Assume that we have the following POST data
-//
-// _token: NM8eor1JFGRLxfaTNHanGX4en0ZMFtatdz1Muu5Z
-// _method: PUT
-// _http_referrer: http://localhost/admin/article
-// name: Rerum non omnis dicta occaecati dignissimos culpa commodi.
-// options:
-// options[0][id]: 97b64557-24ad-4099-88f2-0d275874d2e8
-// options[0][order_priority]: 1000
-// options[0][name]: Adipisci eaque vero laborum reprehenderit id ipsam deserunt.
-// id: 97b64557-19ba-49bd-bdec-783e32fbc6e8
-// _save_action: save_and_back
-//
-// If we don't ignore empty options we will lose the whole array of data in key options[x]
-// So we will ignore it and process the array of data in options[x] if those present in the request.
-// Same is done for fileTree data structure underneath
-func (dt dataTree) mount(i []string, v []string) error {
-	if len(i) == 0 {
-		return nil
-	}
-
-	shouldContinue, err := prepareNewDataNode(dt, i, v)
-	if err != nil {
-		return err
-	}
-	if !shouldContinue {
-		return nil
-	}
-
-	if len(i) == 2 && i[1] == "" {
-		// non associated array of elements
-		dt[i[0]] = v
-		return nil
-	}
-	if len(i) == 1 && len(v) > 0 {
-		dt[i[0]] = v[len(v)-1]
-		return nil
-	}
-	if len(i) == 1 {
-		dt[i[0]] = v
-		return nil
-	}
-
-	return dt[i[0]].(dataTree).mount(i[1:], v)
-}
-
 // parse incoming dataTree request into JSON (including contentMultipart form dataTree)
 func parseUploads(r *http.Request, uid, gid int) (*Uploads, error) {
 	u := &Uploads{
@@ -174,7 +174,37 @@ func (ft fileTree) push(k string, v []*FileUpload) error {
 	return nil
 }
 
-func prepareNewFileNode(ft fileTree, i []string, v []*FileUpload) (bool, error) {
+// mount mounts data tree recursively.
+func (ft fileTree) mount(i []string, v []*FileUpload) error {
+	if len(i) == 0 {
+		return nil
+	}
+
+	shouldContinue, err := ft.prepareNewFileNode(i, v)
+	if err != nil {
+		return err
+	}
+	if !shouldContinue {
+		return nil
+	}
+
+	switch {
+	case len(i) == 2 && i[1] == "":
+		// non associated array of elements
+		ft[i[0]] = v
+		return nil
+	case len(i) == 1 && len(v) > 0:
+		ft[i[0]] = v[0]
+		return nil
+	case len(i) == 1:
+		ft[i[0]] = v
+		return nil
+	}
+
+	return ft[i[0]].(fileTree).mount(i[1:], v)
+}
+
+func (ft fileTree) prepareNewFileNode(i []string, v []*FileUpload) (bool, error) {
 	_, ok := ft[i[0]]
 	if !ok {
 		ft[i[0]] = make(fileTree)
@@ -214,36 +244,6 @@ func prepareNewFileNode(ft fileTree, i []string, v []*FileUpload) (bool, error) 
 	}
 
 	return false, invalidMultipleValuesErr(i[0])
-}
-
-// mount mounts data tree recursively.
-func (ft fileTree) mount(i []string, v []*FileUpload) error {
-	if len(i) == 0 {
-		return nil
-	}
-
-	shouldContinue, err := prepareNewFileNode(ft, i, v)
-	if err != nil {
-		return err
-	}
-	if !shouldContinue {
-		return nil
-	}
-
-	switch {
-	case len(i) == 2 && i[1] == "":
-		// non associated array of elements
-		ft[i[0]] = v
-		return nil
-	case len(i) == 1 && len(v) > 0:
-		ft[i[0]] = v[0]
-		return nil
-	case len(i) == 1:
-		ft[i[0]] = v
-		return nil
-	}
-
-	return ft[i[0]].(fileTree).mount(i[1:], v)
 }
 
 // fetchIndexes parses input name and splits it into separate indexes list.
