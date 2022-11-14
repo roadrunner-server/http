@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 )
@@ -53,10 +52,6 @@ func invalidMultipleValuesErr(key string) error {
 }
 
 func prepareNewDataNode(dt dataTree, i []string, v []string) (bool, error) {
-	if len(i) == 0 {
-		return false, errors.New("key indexes must not be empty")
-	}
-
 	_, ok := dt[i[0]]
 	if !ok {
 		dt[i[0]] = make(dataTree)
@@ -180,10 +175,6 @@ func (ft fileTree) push(k string, v []*FileUpload) error {
 }
 
 func prepareNewFileNode(ft fileTree, i []string, v []*FileUpload) (bool, error) {
-	if len(i) == 0 {
-		return false, errors.New("key indexes must not be empty")
-	}
-
 	_, ok := ft[i[0]]
 	if !ok {
 		ft[i[0]] = make(fileTree)
