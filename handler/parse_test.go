@@ -61,6 +61,7 @@ func TestPushWithOneLevelPostWithOverwrite(t *testing.T) {
 	form.Add("name[]", "name1")
 	form.Add("name[]", "name2")
 	form.Add("name[]", "name3")
+	form.Add("arr", "")
 	form.Add("arr[x][y][z]", "y")
 	form.Add("arr[x][y][e]", "f")
 	form.Add("arr[c]p", "l")
@@ -87,6 +88,9 @@ func TestPushWithMultipleLevelPostDataNoErr(t *testing.T) {
 		"id": []string{
 			"97b27435-38e3-44d2-b97b-89d82fd6c212",
 		},
+		"names[]": []string{
+			"name1", "names2",
+		},
 		"options[0][id]": []string{
 			"97b27435-3cb7-40f1-9637-e406465e63ed",
 		},
@@ -94,15 +98,6 @@ func TestPushWithMultipleLevelPostDataNoErr(t *testing.T) {
 			"Reiciendis et impedit quod id.",
 		},
 		"options[0][value]": []string{
-			"",
-		},
-		"options[1][id]": []string{
-			"97b27435-3d8a-4f68-b034-88ef3b6cd161",
-		},
-		"options[1][name]": []string{
-			"Mollitia aut assumenda non tempora.",
-		},
-		"options[1][value]": []string{
 			"",
 		},
 	}
@@ -121,7 +116,7 @@ func TestPushWithMultipleLevelPostDataNoErr(t *testing.T) {
 		}
 	}
 	optionDataTree := d["options"].(dataTree)
-	if len(optionDataTree) != 2 {
+	if len(optionDataTree) != 1 {
 		t.Fatalf("invalid length of options: %+v", optionDataTree)
 	}
 	for k, v := range optionDataTree {
@@ -171,15 +166,6 @@ func TestPushWithMultipleLevelPostDataWithErr(t *testing.T) {
 			"Reiciendis et impedit quod id.",
 		},
 		"options[0][value]": []string{
-			"",
-		},
-		"options[1][id]": []string{
-			"97b27435-3d8a-4f68-b034-88ef3b6cd161",
-		},
-		"options[1][name]": []string{
-			"Mollitia aut assumenda non tempora.",
-		},
-		"options[1][value]": []string{
 			"",
 		},
 	}
@@ -238,19 +224,6 @@ func TestPushWithMultipleLevelFileUploadNoErr(t *testing.T) {
 		"options[0][value]": {
 			nil,
 		},
-		"options[1][id]": {
-			&FileUpload{
-				Name: "file-upload-1-id",
-			},
-		},
-		"options[1][name]": {
-			&FileUpload{
-				Name: "file-upload-1-name",
-			},
-		},
-		"options[1][value]": {
-			nil,
-		},
 	}
 
 	d := make(fileTree)
@@ -261,7 +234,7 @@ func TestPushWithMultipleLevelFileUploadNoErr(t *testing.T) {
 		}
 	}
 	optionFileTree := d["options"].(fileTree)
-	if len(optionFileTree) != 2 {
+	if len(optionFileTree) != 1 {
 		t.Fatalf("invalid length of options: %+v", optionFileTree)
 	}
 	for k, v := range optionFileTree {
@@ -276,6 +249,14 @@ func TestPushWithMultipleLevelFileUploadWithErr(t *testing.T) {
 		"id": {
 			&FileUpload{
 				Name: "file-upload-id",
+			},
+		},
+		"names[]": {
+			&FileUpload{
+				Name: "file-upload-names-1",
+			},
+			&FileUpload{
+				Name: "file-upload-names-1",
 			},
 		},
 		"options": {
@@ -294,19 +275,6 @@ func TestPushWithMultipleLevelFileUploadWithErr(t *testing.T) {
 			},
 		},
 		"options[0][value]": {
-			nil,
-		},
-		"options[1][id]": {
-			&FileUpload{
-				Name: "file-upload-1-id",
-			},
-		},
-		"options[1][name]": {
-			&FileUpload{
-				Name: "file-upload-1-name",
-			},
-		},
-		"options[1][value]": {
 			nil,
 		},
 	}
