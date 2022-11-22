@@ -263,7 +263,7 @@ func TestFileTreePush(t *testing.T) {
 			wantVal: &FileUpload{Name: "value1"},
 		},
 		{
-			name: "empty value should get overwritten by new dataTree",
+			name: "empty value should get overwritten by new fileTree",
 			values: orderedData{
 				{
 					key:   "key",
@@ -294,7 +294,7 @@ func TestFileTreePush(t *testing.T) {
 			},
 		},
 		{
-			name: "dataTree should not get overwritten by empty string",
+			name: "fileTree should not get overwritten by empty string",
 			values: orderedData{
 				{
 					key: "key[options][id]",
@@ -355,7 +355,7 @@ func TestFileTreePush(t *testing.T) {
 			wantErr: errors.New("invalid multiple values to key 'key' in tree"),
 		},
 		{
-			name: "there should be error if both dataTree and scalar value present #2",
+			name: "there should be error if both fileTree and scalar value present #2",
 			values: orderedData{
 				{
 					key: "key",
