@@ -1,9 +1,12 @@
 package handler
 
 import (
-	"net/url"
-	"reflect"
+	"errors"
+	"strings"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
 var samples = []struct { //nolint:gochecknoglobals
@@ -54,243 +57,358 @@ func same(in, out []string) bool {
 	return true
 }
 
-func TestPushWithOneLevelPostWithOverwrite(t *testing.T) {
-	form := url.Values{}
-	form.Add("key", "value")
-	form.Add("key", "value2")
-	form.Add("name[]", "name1")
-	form.Add("name[]", "name2")
-	form.Add("name[]", "name3")
-	form.Add("arr", "")
-	form.Add("arr[x][y][z]", "y")
-	form.Add("arr[x][y][e]", "f")
-	form.Add("arr[c]p", "l")
-	form.Add("arr[c]z", "")
-
-	var (
-		d   = make(dataTree)
-		err error
-	)
-	for k, v := range form {
-		err = d.push(k, v)
-		if err != nil {
-			t.Fatal(err)
-		}
+func TestDataTreePush(t *testing.T) {
+	type orderedData []struct {
+		key   string
+		value []string
+	}
+	testCases := []struct {
+		name    string
+		values  orderedData
+		wantVal any
+		wantErr error
+	}{
+		{
+			name: "non associated array should stay",
+			values: orderedData{
+				{
+					key:   "key[]",
+					value: []string{"value2"},
+				},
+				{
+					key:   "key",
+					value: []string{""},
+				},
+			},
+			wantVal: []string{"value2"},
+		},
+		{
+			name: "old value should get overwritten by not empty value",
+			values: orderedData{
+				{
+					key:   "key[]",
+					value: []string{"value2"},
+				},
+				{
+					key:   "key",
+					value: []string{"value1"},
+				},
+			},
+			wantVal: "value1",
+		},
+		{
+			name: "empty string should get overwritten by new dataTree",
+			values: orderedData{
+				{
+					key:   "key",
+					value: []string{""},
+				},
+				{
+					key:   "key[options][id]",
+					value: []string{"id1"},
+				},
+				{
+					key:   "key[options][value]",
+					value: []string{"value1"},
+				},
+			},
+			wantVal: dataTree{
+				"options": dataTree{
+					"id":    "id1",
+					"value": "value1",
+				},
+			},
+		},
+		{
+			name: "dataTree should not get overwritten by empty string",
+			values: orderedData{
+				{
+					key:   "key[options][id]",
+					value: []string{"id1"},
+				},
+				{
+					key:   "key[options][value]",
+					value: []string{"value1"},
+				},
+				{
+					key:   "key[]",
+					value: []string{""},
+				},
+			},
+			wantVal: dataTree{
+				"options": dataTree{
+					"id":    "id1",
+					"value": "value1",
+				},
+			},
+		},
+		{
+			name: "there should be error if both dataTree and scalar value present #1",
+			values: orderedData{
+				{
+					key:   "key[options][id]",
+					value: []string{"id1"},
+				},
+				{
+					key:   "key[options][value]",
+					value: []string{"value1"},
+				},
+				{
+					key:   "key",
+					value: []string{"value"},
+				},
+			},
+			wantErr: errors.New("invalid multiple values to key 'key' in tree"),
+		},
+		{
+			name: "there should be error if both dataTree and scalar value present #1",
+			values: orderedData{
+				{
+					key:   "key",
+					value: []string{"value"},
+				},
+				{
+					key:   "key[options][id]",
+					value: []string{"id1"},
+				},
+				{
+					key:   "key[options][value]",
+					value: []string{"value1"},
+				},
+			},
+			wantErr: errors.New("invalid multiple values to key 'key' in tree"),
+		},
 	}
 
-	if !reflect.DeepEqual(d["key"], "value2") {
-		t.Fatalf("overwriting expected. tree is %+v", d)
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			var (
+				d   = make(dataTree)
+				err error
+			)
+
+			for _, v := range tt.values {
+				err = d.push(v.key, v.value)
+				if err != nil {
+					break
+				}
+			}
+			if tt.wantErr != nil {
+				if !strings.Contains(err.Error(), tt.wantErr.Error()) {
+					t.Fatalf("want err %+v but got err %+v", tt.wantErr, err)
+				}
+
+				return
+			}
+			if diff := cmp.Diff(d["key"], tt.wantVal); len(diff) > 0 {
+				t.Fatalf("diff should be empty: %+v", diff)
+			}
+		})
 	}
 }
 
-func TestPushWithMultipleLevelPostDataNoErr(t *testing.T) {
-	postForm := url.Values{
-		"id": []string{
-			"97b27435-38e3-44d2-b97b-89d82fd6c212",
-		},
-		"names[]": []string{
-			"name1", "names2",
-		},
-		"options[0][id]": []string{
-			"97b27435-3cb7-40f1-9637-e406465e63ed",
-		},
-		"options[0][name]": []string{
-			"Reiciendis et impedit quod id.",
-		},
-		"options[0][value]": []string{
-			"",
-		},
+func TestFileTreePush(t *testing.T) {
+	type orderedData []struct {
+		key   string
+		value []*FileUpload
 	}
-
-	// request has empty plain value to same key
-	// which will have structured value later
-	d := make(dataTree)
-	err := d.push("options", []string{""})
-	if err != nil {
-		t.Fatalf("%+v", err)
-	}
-	for k, v := range postForm {
-		err = d.push(k, v)
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-	optionDataTree := d["options"].(dataTree)
-	if len(optionDataTree) != 1 {
-		t.Fatalf("invalid length of options: %+v", optionDataTree)
-	}
-	for k, v := range optionDataTree {
-		if len(v.(dataTree)) != 3 {
-			t.Fatalf("invalid length of options[%s]: %+v", k, v)
-		}
-	}
-
-	// request has empty array value to a key,
-	// which will have structured value later
-	d = make(dataTree)
-	err = d.push("options[]", []string{})
-	if err != nil {
-		t.Fatalf("%+v", err)
-	}
-	for k, v := range postForm {
-		err = d.push(k, v)
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	// request has empty array value to a key,
-	// which previously have structured value
-	d = make(dataTree)
-	for k, v := range postForm {
-		err = d.push(k, v)
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-	err = d.push("options[]", []string{})
-	if err != nil {
-		t.Fatalf("%+v", err)
-	}
-}
-
-func TestPushWithMultipleLevelPostDataWithErr(t *testing.T) {
-	postForm := url.Values{
-		"id": []string{
-			"97b27435-38e3-44d2-b97b-89d82fd6c212",
-		},
-		"options[0][id]": []string{
-			"97b27435-3cb7-40f1-9637-e406465e63ed",
-		},
-		"options[0][name]": []string{
-			"Reiciendis et impedit quod id.",
-		},
-		"options[0][value]": []string{
-			"",
-		},
-	}
-
-	var (
-		d   = make(dataTree)
-		err error
-	)
-	for k, v := range postForm {
-		err = d.push(k, v)
-		if err != nil {
-			t.Fatalf("%+v", err)
-		}
-	}
-	err = d.push("options", []string{"invalid-data"})
-	if err == nil {
-		t.Fatal("there should have error")
-	}
-	t.Logf("got err: %+v", err)
-
-	d = make(dataTree)
-	err = d.push("options", []string{"invalid-data"})
-	if err != nil {
-		t.Fatalf("%+v", err)
-	}
-	for k, v := range postForm {
-		err = d.push(k, v)
-		if err != nil {
-			break
-		}
-	}
-	if err == nil {
-		t.Fatal("there should have error")
-	}
-	t.Logf("got err: %+v", err)
-}
-
-func TestPushWithMultipleLevelFileUploadNoErr(t *testing.T) {
-	postForm := map[string][]*FileUpload{
-		"id": {
-			&FileUpload{
-				Name: "file-upload-id",
+	testCases := []struct {
+		name    string
+		values  orderedData
+		wantVal any
+		wantErr error
+	}{
+		{
+			name: "non associated array should stay",
+			values: orderedData{
+				{
+					key: "key[]",
+					value: []*FileUpload{
+						{
+							Name: "value2",
+						},
+					},
+				},
+				{
+					key:   "key",
+					value: []*FileUpload{},
+				},
+			},
+			wantVal: []*FileUpload{
+				{
+					Name: "value2",
+				},
 			},
 		},
-		"options": nil,
-		"options[0][id]": {
-			&FileUpload{
-				Name: "file-upload-0-id",
+		{
+			name: "old value should get overwritten by not empty value",
+			values: orderedData{
+				{
+					key: "key[]",
+					value: []*FileUpload{
+						{
+							Name: "value2",
+						},
+					},
+				},
+				{
+					key: "key",
+					value: []*FileUpload{
+						{
+							Name: "value1",
+						},
+					},
+				},
+			},
+			wantVal: &FileUpload{Name: "value1"},
+		},
+		{
+			name: "empty value should get overwritten by new dataTree",
+			values: orderedData{
+				{
+					key:   "key",
+					value: []*FileUpload{},
+				},
+				{
+					key: "key[options][id]",
+					value: []*FileUpload{
+						{
+							Name: "id1",
+						},
+					},
+				},
+				{
+					key: "key[options][value]",
+					value: []*FileUpload{
+						{
+							Name: "value1",
+						},
+					},
+				},
+			},
+			wantVal: fileTree{
+				"options": fileTree{
+					"id":    &FileUpload{Name: "id1"},
+					"value": &FileUpload{Name: "value1"},
+				},
 			},
 		},
-		"options[0][name]": {
-			&FileUpload{
-				Name: "file-upload-0-name",
+		{
+			name: "dataTree should not get overwritten by empty string",
+			values: orderedData{
+				{
+					key: "key[options][id]",
+					value: []*FileUpload{
+						{
+							Name: "id1",
+						},
+					},
+				},
+				{
+					key: "key[options][value]",
+					value: []*FileUpload{
+						{
+							Name: "value1",
+						},
+					},
+				},
+				{
+					key:   "key[]",
+					value: []*FileUpload{},
+				},
+			},
+			wantVal: fileTree{
+				"options": fileTree{
+					"id":    &FileUpload{Name: "id1"},
+					"value": &FileUpload{Name: "value1"},
+				},
 			},
 		},
-		"options[0][value]": {
-			nil,
+		{
+			name: "there should be error if both fileTree and file upload present #1",
+			values: orderedData{
+				{
+					key: "key[options][id]",
+					value: []*FileUpload{
+						{
+							Name: "id1",
+						},
+					},
+				},
+				{
+					key: "key[options][value]",
+					value: []*FileUpload{
+						{
+							Name: "value1",
+						},
+					},
+				},
+				{
+					key: "key",
+					value: []*FileUpload{
+						{
+							Name: "value",
+						},
+					},
+				},
+			},
+			wantErr: errors.New("invalid multiple values to key 'key' in tree"),
+		},
+		{
+			name: "there should be error if both dataTree and scalar value present #2",
+			values: orderedData{
+				{
+					key: "key",
+					value: []*FileUpload{
+						{
+							Name: "value",
+						},
+					},
+				},
+				{
+					key: "key[options][id]",
+					value: []*FileUpload{
+						{
+							Name: "id1",
+						},
+					},
+				},
+				{
+					key: "key[options][value]",
+					value: []*FileUpload{
+						{
+							Name: "value1",
+						},
+					},
+				},
+			},
+			wantErr: errors.New("invalid multiple values to key 'key' in tree"),
 		},
 	}
 
-	d := make(fileTree)
-	for k, v := range postForm {
-		err := d.push(k, v)
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-	optionFileTree := d["options"].(fileTree)
-	if len(optionFileTree) != 1 {
-		t.Fatalf("invalid length of options: %+v", optionFileTree)
-	}
-	for k, v := range optionFileTree {
-		if len(v.(fileTree)) != 3 {
-			t.Fatalf("invalid length of options[%s]: %+v", k, d)
-		}
-	}
-}
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			var (
+				d   = make(fileTree)
+				err error
+			)
 
-func TestPushWithMultipleLevelFileUploadWithErr(t *testing.T) {
-	postForm := map[string][]*FileUpload{
-		"id": {
-			&FileUpload{
-				Name: "file-upload-id",
-			},
-		},
-		"names[]": {
-			&FileUpload{
-				Name: "file-upload-names-1",
-			},
-			&FileUpload{
-				Name: "file-upload-names-1",
-			},
-		},
-		"options": {
-			&FileUpload{
-				Name: "file-upload-root-options",
-			},
-		},
-		"options[0][id]": {
-			&FileUpload{
-				Name: "file-upload-0-id",
-			},
-		},
-		"options[0][name]": {
-			&FileUpload{
-				Name: "file-upload-0-name",
-			},
-		},
-		"options[0][value]": {
-			nil,
-		},
-	}
+			for _, v := range tt.values {
+				err = d.push(v.key, v.value)
+				if err != nil {
+					break
+				}
+			}
+			if tt.wantErr != nil {
+				if !strings.Contains(err.Error(), tt.wantErr.Error()) {
+					t.Fatalf("want err %+v but got err %+v", tt.wantErr, err)
+				}
 
-	var (
-		d   = make(fileTree)
-		err error
-	)
-	for k, v := range postForm {
-		err = d.push(k, v)
-		if err != nil {
-			break
-		}
+				return
+			}
+			if diff := cmp.Diff(d["key"], tt.wantVal, cmpopts.IgnoreUnexported(FileUpload{})); len(diff) > 0 {
+				t.Fatalf("diff should be empty: %+v", diff)
+			}
+		})
 	}
-	if err == nil {
-		t.Fatal("there should have error")
-	}
-	t.Logf("got err: %+v", err)
 }

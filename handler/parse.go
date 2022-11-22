@@ -100,6 +100,10 @@ func (dt dataTree) mount(i, v []string) error {
 	return dt[i[0]].(dataTree).mount(i[1:], v)
 }
 
+func isDataValueEmpty(v []string) bool {
+	return len(v) == 0 || (len(v) == 1 && len(v[0]) == 0)
+}
+
 func (dt dataTree) prepareNewDataNode(i, v []string) (bool, error) {
 	_, ok := dt[i[0]]
 	if !ok {
@@ -109,19 +113,21 @@ func (dt dataTree) prepareNewDataNode(i, v []string) (bool, error) {
 
 	_, dataTreeOK := dt[i[0]].(dataTree)
 	if !dataTreeOK {
+		isOldDataEmpty := false
 		switch oldV := dt[i[0]].(type) {
 		case string:
-			if len(oldV) == 0 && len(i) > 1 {
-				dt[i[0]] = make(dataTree)
-				return true, nil
-			}
+			isOldDataEmpty = len(oldV) == 0
 		case []string:
-			if len(oldV) == 0 && len(i) > 1 {
-				dt[i[0]] = make(dataTree)
-				return true, nil
-			}
+			isOldDataEmpty = isDataValueEmpty(oldV)
+		}
+		if !isOldDataEmpty && isDataValueEmpty(v) {
+			return false, nil
 		}
 		if len(i) == 2 && i[1] == "" {
+			return true, nil
+		}
+		if isOldDataEmpty && len(i) > 1 {
+			dt[i[0]] = make(dataTree)
 			return true, nil
 		}
 		if len(i) == 1 {
@@ -131,11 +137,11 @@ func (dt dataTree) prepareNewDataNode(i, v []string) (bool, error) {
 		return false, invalidMultipleValuesErr(i[0])
 	}
 
-	if len(i) > 1 {
+	if len(i) > 1 && len(i[1]) > 0 {
 		return true, nil
 	}
 
-	if len(v) == 0 || len(v[0]) == 0 {
+	if isDataValueEmpty(v) {
 		return false, nil
 	}
 
@@ -204,6 +210,10 @@ func (ft fileTree) mount(i []string, v []*FileUpload) error {
 	return ft[i[0]].(fileTree).mount(i[1:], v)
 }
 
+func isFileUploadEmpty(v []*FileUpload) bool {
+	return len(v) == 0 || (len(v) == 1 && v[0] == nil)
+}
+
 func (ft fileTree) prepareNewFileNode(i []string, v []*FileUpload) (bool, error) {
 	_, ok := ft[i[0]]
 	if !ok {
@@ -213,19 +223,21 @@ func (ft fileTree) prepareNewFileNode(i []string, v []*FileUpload) (bool, error)
 
 	_, fileTreeOK := ft[i[0]].(fileTree)
 	if !fileTreeOK {
+		isOldVEmpty := false
 		switch oldV := ft[i[0]].(type) {
 		case *FileUpload:
-			if oldV == nil && len(i) > 1 {
-				ft[i[0]] = make(fileTree)
-				return true, nil
-			}
+			isOldVEmpty = oldV == nil
 		case []*FileUpload:
-			if len(oldV) == 0 && len(i) > 1 {
-				ft[i[0]] = make(fileTree)
-				return true, nil
-			}
+			isOldVEmpty = isFileUploadEmpty(oldV)
+		}
+		if !isOldVEmpty && isFileUploadEmpty(v) {
+			return false, nil
 		}
 		if len(i) == 2 && i[1] == "" {
+			return true, nil
+		}
+		if isOldVEmpty && len(i) > 1 {
+			ft[i[0]] = make(fileTree)
 			return true, nil
 		}
 		if len(i) == 1 {
@@ -235,11 +247,11 @@ func (ft fileTree) prepareNewFileNode(i []string, v []*FileUpload) (bool, error)
 		return false, invalidMultipleValuesErr(i[0])
 	}
 
-	if len(i) > 1 {
+	if len(i) > 1 && len(i[1]) > 0 {
 		return true, nil
 	}
 
-	if len(v) == 0 || v[0] == nil {
+	if isFileUploadEmpty(v) {
 		return false, nil
 	}
 
