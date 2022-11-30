@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/caddyserver/certmagic v0.17.2
-	github.com/goccy/go-json v0.9.11
+	github.com/goccy/go-json v0.10.0
 	github.com/mholt/acmez v1.0.4
 	github.com/prometheus/client_golang v1.14.0
 	github.com/roadrunner-server/endure v1.4.5
