@@ -4,12 +4,12 @@ go 1.19
 
 require (
 	github.com/caddyserver/certmagic v0.17.2
-	github.com/goccy/go-json v0.9.11
+	github.com/goccy/go-json v0.10.0
 	github.com/mholt/acmez v1.0.4
 	github.com/prometheus/client_golang v1.14.0
 	github.com/roadrunner-server/endure v1.4.5
 	github.com/roadrunner-server/errors v1.2.0
-	github.com/roadrunner-server/goridge/v3 v3.6.1
+	github.com/roadrunner-server/goridge/v3 v3.6.2
 	github.com/roadrunner-server/sdk/v3 v3.0.0
 	github.com/stretchr/testify v1.8.1
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.36.4
