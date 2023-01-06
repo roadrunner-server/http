@@ -6,13 +6,13 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/roadrunner-server/endure/v2/dep"
 	"github.com/roadrunner-server/http/v3/common"
 
 	"github.com/roadrunner-server/http/v3/servers/fcgi"
 	httpServer "github.com/roadrunner-server/http/v3/servers/http"
 	httpsServer "github.com/roadrunner-server/http/v3/servers/https"
 
-	endure "github.com/roadrunner-server/endure/pkg/container"
 	"github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/http/v3/config"
 	"github.com/roadrunner-server/http/v3/handler"
@@ -43,8 +43,6 @@ const (
 	// RrMode RR_HTTP env variable key (internal) if the HTTP presents
 	RrMode     = "RR_MODE"
 	RrModeHTTP = "http"
-
-	Scheme = "https"
 )
 
 // internal interface to start-stop http servers
@@ -85,7 +83,7 @@ type Plugin struct {
 
 // Init must return configure svc and return true if svc hasStatus enabled. Must return error in case of
 // misconfiguration. Services must not be used without proper configuration pushed first.
-func (p *Plugin) Init(cfg common.Configurer, rrLogger *zap.Logger, srv common.Server) error {
+func (p *Plugin) Init(cfg common.Configurer, rrLogger common.Logger, srv common.Server) error {
 	const op = errors.Op("http_plugin_init")
 	if !cfg.Has(PluginName) {
 		return errors.E(op, errors.Disabled)
@@ -137,8 +135,7 @@ func (p *Plugin) Init(cfg common.Configurer, rrLogger *zap.Logger, srv common.Se
 	p.cfg.GID = srv.GID()
 
 	// rr logger (via plugin)
-	p.log = new(zap.Logger)
-	*p.log = *rrLogger
+	p.log = rrLogger.NamedLogger(PluginName)
 
 	// use time and date in UTC format
 	p.stdLog = log.New(NewStdAdapter(p.log), "http_plugin: ", log.Ldate|log.Ltime|log.LUTC)
@@ -172,17 +169,27 @@ func (p *Plugin) Serve() chan error {
 }
 
 // Stop stops the http.
-func (p *Plugin) Stop() error {
+func (p *Plugin) Stop(ctx context.Context) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	for i := 0; i < len(p.servers); i++ {
-		if p.servers[i] != nil {
-			p.servers[i].Stop()
-		}
-	}
+	doneCh := make(chan struct{}, 1)
 
-	return nil
+	go func() {
+		for i := 0; i < len(p.servers); i++ {
+			if p.servers[i] != nil {
+				p.servers[i].Stop()
+			}
+		}
+		doneCh <- struct{}{}
+	}()
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-doneCh:
+		return nil
+	}
 }
 
 // ServeHTTP handles connection using set of middleware and pool PSR-7 server.
@@ -266,18 +273,16 @@ func (p *Plugin) Reset() error {
 }
 
 // Collects collecting http middlewares
-func (p *Plugin) Collects() []any {
-	return []any{
-		p.AddMiddleware,
+func (p *Plugin) Collects() []*dep.In {
+	return []*dep.In{
+		dep.Fits(func(pp any) {
+			mdw := pp.(common.Middleware)
+			// just to be safe
+			p.mu.Lock()
+			p.mdwr[mdw.Name()] = mdw
+			p.mu.Unlock()
+		}, (*common.Middleware)(nil)),
 	}
-}
-
-// AddMiddleware is base requirement for the middleware (name and Middleware)
-func (p *Plugin) AddMiddleware(name endure.Named, m common.Middleware) {
-	// just to be safe
-	p.mu.Lock()
-	p.mdwr[name.Name()] = m
-	p.mu.Unlock()
 }
 
 // ------- PRIVATE ---------

@@ -13,8 +13,8 @@ import (
 	"go.uber.org/zap"
 )
 
-var _ io.ReadCloser = &wrapper{}
-var _ http.ResponseWriter = &wrapper{}
+var _ io.ReadCloser = (*wrapper)(nil)
+var _ http.ResponseWriter = (*wrapper)(nil)
 
 type wrapper struct {
 	io.ReadCloser
