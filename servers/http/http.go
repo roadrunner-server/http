@@ -7,12 +7,12 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/roadrunner-server/http/v3/common"
+	"github.com/roadrunner-server/http/v4/common"
 
 	"github.com/roadrunner-server/errors"
-	"github.com/roadrunner-server/http/v3/config"
-	"github.com/roadrunner-server/http/v3/middleware"
-	"github.com/roadrunner-server/sdk/v3/utils"
+	"github.com/roadrunner-server/http/v4/config"
+	"github.com/roadrunner-server/http/v4/middleware"
+	"github.com/roadrunner-server/sdk/v4/utils"
 	"go.uber.org/zap"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"

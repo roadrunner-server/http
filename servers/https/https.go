@@ -12,11 +12,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/roadrunner-server/http/v3/common"
+	"github.com/roadrunner-server/http/v4/common"
 
 	"github.com/mholt/acmez"
 	"github.com/roadrunner-server/errors"
-	"github.com/roadrunner-server/sdk/v3/utils"
+	"github.com/roadrunner-server/sdk/v4/utils"
 	"go.uber.org/zap"
 	"golang.org/x/sys/cpu"
 )
