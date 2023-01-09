@@ -1,4 +1,4 @@
-module github.com/roadrunner-server/http/v3
+module github.com/roadrunner-server/http/v4
 
 go 1.19
 
@@ -8,10 +8,10 @@ require (
 	github.com/mholt/acmez v1.0.4
 	github.com/prometheus/client_golang v1.14.0
 	github.com/roadrunner-server/api/v3 v3.1.2
-	github.com/roadrunner-server/endure/v2 v2.0.0-beta.1
+	github.com/roadrunner-server/endure/v2 v2.0.0-rc.2
 	github.com/roadrunner-server/errors v1.2.0
 	github.com/roadrunner-server/goridge/v3 v3.6.2
-	github.com/roadrunner-server/sdk/v3 v3.1.0
+	github.com/roadrunner-server/sdk/v4 v4.0.0
 	github.com/stretchr/testify v1.8.1
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.37.0
 	go.opentelemetry.io/contrib/propagators/jaeger v1.12.0

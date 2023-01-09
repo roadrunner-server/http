@@ -8,13 +8,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/roadrunner-server/http/v3/common"
+	"github.com/roadrunner-server/http/v4/common"
 
 	"github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/goridge/v3/pkg/frame"
-	"github.com/roadrunner-server/http/v3/attributes"
-	"github.com/roadrunner-server/http/v3/config"
-	"github.com/roadrunner-server/sdk/v3/payload"
+	"github.com/roadrunner-server/http/v4/attributes"
+	"github.com/roadrunner-server/http/v4/config"
+	"github.com/roadrunner-server/sdk/v4/payload"
 	"go.uber.org/zap"
 )
 
