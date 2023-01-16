@@ -53,7 +53,7 @@ func invalidMultipleValuesErr(key string) error {
 
 // mount mounts data tree recursively.
 //
-// This can handle this edge case
+// This is written to handle this very edge case
 // Assume that we have the following POST data
 //
 // _token: NM8eor1JFGRLxfaTNHanGX4en0ZMFtatdz1Muu5Z
@@ -75,19 +75,44 @@ func (dt dataTree) mount(i, v []string) error {
 		return nil
 	}
 
-	shouldContinue, err := dt.prepareNewDataNode(i, v)
-	if err != nil {
-		return err
-	}
-	if !shouldContinue {
-		return nil
+	_, hasBranch := dt[i[0]]
+
+	if hasBranch {
+		_, isNotLeaf := dt[i[0]].(dataTree)
+		isLeaf := !isNotLeaf
+
+		// we have leaf node with scalar value but there is incoming branch data in the input
+		if isLeaf && !isDataEmpty(dt[i[0]]) && len(i) > 1 && len(i[1]) > 0 {
+			return invalidMultipleValuesErr(i[0])
+		}
+
+		// we have a branch with tree data but there is incoming scalar value in the input
+		if isNotLeaf && (len(i) == 1 || (len(i) == 2 && len(i[1]) == 0)) && !isDataEmpty(v) {
+			return invalidMultipleValuesErr(i[0])
+		}
+
+		if isLeaf && isDataEmpty(dt[i[0]]) && !isDataEmpty(v) {
+			dt[i[0]] = make(dataTree)
+		}
+
+		if isLeaf && !isDataEmpty(dt[i[0]]) && isDataEmpty(v) {
+			return nil
+		}
+
+		// we have a branch with tree data but there is incoming scalar value in the input
+		if isNotLeaf && (len(i) == 1 || (len(i) == 2 && len(i[1]) == 0)) && isDataEmpty(v) {
+			return nil
+		}
+	} else {
+		dt[i[0]] = make(dataTree)
 	}
 
+	// getting all elements of non associated array
 	if len(i) == 2 && i[1] == "" {
-		// non associated array of elements
 		dt[i[0]] = v
 		return nil
 	}
+	// only getting the last elements
 	if len(i) == 1 && len(v) > 0 {
 		dt[i[0]] = v[len(v)-1]
 		return nil
@@ -100,52 +125,15 @@ func (dt dataTree) mount(i, v []string) error {
 	return dt[i[0]].(dataTree).mount(i[1:], v)
 }
 
-func isDataValueEmpty(v []string) bool {
-	return len(v) == 0 || (len(v) == 1 && len(v[0]) == 0)
-}
-
-func (dt dataTree) prepareNewDataNode(i, v []string) (bool, error) {
-	_, ok := dt[i[0]]
-	if !ok {
-		dt[i[0]] = make(dataTree)
-		return true, nil
+func isDataEmpty(v any) bool {
+	switch actualV := v.(type) {
+	case string:
+		return len(actualV) == 0
+	case []string:
+		return len(actualV) == 0 || (len(actualV) == 1 && len(actualV[0]) == 0)
+	default:
+		return v == nil
 	}
-
-	_, dataTreeOK := dt[i[0]].(dataTree)
-	if !dataTreeOK {
-		isOldDataEmpty := false
-		switch oldV := dt[i[0]].(type) {
-		case string:
-			isOldDataEmpty = len(oldV) == 0
-		case []string:
-			isOldDataEmpty = isDataValueEmpty(oldV)
-		}
-		if !isOldDataEmpty && isDataValueEmpty(v) {
-			return false, nil
-		}
-		if len(i) == 2 && i[1] == "" {
-			return true, nil
-		}
-		if isOldDataEmpty && len(i) > 1 {
-			dt[i[0]] = make(dataTree)
-			return true, nil
-		}
-		if len(i) == 1 {
-			return true, nil
-		}
-
-		return false, invalidMultipleValuesErr(i[0])
-	}
-
-	if len(i) > 1 && len(i[1]) > 0 {
-		return true, nil
-	}
-
-	if isDataValueEmpty(v) {
-		return false, nil
-	}
-
-	return false, invalidMultipleValuesErr(i[0])
 }
 
 // parse incoming dataTree request into JSON (including contentMultipart form dataTree)
@@ -186,12 +174,36 @@ func (ft fileTree) mount(i []string, v []*FileUpload) error {
 		return nil
 	}
 
-	shouldContinue, err := ft.prepareNewFileNode(i, v)
-	if err != nil {
-		return err
-	}
-	if !shouldContinue {
-		return nil
+	_, hasBranch := ft[i[0]]
+
+	if hasBranch {
+		_, isNotLeaf := ft[i[0]].(fileTree)
+		isLeaf := !isNotLeaf
+
+		// we have leaf node with scalar value but there is incoming branch data in the input
+		if isLeaf && !isFileUploadEmpty(ft[i[0]]) && len(i) > 1 && len(i[1]) > 0 {
+			return invalidMultipleValuesErr(i[0])
+		}
+
+		// we have a branch with tree data but there is incoming scalar value in the input
+		if isNotLeaf && (len(i) == 1 || (len(i) == 2 && len(i[1]) == 0)) && !isFileUploadEmpty(v) {
+			return invalidMultipleValuesErr(i[0])
+		}
+
+		if isLeaf && isFileUploadEmpty(ft[i[0]]) && !isFileUploadEmpty(v) {
+			ft[i[0]] = make(fileTree)
+		}
+
+		if isLeaf && !isFileUploadEmpty(ft[i[0]]) && isFileUploadEmpty(v) {
+			return nil
+		}
+
+		// we have a branch with tree data but there is incoming scalar value in the input
+		if isNotLeaf && (len(i) == 1 || (len(i) == 2 && len(i[1]) == 0)) && isFileUploadEmpty(v) {
+			return nil
+		}
+	} else {
+		ft[i[0]] = make(fileTree)
 	}
 
 	switch {
@@ -210,52 +222,13 @@ func (ft fileTree) mount(i []string, v []*FileUpload) error {
 	return ft[i[0]].(fileTree).mount(i[1:], v)
 }
 
-func isFileUploadEmpty(v []*FileUpload) bool {
-	return len(v) == 0 || (len(v) == 1 && v[0] == nil)
-}
-
-func (ft fileTree) prepareNewFileNode(i []string, v []*FileUpload) (bool, error) {
-	_, ok := ft[i[0]]
-	if !ok {
-		ft[i[0]] = make(fileTree)
-		return true, nil
+func isFileUploadEmpty(v any) bool {
+	switch actualV := v.(type) {
+	case []*FileUpload:
+		return len(actualV) == 0 || (len(actualV) == 1 && actualV[0] == nil)
+	default:
+		return v == nil
 	}
-
-	_, fileTreeOK := ft[i[0]].(fileTree)
-	if !fileTreeOK {
-		isOldVEmpty := false
-		switch oldV := ft[i[0]].(type) {
-		case *FileUpload:
-			isOldVEmpty = oldV == nil
-		case []*FileUpload:
-			isOldVEmpty = isFileUploadEmpty(oldV)
-		}
-		if !isOldVEmpty && isFileUploadEmpty(v) {
-			return false, nil
-		}
-		if len(i) == 2 && i[1] == "" {
-			return true, nil
-		}
-		if isOldVEmpty && len(i) > 1 {
-			ft[i[0]] = make(fileTree)
-			return true, nil
-		}
-		if len(i) == 1 {
-			return true, nil
-		}
-
-		return false, invalidMultipleValuesErr(i[0])
-	}
-
-	if len(i) > 1 && len(i[1]) > 0 {
-		return true, nil
-	}
-
-	if isFileUploadEmpty(v) {
-		return false, nil
-	}
-
-	return false, invalidMultipleValuesErr(i[0])
 }
 
 // fetchIndexes parses input name and splits it into separate indexes list.

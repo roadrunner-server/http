@@ -143,7 +143,7 @@ func TestDataTreePush(t *testing.T) {
 			},
 		},
 		{
-			name: "there should be error if both dataTree and scalar value present #1",
+			name: "there should be error if dataTree goes before scalar value",
 			values: orderedData{
 				{
 					key:   "key[options][id]",
@@ -161,7 +161,7 @@ func TestDataTreePush(t *testing.T) {
 			wantErr: errors.New("invalid multiple values to key 'key' in tree"),
 		},
 		{
-			name: "there should be error if both dataTree and scalar value present #1",
+			name: "there should be error if scalar value goes before dataTree",
 			values: orderedData{
 				{
 					key:   "key",
@@ -194,11 +194,17 @@ func TestDataTreePush(t *testing.T) {
 				}
 			}
 			if tt.wantErr != nil {
+				if err == nil {
+					t.Fatalf("want err %+v but got nil", tt.wantErr)
+				}
 				if !strings.Contains(err.Error(), tt.wantErr.Error()) {
 					t.Fatalf("want err %+v but got err %+v", tt.wantErr, err)
 				}
 
 				return
+			}
+			if err != nil {
+				t.Fatalf("want no err but got err %+v", err)
 			}
 			if diff := cmp.Diff(d["key"], tt.wantVal); len(diff) > 0 {
 				t.Fatalf("diff should be empty: %+v", diff)
