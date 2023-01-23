@@ -91,10 +91,12 @@ func (dt dataTree) mount(i, v []string) error {
 			return invalidMultipleValuesErr(i[0])
 		}
 
+		// we have an empty leaf node and there is incoming value
 		if isLeaf && isDataEmpty(dt[i[0]]) && !isDataEmpty(v) {
 			dt[i[0]] = make(dataTree)
 		}
 
+		// we have a non-empty leaf node and there is incoming empty value
 		if isLeaf && !isDataEmpty(dt[i[0]]) && isDataEmpty(v) {
 			return nil
 		}
@@ -180,20 +182,22 @@ func (ft fileTree) mount(i []string, v []*FileUpload) error {
 		_, isNotLeaf := ft[i[0]].(fileTree)
 		isLeaf := !isNotLeaf
 
-		// we have leaf node with scalar value but there is incoming branch data in the input
+		// we have leaf node with value but there is incoming branch data in the input
 		if isLeaf && !isFileUploadEmpty(ft[i[0]]) && len(i) > 1 && len(i[1]) > 0 {
 			return invalidMultipleValuesErr(i[0])
 		}
 
-		// we have a branch with tree data but there is incoming scalar value in the input
+		// we have a branch with tree data but there is incoming value in the input
 		if isNotLeaf && (len(i) == 1 || (len(i) == 2 && len(i[1]) == 0)) && !isFileUploadEmpty(v) {
 			return invalidMultipleValuesErr(i[0])
 		}
 
+		// we have an empty leaf node and there is incoming value
 		if isLeaf && isFileUploadEmpty(ft[i[0]]) && !isFileUploadEmpty(v) {
 			ft[i[0]] = make(fileTree)
 		}
 
+		// we have a non-empty leaf node and there is incoming empty value
 		if isLeaf && !isFileUploadEmpty(ft[i[0]]) && isFileUploadEmpty(v) {
 			return nil
 		}
