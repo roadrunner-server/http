@@ -406,6 +406,9 @@ func TestFileTreePush(t *testing.T) {
 				}
 			}
 			if tt.wantErr != nil {
+				if err == nil {
+					t.Fatalf("want err %+v but got nil", tt.wantErr)
+				}
 				if !strings.Contains(err.Error(), tt.wantErr.Error()) {
 					t.Fatalf("want err %+v but got err %+v", tt.wantErr, err)
 				}
