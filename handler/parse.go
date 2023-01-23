@@ -75,38 +75,12 @@ func (dt dataTree) mount(i, v []string) error {
 		return nil
 	}
 
-	_, hasBranch := dt[i[0]]
-
-	if hasBranch {
-		_, isNotLeaf := dt[i[0]].(dataTree)
-		isLeaf := !isNotLeaf
-
-		// we have leaf node with scalar value but there is incoming branch data in the input
-		if isLeaf && !isDataEmpty(dt[i[0]]) && len(i) > 1 && len(i[1]) > 0 {
-			return invalidMultipleValuesErr(i[0])
-		}
-
-		// we have a branch with tree data but there is incoming scalar value in the input
-		if isNotLeaf && (len(i) == 1 || (len(i) == 2 && len(i[1]) == 0)) && !isDataEmpty(v) {
-			return invalidMultipleValuesErr(i[0])
-		}
-
-		// we have an empty leaf node and there is incoming value
-		if isLeaf && isDataEmpty(dt[i[0]]) && !isDataEmpty(v) {
-			dt[i[0]] = make(dataTree)
-		}
-
-		// we have a non-empty leaf node and there is incoming empty value
-		if isLeaf && !isDataEmpty(dt[i[0]]) && isDataEmpty(v) {
-			return nil
-		}
-
-		// we have a branch with tree data but there is incoming scalar value in the input
-		if isNotLeaf && (len(i) == 1 || (len(i) == 2 && len(i[1]) == 0)) && isDataEmpty(v) {
-			return nil
-		}
-	} else {
-		dt[i[0]] = make(dataTree)
+	done, err := prepareTreeNode(dt, i, v)
+	if err != nil {
+		return err
+	}
+	if done {
+		return nil
 	}
 
 	// getting all elements of non associated array
@@ -127,12 +101,66 @@ func (dt dataTree) mount(i, v []string) error {
 	return dt[i[0]].(dataTree).mount(i[1:], v)
 }
 
+func prepareTreeNode[T dataTree | fileTree, V []string | []*FileUpload](
+	tree T,
+	i []string,
+	v V,
+) (bool, error) {
+	_, hasBranch := tree[i[0]]
+
+	if !hasBranch {
+		tree[i[0]] = make(T)
+		return false, nil
+	}
+
+	_, isBranch := tree[i[0]].(T)
+	isDataInTreeEmpty := isDataEmpty(tree[i[0]])
+	isIncomingValueEmpty := isDataEmpty(v)
+	isLeafNodeIncoming := len(i) == 1 || (len(i) == 2 && len(i[1]) == 0)
+
+	if !isBranch {
+		if !isDataInTreeEmpty {
+			// we have leaf node with value but there is incoming branch data in the input
+			if len(i) > 1 && len(i[1]) > 0 {
+				return true, invalidMultipleValuesErr(i[0])
+			}
+
+			// we have a non-empty leaf node and there is incoming empty value
+			if isIncomingValueEmpty {
+				return true, nil
+			}
+		}
+
+		// we have an empty leaf node and there is incoming value
+		if isDataInTreeEmpty && !isIncomingValueEmpty {
+			tree[i[0]] = make(T)
+			return false, nil
+		}
+	}
+
+	if isBranch && isLeafNodeIncoming {
+		// we have a branch with tree data but there is incoming value in the input
+		if !isIncomingValueEmpty {
+			return true, invalidMultipleValuesErr(i[0])
+		}
+
+		// we have a branch with tree data but there is incoming empty value
+		if isIncomingValueEmpty {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
 func isDataEmpty(v any) bool {
 	switch actualV := v.(type) {
 	case string:
 		return len(actualV) == 0
 	case []string:
 		return len(actualV) == 0 || (len(actualV) == 1 && len(actualV[0]) == 0)
+	case []*FileUpload:
+		return len(actualV) == 0 || (len(actualV) == 1 && actualV[0] == nil)
 	default:
 		return v == nil
 	}
@@ -176,38 +204,12 @@ func (ft fileTree) mount(i []string, v []*FileUpload) error {
 		return nil
 	}
 
-	_, hasBranch := ft[i[0]]
-
-	if hasBranch {
-		_, isNotLeaf := ft[i[0]].(fileTree)
-		isLeaf := !isNotLeaf
-
-		// we have leaf node with value but there is incoming branch data in the input
-		if isLeaf && !isFileUploadEmpty(ft[i[0]]) && len(i) > 1 && len(i[1]) > 0 {
-			return invalidMultipleValuesErr(i[0])
-		}
-
-		// we have a branch with tree data but there is incoming value in the input
-		if isNotLeaf && (len(i) == 1 || (len(i) == 2 && len(i[1]) == 0)) && !isFileUploadEmpty(v) {
-			return invalidMultipleValuesErr(i[0])
-		}
-
-		// we have an empty leaf node and there is incoming value
-		if isLeaf && isFileUploadEmpty(ft[i[0]]) && !isFileUploadEmpty(v) {
-			ft[i[0]] = make(fileTree)
-		}
-
-		// we have a non-empty leaf node and there is incoming empty value
-		if isLeaf && !isFileUploadEmpty(ft[i[0]]) && isFileUploadEmpty(v) {
-			return nil
-		}
-
-		// we have a branch with tree data but there is incoming scalar value in the input
-		if isNotLeaf && (len(i) == 1 || (len(i) == 2 && len(i[1]) == 0)) && isFileUploadEmpty(v) {
-			return nil
-		}
-	} else {
-		ft[i[0]] = make(fileTree)
+	done, err := prepareTreeNode(ft, i, v)
+	if err != nil {
+		return err
+	}
+	if done {
+		return nil
 	}
 
 	switch {
@@ -224,15 +226,6 @@ func (ft fileTree) mount(i []string, v []*FileUpload) error {
 	}
 
 	return ft[i[0]].(fileTree).mount(i[1:], v)
-}
-
-func isFileUploadEmpty(v any) bool {
-	switch actualV := v.(type) {
-	case []*FileUpload:
-		return len(actualV) == 0 || (len(actualV) == 1 && actualV[0] == nil)
-	default:
-		return v == nil
-	}
 }
 
 // fetchIndexes parses input name and splits it into separate indexes list.
