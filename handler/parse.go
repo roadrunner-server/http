@@ -106,9 +106,7 @@ func prepareTreeNode[T dataTree | fileTree, V []string | []*FileUpload](
 	i []string,
 	v V,
 ) (bool, error) {
-	_, hasBranch := tree[i[0]]
-
-	if !hasBranch {
+	if _, ok := tree[i[0]]; !ok {
 		tree[i[0]] = make(T)
 		return false, nil
 	}
