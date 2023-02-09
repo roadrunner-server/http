@@ -157,13 +157,49 @@ func (p *Plugin) Init(cfg common.Configurer, rrLogger common.Logger, srv common.
 // Serve serves the svc.
 func (p *Plugin) Serve() chan error {
 	errCh := make(chan error, 2)
-	// run whole process in the goroutine, needed for the PHP
-	go func() {
-		// protect http initialization
-		p.mu.Lock()
-		p.serve(errCh)
-		p.mu.Unlock()
-	}()
+	var err error
+	p.pool, err = p.server.NewPool(context.Background(), p.cfg.Pool, map[string]string{RrMode: RrModeHTTP}, p.log)
+	if err != nil {
+		errCh <- err
+		return errCh
+	}
+
+	// just to be safe :)
+	if p.pool == nil {
+		errCh <- errors.Str("pool should be initialized")
+		return errCh
+	}
+
+	p.handler, err = handler.NewHandler(
+		p.cfg,
+		p.pool,
+		p.log,
+	)
+	if err != nil {
+		errCh <- err
+		return errCh
+	}
+
+	// initialize servers based on the configuration
+	err = p.initServers()
+	if err != nil {
+		errCh <- err
+		return errCh
+	}
+
+	// apply access_logs, max_request, redirect middleware if specified by user
+	p.applyBundledMiddleware()
+
+	// start all servers
+	for i := 0; i < len(p.servers); i++ {
+		go func(idx int) {
+			errSt := p.servers[idx].Start(p.mdwr, p.cfg.Middleware)
+			if errSt != nil {
+				errCh <- errSt
+				return
+			}
+		}(i)
+	}
 
 	return errCh
 }
@@ -286,52 +322,6 @@ func (p *Plugin) Collects() []*dep.In {
 }
 
 // ------- PRIVATE ---------
-
-func (p *Plugin) serve(errCh chan error) {
-	var err error
-	p.pool, err = p.server.NewPool(context.Background(), p.cfg.Pool, map[string]string{RrMode: RrModeHTTP}, p.log)
-	if err != nil {
-		errCh <- err
-		return
-	}
-
-	// just to be safe :)
-	if p.pool == nil {
-		errCh <- errors.Str("pool should be initialized")
-		return
-	}
-
-	p.handler, err = handler.NewHandler(
-		p.cfg,
-		p.pool,
-		p.log,
-	)
-	if err != nil {
-		errCh <- err
-		return
-	}
-
-	// initialize servers based on the configuration
-	err = p.initServers()
-	if err != nil {
-		errCh <- err
-		return
-	}
-
-	// apply access_logs, max_request, redirect middleware if specified by user
-	p.applyBundledMiddleware()
-
-	// start all servers
-	for i := 0; i < len(p.servers); i++ {
-		go func(idx int) {
-			errSt := p.servers[idx].Start(p.mdwr, p.cfg.Middleware)
-			if errSt != nil {
-				errCh <- errSt
-				return
-			}
-		}(i)
-	}
-}
 
 func (p *Plugin) initServers() error {
 	if p.cfg.EnableHTTP() {
