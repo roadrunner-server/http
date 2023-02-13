@@ -6,7 +6,7 @@ require (
 	github.com/caddyserver/certmagic v0.17.2
 	github.com/goccy/go-json v0.10.0
 	github.com/google/go-cmp v0.5.9
-	github.com/mholt/acmez v1.0.4
+	github.com/mholt/acmez v1.1.0
 	github.com/prometheus/client_golang v1.14.0
 	github.com/roadrunner-server/api/v3 v3.2.1
 	github.com/roadrunner-server/endure/v2 v2.2.0
@@ -34,6 +34,7 @@ require (
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.3 // indirect
+	github.com/kr/text v0.2.0 // indirect
 	github.com/libdns/libdns v0.2.1 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/miekg/dns v1.1.50 // indirect
