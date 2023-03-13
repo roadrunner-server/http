@@ -3,7 +3,7 @@ package http
 import (
 	"net/http"
 
-	"github.com/roadrunner-server/api/v3/plugins/v1/status"
+	"github.com/roadrunner-server/api/v4/plugins/v1/status"
 	"github.com/roadrunner-server/sdk/v4/fsm"
 )
 
