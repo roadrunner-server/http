@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/caddyserver/certmagic v0.17.2
-	github.com/goccy/go-json v0.10.0
+	github.com/goccy/go-json v0.10.1
 	github.com/google/go-cmp v0.5.9
 	github.com/mholt/acmez v1.1.0
 	github.com/prometheus/client_golang v1.14.0
