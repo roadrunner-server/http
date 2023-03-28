@@ -59,12 +59,17 @@ type Request struct {
 	body any
 }
 
-func FetchIP(pair string) string {
+func FetchIP(pair string, log *zap.Logger) string {
 	if !strings.ContainsRune(pair, ':') {
 		return pair
 	}
 
-	addr, _, _ := net.SplitHostPort(pair)
+	addr, _, err := net.SplitHostPort(pair)
+	if err != nil {
+		log.Warn("remote address parsing failure", zap.Error(err))
+		return ""
+	}
+
 	return addr
 }
 

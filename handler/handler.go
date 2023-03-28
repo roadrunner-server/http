@@ -215,7 +215,7 @@ func (h *Handler) getReq(r *http.Request) *Request {
 	rq = strings.ReplaceAll(rq, "\r", "")
 
 	req.RawQuery = rq
-	req.RemoteAddr = FetchIP(r.RemoteAddr)
+	req.RemoteAddr = FetchIP(r.RemoteAddr, h.log)
 	req.Protocol = r.Proto
 	req.Method = r.Method
 	req.URI = URI(r)
