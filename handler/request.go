@@ -65,12 +65,17 @@ func FetchIP(pair string, log *zap.Logger) string {
 	}
 
 	addr, _, err := net.SplitHostPort(pair)
-	if err != nil {
-		log.Warn("remote address parsing failure", zap.Error(err))
+	if err == nil {
+		return addr
+	}
+
+	ip := net.ParseIP(pair)
+	if ip == nil {
+		log.Warn("remote address parsing failure", zap.Error(err)) // error from the SplitHostPort
 		return ""
 	}
 
-	return addr
+	return ip.String()
 }
 
 func request(r *http.Request, req *Request, uid, gid int, sendRawBody bool) error {
