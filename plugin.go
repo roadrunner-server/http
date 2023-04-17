@@ -88,14 +88,8 @@ func (p *Plugin) Init(cfg common.Configurer, rrLogger common.Logger, srv common.
 	if !cfg.Has(PluginName) {
 		return errors.E(op, errors.Disabled)
 	}
-
-	// unmarshal general section
-	err := cfg.UnmarshalKey(PluginName, &p.cfg)
-	if err != nil {
-		return errors.E(op, err)
-	}
-
-	// unmarshal HTTP section
+    
+	// unmarshal HTTP (general) section
 	err = cfg.UnmarshalKey(PluginName, &p.cfg)
 	if err != nil {
 		return errors.E(op, err)
