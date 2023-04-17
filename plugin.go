@@ -95,12 +95,6 @@ func (p *Plugin) Init(cfg common.Configurer, rrLogger common.Logger, srv common.
 		return errors.E(op, err)
 	}
 
-	// unmarshal HTTP section
-	err = cfg.UnmarshalKey(PluginName, &p.cfg)
-	if err != nil {
-		return errors.E(op, err)
-	}
-
 	// unmarshal HTTPS section
 	err = cfg.UnmarshalKey(sectionHTTPS, &p.cfg.SSLConfig)
 	if err != nil {
