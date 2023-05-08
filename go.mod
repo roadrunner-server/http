@@ -6,7 +6,7 @@ require (
 	github.com/caddyserver/certmagic v0.17.2
 	github.com/goccy/go-json v0.10.2
 	github.com/google/go-cmp v0.5.9
-	github.com/mholt/acmez v1.1.0
+	github.com/mholt/acmez v1.1.1
 	github.com/prometheus/client_golang v1.15.1
 	github.com/roadrunner-server/api/v4 v4.3.2
 	github.com/roadrunner-server/endure/v2 v2.2.0
@@ -19,7 +19,7 @@ require (
 	go.opentelemetry.io/otel v1.15.1
 	go.opentelemetry.io/otel/trace v1.15.1
 	go.uber.org/zap v1.24.0
-	golang.org/x/net v0.9.0
+	golang.org/x/net v0.10.0
 	golang.org/x/sys v0.8.0
 )
 
@@ -39,7 +39,7 @@ require (
 	github.com/miekg/dns v1.1.54 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_model v0.4.0 // indirect
-	github.com/prometheus/common v0.42.0 // indirect
+	github.com/prometheus/common v0.43.0 // indirect
 	github.com/prometheus/procfs v0.9.0 // indirect
 	github.com/roadrunner-server/tcplisten v1.3.0 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
