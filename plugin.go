@@ -24,7 +24,7 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	jprop "go.opentelemetry.io/contrib/propagators/jaeger"
 	"go.opentelemetry.io/otel/propagation"
-	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.20.0"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
@@ -227,7 +227,7 @@ func (p *Plugin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if val, ok := r.Context().Value(utils.OtelTracerNameKey).(string); ok {
 		tp := trace.SpanFromContext(r.Context()).TracerProvider()
 		ctx, span := tp.Tracer(val, trace.WithSchemaURL(semconv.SchemaURL),
-			trace.WithInstrumentationVersion(otelhttp.SemVersion())).
+			trace.WithInstrumentationVersion(otelhttp.Version())).
 			Start(r.Context(), PluginName, trace.WithSpanKind(trace.SpanKindServer))
 		defer span.End()
 
