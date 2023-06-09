@@ -3,7 +3,7 @@ module github.com/roadrunner-server/http/v4
 go 1.20
 
 require (
-	github.com/caddyserver/certmagic v0.17.2
+	github.com/caddyserver/certmagic v0.18.0
 	github.com/goccy/go-json v0.10.2
 	github.com/google/go-cmp v0.5.9
 	github.com/mholt/acmez v1.1.1
