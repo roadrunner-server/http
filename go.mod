@@ -3,10 +3,10 @@ module github.com/roadrunner-server/http/v4
 go 1.20
 
 require (
-	github.com/caddyserver/certmagic v0.18.0
+	github.com/caddyserver/certmagic v0.18.1
 	github.com/goccy/go-json v0.10.2
 	github.com/google/go-cmp v0.5.9
-	github.com/mholt/acmez v1.1.1
+	github.com/mholt/acmez v1.2.0
 	github.com/prometheus/client_golang v1.15.1
 	github.com/roadrunner-server/api/v4 v4.3.2
 	github.com/roadrunner-server/endure/v2 v2.2.1
@@ -19,8 +19,8 @@ require (
 	go.opentelemetry.io/otel v1.16.0
 	go.opentelemetry.io/otel/trace v1.16.0
 	go.uber.org/zap v1.24.0
-	golang.org/x/net v0.10.0
-	golang.org/x/sys v0.8.0
+	golang.org/x/net v0.11.0
+	golang.org/x/sys v0.9.0
 )
 
 require (
@@ -36,7 +36,7 @@ require (
 	github.com/klauspost/cpuid/v2 v2.2.5 // indirect
 	github.com/libdns/libdns v0.2.1 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
-	github.com/miekg/dns v1.1.54 // indirect
+	github.com/miekg/dns v1.1.55 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_model v0.4.0 // indirect
 	github.com/prometheus/common v0.44.0 // indirect
@@ -49,11 +49,11 @@ require (
 	go.opentelemetry.io/otel/metric v1.16.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.9.0 // indirect
-	golang.org/x/mod v0.10.0 // indirect
-	golang.org/x/sync v0.2.0 // indirect
-	golang.org/x/text v0.9.0 // indirect
-	golang.org/x/tools v0.9.3 // indirect
+	golang.org/x/crypto v0.10.0 // indirect
+	golang.org/x/mod v0.11.0 // indirect
+	golang.org/x/sync v0.3.0 // indirect
+	golang.org/x/text v0.10.0 // indirect
+	golang.org/x/tools v0.10.0 // indirect
 	google.golang.org/protobuf v1.30.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
