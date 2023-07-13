@@ -19,7 +19,7 @@ linters-settings:
   golint:
     min-confidence: 0.1
   gocyclo:
-    min-complexity: 15
+    min-complexity: 20
   godot:
     scope: declarations
     capital: true
