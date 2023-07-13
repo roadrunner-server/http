@@ -14,8 +14,11 @@ type fileTree map[string]any
 // parseData parses incoming request body into data tree.
 func parseData(r *http.Request) (dataTree, error) {
 	data := make(dataTree)
+	// save the initial order
+	tmpOrder := make([]string, 0, 5)
 	if r.PostForm != nil {
 		for k, v := range r.PostForm {
+			tmpOrder = append(tmpOrder, k)
 			err := data.push(k, v)
 			if err != nil {
 				return nil, err
@@ -32,7 +35,14 @@ func parseData(r *http.Request) (dataTree, error) {
 		}
 	}
 
-	return data, nil
+	// restore the order
+	res := make(map[string]any, len(data))
+	for i := 0; i < len(tmpOrder); i++ {
+		res[tmpOrder[i]] = data[tmpOrder[i]]
+		delete(data, tmpOrder[i])
+	}
+
+	return res, nil
 }
 
 // pushes value into data tree.
@@ -101,11 +111,7 @@ func (dt dataTree) mount(i, v []string) error {
 	return dt[i[0]].(dataTree).mount(i[1:], v)
 }
 
-func prepareTreeNode[T dataTree | fileTree, V []string | []*FileUpload](
-	tree T,
-	i []string,
-	v V,
-) (bool, error) {
+func prepareTreeNode[T dataTree | fileTree, V []string | []*FileUpload](tree T, i []string, v V) (bool, error) {
 	if _, ok := tree[i[0]]; !ok {
 		tree[i[0]] = make(T)
 		return false, nil
