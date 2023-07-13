@@ -11,7 +11,6 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/sdk/v4/payload"
-	"github.com/roadrunner-server/sdk/v4/utils"
 	"go.uber.org/zap"
 )
 
@@ -108,7 +107,13 @@ func request(r *http.Request, req *Request, uid, gid int, sendRawBody bool) erro
 		if err != nil {
 			return err
 		}
-		fallthrough
+
+		req.body, err = parseMultipartData(r)
+		if err != nil {
+			return err
+		}
+
+		req.Parsed = true
 	case contentURLEncoded:
 		if sendRawBody {
 			b, err := io.ReadAll(r.Body)
@@ -116,12 +121,12 @@ func request(r *http.Request, req *Request, uid, gid int, sendRawBody bool) erro
 				return err
 			}
 
-			data, err := url.QueryUnescape(utils.AsString(b))
+			data, err := url.QueryUnescape(bytesToStr(b))
 			if err != nil {
 				return err
 			}
 
-			req.body = utils.AsBytes(data)
+			req.body = strToBytes(data)
 			return nil
 		}
 
@@ -130,7 +135,7 @@ func request(r *http.Request, req *Request, uid, gid int, sendRawBody bool) erro
 			return err
 		}
 
-		req.body, err = parseData(r)
+		req.body, err = parsePostForm(r)
 		if err != nil {
 			return err
 		}
