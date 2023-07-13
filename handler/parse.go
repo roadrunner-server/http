@@ -11,9 +11,10 @@ const MaxLevel = 127
 type dataTree map[string]any
 type fileTree map[string]any
 
-// parseData parses incoming request body into data tree.
-func parseData(r *http.Request) (dataTree, error) {
-	data := make(dataTree)
+// parsePostForm parses incoming request body into data tree.
+func parsePostForm(r *http.Request) (dataTree, error) {
+	data := make(dataTree, 2)
+
 	if r.PostForm != nil {
 		for k, v := range r.PostForm {
 			err := data.push(k, v)
@@ -22,6 +23,13 @@ func parseData(r *http.Request) (dataTree, error) {
 			}
 		}
 	}
+
+	return data, nil
+}
+
+// parseMultipartData parses incoming request body into data tree.
+func parseMultipartData(r *http.Request) (dataTree, error) {
+	data := make(dataTree, 2)
 
 	if r.MultipartForm != nil {
 		for k, v := range r.MultipartForm.Value {
@@ -70,12 +78,12 @@ func invalidMultipleValuesErr(key string) error {
 // If we don't ignore empty options we will lose the whole array of data in key options[x]
 // So we will ignore it and process the array of data in options[x] if those present in the request.
 // Same is done for fileTree data structure underneath
-func (dt dataTree) mount(i, v []string) error {
-	if len(i) == 0 {
+func (dt dataTree) mount(keys, v []string) error {
+	if len(keys) == 0 {
 		return nil
 	}
 
-	done, err := prepareTreeNode(dt, i, v)
+	done, err := prepareTreeNode(dt, keys, v)
 	if err != nil {
 		return err
 	}
@@ -84,28 +92,24 @@ func (dt dataTree) mount(i, v []string) error {
 	}
 
 	// getting all elements of non associated array
-	if len(i) == 2 && i[1] == "" {
-		dt[i[0]] = v
+	if len(keys) == 2 && keys[1] == "" {
+		dt[keys[0]] = v
 		return nil
 	}
 	// only getting the last elements
-	if len(i) == 1 && len(v) > 0 {
-		dt[i[0]] = v[len(v)-1]
+	if len(keys) == 1 && len(v) > 0 {
+		dt[keys[0]] = v[len(v)-1]
 		return nil
 	}
-	if len(i) == 1 {
-		dt[i[0]] = v
+	if len(keys) == 1 {
+		dt[keys[0]] = v
 		return nil
 	}
 
-	return dt[i[0]].(dataTree).mount(i[1:], v)
+	return dt[keys[0]].(dataTree).mount(keys[1:], v)
 }
 
-func prepareTreeNode[T dataTree | fileTree, V []string | []*FileUpload](
-	tree T,
-	i []string,
-	v V,
-) (bool, error) {
+func prepareTreeNode[T dataTree | fileTree, V []string | []*FileUpload](tree T, i []string, v V) (bool, error) {
 	if _, ok := tree[i[0]]; !ok {
 		tree[i[0]] = make(T)
 		return false, nil
