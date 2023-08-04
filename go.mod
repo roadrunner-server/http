@@ -3,7 +3,7 @@ module github.com/roadrunner-server/http/v4
 go 1.20
 
 require (
-	github.com/caddyserver/certmagic v0.19.0
+	github.com/caddyserver/certmagic v0.19.1
 	github.com/goccy/go-json v0.10.2
 	github.com/google/go-cmp v0.5.9
 	github.com/mholt/acmez v1.2.0
@@ -12,13 +12,13 @@ require (
 	github.com/roadrunner-server/endure/v2 v2.3.0
 	github.com/roadrunner-server/errors v1.2.0
 	github.com/roadrunner-server/goridge/v3 v3.6.3
-	github.com/roadrunner-server/sdk/v4 v4.3.1
+	github.com/roadrunner-server/sdk/v4 v4.4.0-beta.2
 	github.com/stretchr/testify v1.8.4
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.42.0
 	go.opentelemetry.io/contrib/propagators/jaeger v1.17.0
 	go.opentelemetry.io/otel v1.16.0
 	go.opentelemetry.io/otel/trace v1.16.0
-	go.uber.org/zap v1.24.0
+	go.uber.org/zap v1.25.0
 	golang.org/x/net v0.12.0
 	golang.org/x/sys v0.10.0
 )
@@ -40,7 +40,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_model v0.4.0 // indirect
 	github.com/prometheus/common v0.44.0 // indirect
-	github.com/prometheus/procfs v0.11.0 // indirect
+	github.com/prometheus/procfs v0.11.1 // indirect
 	github.com/roadrunner-server/tcplisten v1.3.0 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/tklauser/go-sysconf v0.3.11 // indirect
@@ -48,7 +48,6 @@ require (
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
 	github.com/zeebo/blake3 v0.2.3 // indirect
 	go.opentelemetry.io/otel/metric v1.16.0 // indirect
-	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.11.0 // indirect
 	golang.org/x/mod v0.12.0 // indirect
