@@ -8,7 +8,7 @@ require (
 	github.com/google/go-cmp v0.5.9
 	github.com/mholt/acmez v1.2.0
 	github.com/prometheus/client_golang v1.16.0
-	github.com/roadrunner-server/api/v4 v4.5.0
+	github.com/roadrunner-server/api/v4 v4.6.1
 	github.com/roadrunner-server/endure/v2 v2.3.0
 	github.com/roadrunner-server/errors v1.2.0
 	github.com/roadrunner-server/goridge/v3 v3.6.3
@@ -19,7 +19,7 @@ require (
 	go.opentelemetry.io/otel v1.16.0
 	go.opentelemetry.io/otel/trace v1.16.0
 	go.uber.org/zap v1.25.0
-	golang.org/x/net v0.12.0
+	golang.org/x/net v0.13.0
 	golang.org/x/sys v0.10.0
 )
 
