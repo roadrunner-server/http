@@ -46,10 +46,10 @@ type Handler struct {
 	gid int
 
 	// internal
-	reqPool  sync.Pool
-	respPool sync.Pool
-	pldPool  sync.Pool
-	errPool  sync.Pool
+	reqPool    sync.Pool
+	respPool   sync.Pool
+	pldPool    sync.Pool
+	stopChPool sync.Pool
 }
 
 // NewHandler return handle interface implementation
@@ -69,9 +69,9 @@ func NewHandler(cfg *config.Config, pool common.Pool, log *zap.Logger) (*Handler
 		uid: cfg.UID,
 		gid: cfg.GID,
 
-		errPool: sync.Pool{
+		stopChPool: sync.Pool{
 			New: func() any {
-				return make(chan error, 1)
+				return make(chan struct{}, 1)
 			},
 		},
 		reqPool: sync.Pool{
@@ -141,29 +141,48 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wResp, err := h.pool.Exec(context.Background(), pld)
+	stopCh := h.getCh()
+	wResp, err := h.pool.Exec(context.Background(), pld, stopCh)
 	if err != nil {
 		req.Close(h.log, r)
 		h.putReq(req)
 		h.putPld(pld)
+		h.putCh(stopCh)
 		h.handleError(w, err)
 		h.log.Error("execute", zap.Time("start", start), zap.Duration("elapsed", time.Since(start)), zap.Error(err))
 		return
 	}
 
-	err = h.Write(wResp, w)
-	if err != nil {
-		req.Close(h.log, r)
-		h.putReq(req)
-		h.putPld(pld)
-		h.handleError(w, err)
-		h.log.Error("write response error", zap.Time("start", start), zap.Duration("elapsed", time.Since(start)), zap.Error(err))
-		return
+	for recv := range wResp {
+		if recv.Error() != nil {
+			req.Close(h.log, r)
+			h.putReq(req)
+			h.putPld(pld)
+			h.putCh(stopCh)
+			h.handleError(w, err)
+			h.log.Error("write response error", zap.Time("start", start), zap.Duration("elapsed", time.Since(start)), zap.Error(err))
+			return
+		}
+
+		err = h.Write(recv.Payload(), w)
+		if err != nil {
+			// send stop signal to the workers pool
+			stopCh <- struct{}{}
+
+			req.Close(h.log, r)
+			h.putReq(req)
+			h.putPld(pld)
+			h.handleError(w, err)
+			h.log.Error("write response error", zap.Time("start", start), zap.Duration("elapsed", time.Since(start)), zap.Error(err))
+			h.putCh(stopCh)
+			return
+		}
 	}
 
 	h.putPld(pld)
 	req.Close(h.log, r)
 	h.putReq(req)
+	h.putCh(stopCh)
 }
 
 func (h *Handler) Dispose() {}
@@ -248,4 +267,19 @@ func (h *Handler) getPld() *payload.Payload {
 	pld := h.pldPool.Get().(*payload.Payload)
 	pld.Codec = frame.CodecJSON
 	return pld
+}
+
+func (h *Handler) getCh() chan struct{} {
+	ch := h.stopChPool.Get().(chan struct{})
+	// just check if the chan is not empty
+	select {
+	case <-ch:
+	default:
+	}
+
+	return ch
+}
+
+func (h *Handler) putCh(ch chan struct{}) {
+	h.stopChPool.Put(ch)
 }
