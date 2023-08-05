@@ -34,9 +34,10 @@ type uploads struct {
 // Handler serves http connections to underlying PHP application using PSR-7 protocol. Context will include request headers,
 // parsed files and query, payload will include parsed form dataTree (if any).
 type Handler struct {
-	uploads *uploads
-	log     *zap.Logger
-	pool    common.Pool
+	uploads     *uploads
+	log         *zap.Logger
+	pool        common.Pool
+	internalCtx context.Context
 
 	internalHTTPCode uint64
 	sendRawBody      bool
@@ -64,6 +65,7 @@ func NewHandler(cfg *config.Config, pool common.Pool, log *zap.Logger) (*Handler
 		log:              log,
 		internalHTTPCode: cfg.InternalErrorCode,
 		sendRawBody:      cfg.RawBody,
+		internalCtx:      context.Background(),
 
 		// permissions
 		uid: cfg.UID,
@@ -142,7 +144,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	stopCh := h.getCh()
-	wResp, err := h.pool.Exec(context.Background(), pld, stopCh)
+	wResp, err := h.pool.Exec(h.internalCtx, pld, stopCh)
 	if err != nil {
 		req.Close(h.log, r)
 		h.putReq(req)
