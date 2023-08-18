@@ -5,7 +5,7 @@ go 1.21
 toolchain go1.21.0
 
 require (
-	github.com/caddyserver/certmagic v0.19.1
+	github.com/caddyserver/certmagic v0.19.2
 	github.com/goccy/go-json v0.10.2
 	github.com/google/go-cmp v0.5.9
 	github.com/mholt/acmez v1.2.0
