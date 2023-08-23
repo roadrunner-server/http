@@ -18,8 +18,9 @@ var _ http.ResponseWriter = (*wrapper)(nil)
 
 type wrapper struct {
 	io.ReadCloser
-	read  int
-	write int
+	read          int
+	write         int
+	headerWritten bool
 
 	w    http.ResponseWriter
 	code int
@@ -33,7 +34,12 @@ func (w *wrapper) Read(b []byte) (int, error) {
 }
 
 func (w *wrapper) WriteHeader(code int) {
+	if w.headerWritten {
+		return
+	}
+
 	w.code = code
+	w.headerWritten = true
 	w.w.WriteHeader(code)
 }
 

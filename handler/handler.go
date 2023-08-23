@@ -154,15 +154,19 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.log.Error("execute", zap.Time("start", start), zap.Duration("elapsed", time.Since(start)), zap.Error(err))
 		return
 	}
+	// return payload to the pool
+	h.putPld(pld)
 
 	for recv := range wResp {
 		if recv.Error() != nil {
 			req.Close(h.log, r)
 			h.putReq(req)
-			h.putPld(pld)
 			h.putCh(stopCh)
-			h.handleError(w, err)
-			h.log.Error("write response error", zap.Time("start", start), zap.Duration("elapsed", time.Since(start)), zap.Error(err))
+			w.WriteHeader(int(h.internalHTTPCode))
+			h.log.Error("read stream",
+				zap.Time("start", start),
+				zap.Duration("elapsed", time.Since(start)),
+				zap.Error(recv.Error()))
 			return
 		}
 
@@ -173,21 +177,19 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 			req.Close(h.log, r)
 			h.putReq(req)
-			h.putPld(pld)
-			h.handleError(w, err)
-			h.log.Error("write response error", zap.Time("start", start), zap.Duration("elapsed", time.Since(start)), zap.Error(err))
 			h.putCh(stopCh)
+			h.log.Error("write response error",
+				zap.Time("start", start),
+				zap.Duration("elapsed", time.Since(start)),
+				zap.Error(err))
 			return
 		}
 	}
 
-	h.putPld(pld)
 	req.Close(h.log, r)
 	h.putReq(req)
 	h.putCh(stopCh)
 }
-
-func (h *Handler) Dispose() {}
 
 // handleError will handle internal RR errors and return 500
 func (h *Handler) handleError(w http.ResponseWriter, err error) {
@@ -196,7 +198,9 @@ func (h *Handler) handleError(w http.ResponseWriter, err error) {
 		w.Header().Set(noWorkers, trueStr)
 		// write an internal server error
 		w.WriteHeader(int(h.internalHTTPCode))
+		return
 	}
+
 	// internal error types, user should not see them
 	if errors.Is(errors.SoftJob, err) ||
 		errors.Is(errors.WatcherStopped, err) ||
