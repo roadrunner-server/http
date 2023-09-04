@@ -22,7 +22,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.17.0
 	go.uber.org/zap v1.25.0
 	golang.org/x/net v0.14.0
-	golang.org/x/sys v0.11.0
+	golang.org/x/sys v0.12.0
 )
 
 require (
