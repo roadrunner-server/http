@@ -18,9 +18,8 @@ var _ http.ResponseWriter = (*wrapper)(nil)
 
 type wrapper struct {
 	io.ReadCloser
-	read          int
-	write         int
-	headerWritten bool
+	read  int
+	write int
 
 	w    http.ResponseWriter
 	code int
@@ -34,12 +33,7 @@ func (w *wrapper) Read(b []byte) (int, error) {
 }
 
 func (w *wrapper) WriteHeader(code int) {
-	if w.headerWritten {
-		return
-	}
-
 	w.code = code
-	w.headerWritten = true
 	w.w.WriteHeader(code)
 }
 
@@ -72,7 +66,7 @@ func (w *wrapper) Close() error {
 }
 
 func (w *wrapper) reset() {
-	w.code = 0
+	w.code = http.StatusOK
 	w.read = 0
 	w.write = 0
 	w.w = nil
@@ -90,7 +84,9 @@ func NewLogMiddleware(next http.Handler, accessLogs bool, log *zap.Logger) http.
 		log: log,
 		pool: sync.Pool{
 			New: func() any {
-				return &wrapper{}
+				return &wrapper{
+					code: http.StatusOK,
+				}
 			},
 		},
 	}
