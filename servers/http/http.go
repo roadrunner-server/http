@@ -66,8 +66,8 @@ func NewHTTPServer(handler http.Handler, cfg *config.Config, errLog *log.Logger,
 	}
 }
 
-// Start is a blocking function
-func (s *Server) Start(mdwr map[string]common.Middleware, order []string) error {
+// Serve is a blocking function
+func (s *Server) Serve(mdwr map[string]common.Middleware, order []string) error {
 	const op = errors.Op("serveHTTP")
 
 	if len(mdwr) > 0 {
@@ -93,7 +93,7 @@ func (s *Server) Start(mdwr map[string]common.Middleware, order []string) error 
 	return nil
 }
 
-func (s *Server) GetServer() *http.Server {
+func (s *Server) Server() *http.Server {
 	return s.http
 }
 

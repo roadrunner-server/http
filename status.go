@@ -12,7 +12,8 @@ func (p *Plugin) Status() (*status.Status, error) {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
-	workers := p.workers()
+	workers := p.pool.Workers()
+
 	for i := 0; i < len(workers); i++ {
 		if workers[i].State().IsActive() {
 			return &status.Status{
@@ -31,7 +32,8 @@ func (p *Plugin) Ready() (*status.Status, error) {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
-	workers := p.workers()
+	workers := p.pool.Workers()
+
 	for i := 0; i < len(workers); i++ {
 		// If state of the worker is ready (at least 1)
 		// we assume, that plugin's worker pool is ready

@@ -90,7 +90,7 @@ func NewHTTPSServer(handler http.Handler, cfg *SSL, cfgHTTP2 *HTTP2, errLog *log
 	}, nil
 }
 
-func (s *Server) Start(mdwr map[string]common.Middleware, order []string) error {
+func (s *Server) Serve(mdwr map[string]common.Middleware, order []string) error {
 	const op = errors.Op("serveHTTPS")
 	if len(mdwr) > 0 {
 		applyMiddleware(s.https, mdwr, order, s.log)
@@ -132,7 +132,7 @@ func (s *Server) Start(mdwr map[string]common.Middleware, order []string) error 
 	return nil
 }
 
-func (s *Server) GetServer() *http.Server {
+func (s *Server) Server() *http.Server {
 	return s.https
 }
 
