@@ -83,32 +83,7 @@ func (p *Plugin) Init(cfg common.Configurer, rrLogger common.Logger, srv common.
 		return errors.E(op, errors.Disabled)
 	}
 
-	// unmarshal general section
-	err := cfg.UnmarshalKey(PluginName, &p.cfg)
-	if err != nil {
-		return errors.E(op, err)
-	}
-
-	// unmarshal HTTPS section
-	err = cfg.UnmarshalKey(sectionHTTPS, &p.cfg.SSLConfig)
-	if err != nil {
-		return errors.E(op, err)
-	}
-
-	// unmarshal H2C section
-	err = cfg.UnmarshalKey(sectionHTTP2, &p.cfg.HTTP2Config)
-	if err != nil {
-		return errors.E(op, err)
-	}
-
-	// unmarshal uploads section
-	err = cfg.UnmarshalKey(sectionUploads, &p.cfg.Uploads)
-	if err != nil {
-		return errors.E(op, err)
-	}
-
-	// unmarshal fcgi section
-	err = cfg.UnmarshalKey(sectionFCGI, &p.cfg.FCGIConfig)
+	err := p.unmarshal(cfg)
 	if err != nil {
 		return errors.E(op, err)
 	}
