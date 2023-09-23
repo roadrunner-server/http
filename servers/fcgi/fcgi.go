@@ -33,7 +33,7 @@ func NewFCGIServer(handler http.Handler, cfg *FCGI, log *zap.Logger, errLog *log
 	}
 }
 
-func (s *Server) Start(mdwr map[string]common.Middleware, order []string) error {
+func (s *Server) Serve(mdwr map[string]common.Middleware, order []string) error {
 	const op = errors.Op("serve_fcgi")
 
 	if len(mdwr) > 0 {
@@ -53,7 +53,7 @@ func (s *Server) Start(mdwr map[string]common.Middleware, order []string) error 
 	return nil
 }
 
-func (s *Server) GetServer() *http.Server {
+func (s *Server) Server() *http.Server {
 	return s.fcgi
 }
 

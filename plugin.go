@@ -9,18 +9,12 @@ import (
 	"github.com/roadrunner-server/endure/v2/dep"
 	"github.com/roadrunner-server/http/v4/common"
 
-	"github.com/roadrunner-server/http/v4/servers/fcgi"
-	httpServer "github.com/roadrunner-server/http/v4/servers/http"
-	httpsServer "github.com/roadrunner-server/http/v4/servers/https"
-
 	"github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/http/v4/config"
 	"github.com/roadrunner-server/http/v4/handler"
-	bundledMw "github.com/roadrunner-server/http/v4/middleware"
 	"github.com/roadrunner-server/sdk/v4/metrics"
 	"github.com/roadrunner-server/sdk/v4/state/process"
 	"github.com/roadrunner-server/sdk/v4/utils"
-	"github.com/roadrunner-server/sdk/v4/worker"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	jprop "go.opentelemetry.io/contrib/propagators/jaeger"
 	"go.opentelemetry.io/otel/propagation"
@@ -47,8 +41,8 @@ const (
 
 // internal interface to start-stop http servers
 type internalServer interface {
-	Start(map[string]common.Middleware, []string) error
-	GetServer() *http.Server
+	Serve(map[string]common.Middleware, []string) error
+	Server() *http.Server
 	Stop()
 }
 
@@ -89,32 +83,7 @@ func (p *Plugin) Init(cfg common.Configurer, rrLogger common.Logger, srv common.
 		return errors.E(op, errors.Disabled)
 	}
 
-	// unmarshal general section
-	err := cfg.UnmarshalKey(PluginName, &p.cfg)
-	if err != nil {
-		return errors.E(op, err)
-	}
-
-	// unmarshal HTTPS section
-	err = cfg.UnmarshalKey(sectionHTTPS, &p.cfg.SSLConfig)
-	if err != nil {
-		return errors.E(op, err)
-	}
-
-	// unmarshal H2C section
-	err = cfg.UnmarshalKey(sectionHTTP2, &p.cfg.HTTP2Config)
-	if err != nil {
-		return errors.E(op, err)
-	}
-
-	// unmarshal uploads section
-	err = cfg.UnmarshalKey(sectionUploads, &p.cfg.Uploads)
-	if err != nil {
-		return errors.E(op, err)
-	}
-
-	// unmarshal fcgi section
-	err = cfg.UnmarshalKey(sectionFCGI, &p.cfg.FCGIConfig)
+	err := p.unmarshal(cfg)
 	if err != nil {
 		return errors.E(op, err)
 	}
@@ -151,16 +120,14 @@ func (p *Plugin) Init(cfg common.Configurer, rrLogger common.Logger, srv common.
 // Serve serves the svc.
 func (p *Plugin) Serve() chan error {
 	errCh := make(chan error, 2)
+
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
 	var err error
 	p.pool, err = p.server.NewPool(context.Background(), p.cfg.Pool, map[string]string{RrMode: RrModeHTTP}, p.log)
 	if err != nil {
 		errCh <- err
-		return errCh
-	}
-
-	// just to be safe :)
-	if p.pool == nil {
-		errCh <- errors.Str("pool should be initialized")
 		return errCh
 	}
 
@@ -187,7 +154,7 @@ func (p *Plugin) Serve() chan error {
 	// start all servers
 	for i := 0; i < len(p.servers); i++ {
 		go func(idx int) {
-			errSt := p.servers[idx].Start(p.mdwr, p.cfg.Middleware)
+			errSt := p.servers[idx].Serve(p.mdwr, p.cfg.Middleware)
 			if errSt != nil {
 				errCh <- errSt
 				return
@@ -249,10 +216,11 @@ func (p *Plugin) Workers() []*process.State {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
-	workers := p.workers()
-	if workers == nil {
+	if p.pool == nil {
 		return nil
 	}
+
+	workers := p.pool.Workers()
 
 	ps := make([]*process.State, 0, len(workers))
 	for i := 0; i < len(workers); i++ {
@@ -264,14 +232,6 @@ func (p *Plugin) Workers() []*process.State {
 	}
 
 	return ps
-}
-
-// internal
-func (p *Plugin) workers() []*worker.Process {
-	if p == nil || p.pool == nil {
-		return nil
-	}
-	return p.pool.Workers()
 }
 
 // Name returns endure.Named interface implementation
@@ -312,37 +272,5 @@ func (p *Plugin) Collects() []*dep.In {
 			p.mdwr[mdw.Name()] = mdw
 			p.mu.Unlock()
 		}, (*common.Middleware)(nil)),
-	}
-}
-
-// ------- PRIVATE ---------
-
-func (p *Plugin) initServers() error {
-	if p.cfg.EnableHTTP() {
-		p.servers = append(p.servers, httpServer.NewHTTPServer(p, p.cfg, p.stdLog, p.log))
-	}
-
-	if p.cfg.EnableTLS() {
-		https, err := httpsServer.NewHTTPSServer(p, p.cfg.SSLConfig, p.cfg.HTTP2Config, p.stdLog, p.log)
-		if err != nil {
-			return err
-		}
-
-		p.servers = append(p.servers, https)
-	}
-
-	if p.cfg.EnableFCGI() {
-		p.servers = append(p.servers, fcgi.NewFCGIServer(p, p.cfg.FCGIConfig, p.log, p.stdLog))
-	}
-
-	return nil
-}
-
-func (p *Plugin) applyBundledMiddleware() {
-	// apply max_req_size and logger middleware
-	for i := 0; i < len(p.servers); i++ {
-		serv := p.servers[i].GetServer()
-		serv.Handler = bundledMw.MaxRequestSize(serv.Handler, p.cfg.MaxRequestSize*MB)
-		serv.Handler = bundledMw.NewLogMiddleware(serv.Handler, p.cfg.AccessLogs, p.log)
 	}
 }

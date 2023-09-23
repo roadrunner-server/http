@@ -206,7 +206,7 @@ func (r *Request) contentType() int {
 		return contentNone
 	}
 
-	ct := r.Header.Get("content-type")
+	ct := r.Header.Get("Content-Type")
 	if strings.Contains(ct, "application/x-www-form-urlencoded") {
 		return contentURLEncoded
 	}

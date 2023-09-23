@@ -14,6 +14,10 @@ import (
 type Pool interface {
 	// Workers returns worker list associated with the pool.
 	Workers() (workers []*worker.Process)
+	// RemoveWorker removes worker from the pool.
+	RemoveWorker(ctx context.Context) error
+	// AddWorker adds worker to the pool.
+	AddWorker() error
 	// Exec payload
 	Exec(ctx context.Context, p *payload.Payload, stopCh chan struct{}) (chan *staticPool.PExec, error)
 	// Reset kill all workers inside the watcher and replaces with new
