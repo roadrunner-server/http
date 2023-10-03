@@ -24,36 +24,26 @@ const (
 
 // Request maps net/http requests to PSR7 compatible structure and managed state of temporary uploaded files.
 type Request struct {
-	// RemoteAddr contains ip address of client, make sure to check X-Real-Ip and X-Forwarded-For for real client address.
+	// RemoteAddr contains ip address of a client, make sure to check X-Real-Ip and X-Forwarded-For for real client address.
 	RemoteAddr string `json:"remoteAddr"`
-
 	// Protocol includes HTTP protocol version.
 	Protocol string `json:"protocol"`
-
-	// Method contains name of HTTP method used for the request.
+	// Method contains the name of HTTP method used for the request.
 	Method string `json:"method"`
-
-	// URI contains full request URI with scheme and query.
+	// URI contains full request URI with a scheme and query.
 	URI string `json:"uri"`
-
 	// Header contains list of request headers.
 	Header http.Header `json:"headers"`
-
 	// Cookies contains list of request cookies.
 	Cookies map[string]string `json:"cookies"`
-
-	// RawQuery contains non parsed query string (to be parsed on php end).
+	// RawQuery contains non-parsed query string (to be parsed on php end).
 	RawQuery string `json:"rawQuery"`
-
 	// Parsed indicates that request body has been parsed on RR end.
 	Parsed bool `json:"parsed"`
-
-	// Uploads contains list of uploaded files, their names, sized and associations with temporary files.
+	// Uploads contain a list of uploaded files, their names, sized and associations with temporary files.
 	Uploads *Uploads `json:"uploads"`
-
 	// Attributes can be set by chained mdwr to safely pass value from Golang to PHP. See: GetAttribute, SetAttribute functions.
 	Attributes map[string]any `json:"attributes"`
-
 	// request body can be parsedData or []byte
 	body any
 }

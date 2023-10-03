@@ -21,6 +21,10 @@ type wrapper struct {
 	read  int
 	write int
 
+	// TwoXXSent is true if the response headers with >= 2xx code were sent
+	// 1xx header might be sent unlimited number of times
+	wc bool
+
 	w    http.ResponseWriter
 	code int
 	data []byte
@@ -33,6 +37,16 @@ func (w *wrapper) Read(b []byte) (int, error) {
 }
 
 func (w *wrapper) WriteHeader(code int) {
+	if w.wc {
+		w.code = code
+		return
+	}
+
+	// do not allow sending 200 twice
+	if code >= 100 && code < 200 {
+		w.wc = true
+	}
+
 	w.code = code
 	w.w.WriteHeader(code)
 }
@@ -42,6 +56,7 @@ func (w *wrapper) Header() http.Header {
 }
 
 func (w *wrapper) Write(b []byte) (int, error) {
+	w.wc = true
 	n, err := w.w.Write(b)
 	w.write += n
 	return n, err
@@ -68,6 +83,7 @@ func (w *wrapper) Close() error {
 func (w *wrapper) reset() {
 	w.code = http.StatusOK
 	w.read = 0
+	w.wc = false
 	w.write = 0
 	w.w = nil
 	w.data = nil

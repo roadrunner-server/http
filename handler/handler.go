@@ -172,7 +172,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		err = h.Write(recv.Payload(), w)
 		if err != nil {
-			// send stop signal to the workers pool
+			// send stop signal to the worker pool
 			stopCh <- struct{}{}
 
 			req.Close(h.log, r)

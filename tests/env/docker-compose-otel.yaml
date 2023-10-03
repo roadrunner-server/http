@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+  collector:
+    image: otel/opentelemetry-collector-contrib
+    command: [ "--config=/etc/otel-collector-config.yml" ]
+    volumes:
+      - ./otel-collector-config.yml:/etc/otel-collector-config.yml
+    ports:
+      - "4318:4318"
+
+  zipkin:
+    image: openzipkin/zipkin-slim
+    ports:
+      - "9411:9411"
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686"
+      - "4319:4318"
+      - "4320:4317"
+    environment:
+      - LOG_LEVEL=debug
+      - COLLECTOR_OTLP_ENABLED=true
