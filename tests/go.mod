@@ -29,8 +29,6 @@ require (
 	golang.org/x/net v0.15.0
 )
 
-replace github.com/roadrunner-server/sdk/v4 => ../../../sdk
-
 replace github.com/roadrunner-server/http/v4 => ../
 
 require (
