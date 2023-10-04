@@ -1,0 +1,39 @@
+version: '3'
+
+server:
+  command: "php php_test_files/http/client.php push pipes"
+  relay: "pipes"
+  relay_timeout: "20s"
+
+http:
+  address: :8086
+  max_request_size: 1024
+  middleware: []
+  uploads:
+    forbid: [".php", ".exe", ".bat"]
+  trusted_subnets:
+    [
+      "10.0.0.0/8",
+      "127.0.0.0/8",
+      "172.16.0.0/12",
+      "192.168.0.0/16",
+      "::1/128",
+      "fc00::/7",
+      "fe80::/10",
+    ]
+  pool:
+    num_workers: 1
+    max_jobs: 0
+    allocate_timeout: 60s
+    destroy_timeout: 1s
+
+  ssl:
+    address: :8894
+    redirect: true
+    key: "test-certs/localhost+2-key.pem"
+    cert: "test-certs/localhost+2.pem"
+    root_ca: "test-certs/rootCA.pem"
+    client_auth_type: require_and_verify_client_cert
+logs:
+  mode: development
+  level: error

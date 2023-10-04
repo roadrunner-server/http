@@ -20,7 +20,7 @@ const (
 type Response struct {
 	// Status contains response status.
 	Status int `json:"status"`
-	// Header contains list of response headers.
+	// Header contains a list of response headers.
 	Headers map[string][]string `json:"headers"`
 }
 
@@ -68,6 +68,11 @@ func (h *Handler) Write(pld *payload.Payload, w http.ResponseWriter) error {
 		}
 
 		w.WriteHeader(rsp.Status)
+	}
+
+	// do not write body if it is empty
+	if len(pld.Body) == 0 {
+		return nil
 	}
 
 	_, err := w.Write(pld.Body)

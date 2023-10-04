@@ -1,0 +1,30 @@
+version: '3'
+
+rpc:
+  listen: tcp://127.0.0.1:6002
+
+server:
+  command: "php php_test_files/psr-worker.php"
+  relay: "pipes"
+  relay_timeout: "20s"
+
+http:
+  address: 127.0.0.1:43244
+  max_request_size: 1024
+  middleware: [ gzip, otel ]
+  pool:
+    num_workers: 2
+    allocate_timeout: 60s
+    destroy_timeout: 1s
+
+otel:
+  insecure: true
+  compress: true
+  exporter: otlp
+  endpoint: 127.0.0.1:4319
+  service_name: rr_test
+  service_version: 1.0.0
+
+logs:
+  mode: development
+  level: debug

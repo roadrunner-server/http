@@ -1,0 +1,26 @@
+version: '3'
+
+server:
+  command: "php php_test_files/http/client.php echo pipes"
+  relay: "pipes"
+  relay_timeout: "20s"
+
+http:
+  address: :8085
+  max_request_size: 1024
+  middleware: [ ]
+  pool:
+    num_workers: 1
+    max_jobs: 0
+    allocate_timeout: 60s
+    destroy_timeout: 1s
+  ssl:
+    address: :8897
+    redirect: false
+    key: "test-certs/localhost+2-key.pem"
+    cert: "test-certs/localhost+2.pem"
+    root_ca: "test-certs/rootCA.pem"
+    client_auth_type: require_any_client_cert
+logs:
+  mode: development
+  level: error
