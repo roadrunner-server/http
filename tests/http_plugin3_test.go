@@ -310,9 +310,22 @@ func TestStream103(t *testing.T) {
 
 	assert.Equal(t, 10, idx)
 	assert.Equal(t, 200, r.StatusCode)
+	hdrs := map[string]string{
+		"Link":  "</style111.css>; rel=preload; as=style",
+		"X-100": "100",
+		"X-101": "101",
+		"X-102": "102",
+		"X-103": "103",
+		"X-200": "200",
+	}
 
 	if r.Body != nil {
 		_ = r.Body.Close()
+	}
+
+	// check that all headers arrived
+	for k, v := range hdrs {
+		assert.Equal(t, r.Header[k][0], v)
 	}
 
 	stopCh <- struct{}{}

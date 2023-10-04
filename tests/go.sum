@@ -1096,8 +1096,8 @@ github.com/prometheus/client_golang v1.17.0/go.mod h1:VeL+gMmOAxkS2IqfCq0ZmHSL+L
 github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4/go.mod h1:xMI15A0UPsDsEKsMN9yxemIoYk6Tm2C1GtYGdfGttqA=
 github.com/prometheus/client_model v0.2.0/go.mod h1:xMI15A0UPsDsEKsMN9yxemIoYk6Tm2C1GtYGdfGttqA=
 github.com/prometheus/client_model v0.3.0/go.mod h1:LDGWKZIo7rky3hgvBe+caln+Dr3dPggB5dvjtD7w9+w=
-github.com/prometheus/client_model v0.4.1-0.20230718164431-9a2bf3000d16 h1:v7DLqVdK4VrYkVD5diGdl4sxJurKJEMnODWRJlxV9oM=
-github.com/prometheus/client_model v0.4.1-0.20230718164431-9a2bf3000d16/go.mod h1:oMQmHW1/JoDwqLtg57MGgP/Fb1CJEYF2imWWhWtMkYU=
+github.com/prometheus/client_model v0.5.0 h1:VQw1hfvPvk3Uv6Qf29VrPF32JB6rtbgI6cYPYQjL0Qw=
+github.com/prometheus/client_model v0.5.0/go.mod h1:dTiFglRmd66nLR9Pv9f0mZi7B7fk5Pm3gvsjB5tr+kI=
 github.com/prometheus/common v0.44.0 h1:+5BrQJwiBB9xsMygAB3TNvpQKOwlkc25LbISbrdOOfY=
 github.com/prometheus/common v0.44.0/go.mod h1:ofAIvZbQ1e/nugmZGz4/qCb9Ap1VoSTIO7x0VV9VvuY=
 github.com/prometheus/procfs v0.12.0 h1:jluTpSng7V9hY0O2R9DzzJHYb2xULk9VTR1V1R/k6Bo=
@@ -1135,8 +1135,6 @@ github.com/roadrunner-server/resetter/v4 v4.0.10 h1:VVf5CoNy90HhZQxjHWp1vxYwv83J
 github.com/roadrunner-server/resetter/v4 v4.0.10/go.mod h1:W+g9CZJqY0+zABvxeA59Em4ZXXe0CFDqb42iIq72dZg=
 github.com/roadrunner-server/rpc/v4 v4.2.4 h1:NsDmKy5xqGIqUOe/10tAKWAF+KeAI509kQSVNJDFGH0=
 github.com/roadrunner-server/rpc/v4 v4.2.4/go.mod h1:DdLENZRoKgNvYJAxABhCm1vlNKZtmbiNBB0BFEDcJIc=
-github.com/roadrunner-server/sdk/v4 v4.5.0 h1:y6L9MQX2/zgjhOwTQWLPW8B1/9XUbTMKHHz0KVB0OGM=
-github.com/roadrunner-server/sdk/v4 v4.5.0/go.mod h1:Cx/SY/HJZrmybz901crdTeB3bLNy4+0rRN36eJ26iMQ=
 github.com/roadrunner-server/send/v4 v4.2.5 h1:IX0bE9Oe71ivD4jcBRwOKEeRAdgYH6WBqpeUFFkCkJ8=
 github.com/roadrunner-server/send/v4 v4.2.5/go.mod h1:dTeUfsKkt4GrAyxuo2fSDti5O33d/ixG1FurWVFL/cY=
 github.com/roadrunner-server/server/v4 v4.4.1 h1:kcEwtevOOC7XV+3/yHZTFl0j9JuOq6ElOWlt1C/Wjd8=

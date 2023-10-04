@@ -37,8 +37,8 @@ func (w *wrapper) Read(b []byte) (int, error) {
 }
 
 func (w *wrapper) WriteHeader(code int) {
+	w.code = code
 	if w.wc {
-		w.code = code
 		return
 	}
 
@@ -47,7 +47,6 @@ func (w *wrapper) WriteHeader(code int) {
 		w.wc = true
 	}
 
-	w.code = code
 	w.w.WriteHeader(code)
 }
 
@@ -117,13 +116,13 @@ func (l *lm) Log(next http.Handler, accessLogs bool) http.Handler {
 		bw := l.getW(w)
 		defer l.putW(bw)
 
-		r2 := *r
+		r2 := r.Clone(r.Context())
 		if r2.Body != nil {
 			bw.ReadCloser = r2.Body
 			r2.Body = bw
 		}
 
-		next.ServeHTTP(bw, &r2)
+		next.ServeHTTP(bw, r2)
 		l.writeLog(accessLogs, r, bw, start)
 	})
 }

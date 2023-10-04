@@ -19,7 +19,7 @@ require (
 	github.com/roadrunner-server/otel/v4 v4.3.1
 	github.com/roadrunner-server/resetter/v4 v4.0.10
 	github.com/roadrunner-server/rpc/v4 v4.2.4
-	github.com/roadrunner-server/sdk/v4 v4.5.0
+	github.com/roadrunner-server/sdk/v4 v4.5.1
 	github.com/roadrunner-server/send/v4 v4.2.5
 	github.com/roadrunner-server/server/v4 v4.4.1
 	github.com/roadrunner-server/static/v4 v4.1.5
@@ -29,9 +29,8 @@ require (
 	golang.org/x/net v0.15.0
 )
 
-replace (
-	github.com/roadrunner-server/sdk/v4 => ../../../sdk
-)
+replace github.com/roadrunner-server/sdk/v4 => ../../../sdk
+
 replace github.com/roadrunner-server/http/v4 => ../
 
 require (
@@ -75,7 +74,7 @@ require (
 	github.com/pelletier/go-toml/v2 v2.1.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_golang v1.17.0 // indirect
-	github.com/prometheus/client_model v0.4.1-0.20230718164431-9a2bf3000d16 // indirect
+	github.com/prometheus/client_model v0.5.0 // indirect
 	github.com/prometheus/common v0.44.0 // indirect
 	github.com/prometheus/procfs v0.12.0 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect

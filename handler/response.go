@@ -71,7 +71,7 @@ func (h *Handler) Write(pld *payload.Payload, w http.ResponseWriter) error {
 	}
 
 	// do not write body if it is empty
-	if pld.Body == nil {
+	if len(pld.Body) == 0 {
 		return nil
 	}
 
