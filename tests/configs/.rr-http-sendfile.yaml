@@ -6,7 +6,7 @@ server:
   relay_timeout: "20s"
 
 http:
-  address: 127.0.0.1:44444
+  address: 127.0.0.1:41134
   max_request_size: 1024
   middleware: ["sendfile"]
 

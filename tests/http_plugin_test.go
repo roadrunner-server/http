@@ -262,7 +262,7 @@ func TestHTTPXSendFile(t *testing.T) {
 }
 
 func xsendfile(t *testing.T) {
-	parsedURL, _ := url.Parse("http://127.0.0.1:44444")
+	parsedURL, _ := url.Parse("http://127.0.0.1:41134")
 	client := http.Client{}
 	pwd, _ := os.Getwd()
 	req := &http.Request{
