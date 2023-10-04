@@ -56,13 +56,16 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: ${{ runner.os }}-go-
 
+      - name: Create folders
+        run: |
+          mkdir ./tests/coverage-ci
+
       - name: Install Go dependencies
         run: go mod download
 
       - name: Run golang tests with coverage
         run: |
           cd tests
-          mkdir ./coverage-ci
           
           sudo apt update
           sudo apt install -y libnss3-tools
@@ -78,13 +81,17 @@ jobs:
           docker-compose -f env/docker-compose-otel.yaml up -d
           sleep 30
           go test -timeout 20m -v -race -cover -tags=debug -failfast -coverpkg=$(cat pkgs.txt) -coverprofile=./coverage-ci/http.out -covermode=atomic ./...
-          docker compose -f env/docker-compose-http.yaml down
+          docker compose -f env/docker-compose-otel.yaml down
+
+      - name: Run HTTP unit tests with coverage
+        run: |
+          go test -timeout 20m -v -race -cover -tags=debug -failfast -coverpkg=$(cat ./tests/pkgs.txt) -coverprofile=./tests/coverage-ci/httpu.out -covermode=atomic ./...
 
       - name: Archive code coverage results
         uses: actions/upload-artifact@v3
         with:
           name: coverage
-          path: ./tests/coverage-ci/http.out
+          path: ./tests/coverage-ci/httpu.out
 
   codecov:
     name: Upload codecov
