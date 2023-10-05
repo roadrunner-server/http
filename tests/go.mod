@@ -19,7 +19,7 @@ require (
 	github.com/roadrunner-server/otel/v4 v4.3.1
 	github.com/roadrunner-server/resetter/v4 v4.0.10
 	github.com/roadrunner-server/rpc/v4 v4.2.4
-	github.com/roadrunner-server/sdk/v4 v4.5.1
+	github.com/roadrunner-server/sdk/v4 v4.5.2
 	github.com/roadrunner-server/send/v4 v4.2.5
 	github.com/roadrunner-server/server/v4 v4.4.1
 	github.com/roadrunner-server/static/v4 v4.1.5
@@ -116,10 +116,10 @@ require (
 	go.temporal.io/sdk/contrib/opentelemetry v0.2.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.13.0 // indirect
-	golang.org/x/mod v0.12.0 // indirect
-	golang.org/x/sync v0.3.0 // indirect
-	golang.org/x/sys v0.12.0 // indirect
+	golang.org/x/crypto v0.14.0 // indirect
+	golang.org/x/mod v0.13.0 // indirect
+	golang.org/x/sync v0.4.0 // indirect
+	golang.org/x/sys v0.13.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/tools v0.13.0 // indirect
