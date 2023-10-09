@@ -3,6 +3,7 @@ package tests
 import (
 	"bytes"
 	"context"
+	"errors"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -67,7 +68,7 @@ func TestHandler_Echo(t *testing.T) {
 	}()
 	go func(server *http.Server) {
 		err = server.ListenAndServe()
-		if err != nil && err != http.ErrServerClosed {
+		if err != nil && !errors.Is(http.ErrServerClosed, err) {
 			t.Errorf("error listening the interface: error %v", err)
 		}
 	}(hs)
@@ -129,7 +130,7 @@ func TestHandler_Headers(t *testing.T) {
 
 	go func() {
 		err = hs.ListenAndServe()
-		if err != nil && err != http.ErrServerClosed {
+		if err != nil && !errors.Is(http.ErrServerClosed, err) {
 			t.Errorf("error listening the interface: error %v", err)
 		}
 	}()
@@ -204,7 +205,7 @@ func TestHandler_Empty_User_Agent(t *testing.T) {
 
 	go func() {
 		err = hs.ListenAndServe()
-		if err != nil && err != http.ErrServerClosed {
+		if err != nil && !errors.Is(http.ErrServerClosed, err) {
 			t.Errorf("error listening the interface: error %v", err)
 		}
 	}()
@@ -278,7 +279,7 @@ func TestHandler_User_Agent(t *testing.T) {
 
 	go func() {
 		err = hs.ListenAndServe()
-		if err != nil && err != http.ErrServerClosed {
+		if err != nil && !errors.Is(http.ErrServerClosed, err) {
 			t.Errorf("error listening the interface: error %v", err)
 		}
 	}()
@@ -348,7 +349,7 @@ func TestHandler_Cookies(t *testing.T) {
 
 	go func() {
 		err = hs.ListenAndServe()
-		if err != nil && err != http.ErrServerClosed {
+		if err != nil && !errors.Is(http.ErrServerClosed, err) {
 			t.Errorf("error listening the interface: error %v", err)
 		}
 	}()
@@ -423,7 +424,7 @@ func TestHandler_JsonPayload_POST(t *testing.T) {
 
 	go func() {
 		err = hs.ListenAndServe()
-		if err != nil && err != http.ErrServerClosed {
+		if err != nil && !errors.Is(http.ErrServerClosed, err) {
 			t.Errorf("error listening the interface: error %v", err)
 		}
 	}()
@@ -497,7 +498,7 @@ func TestHandler_JsonPayload_PUT(t *testing.T) {
 
 	go func() {
 		err = hs.ListenAndServe()
-		if err != nil && err != http.ErrServerClosed {
+		if err != nil && !errors.Is(http.ErrServerClosed, err) {
 			t.Errorf("error listening the interface: error %v", err)
 		}
 	}()
@@ -567,7 +568,7 @@ func TestHandler_JsonPayload_PATCH(t *testing.T) {
 
 	go func() {
 		err = hs.ListenAndServe()
-		if err != nil && err != http.ErrServerClosed {
+		if err != nil && !errors.Is(http.ErrServerClosed, err) {
 			t.Errorf("error listening the interface: error %v", err)
 		}
 	}()
@@ -638,7 +639,7 @@ func TestHandler_UrlEncoded_POST_DELETE(t *testing.T) {
 
 	go func() {
 		err = hs.ListenAndServe()
-		if err != nil && err != http.ErrServerClosed {
+		if err != nil && !errors.Is(http.ErrServerClosed, err) {
 			t.Errorf("error listening the interface: error %v", err)
 		}
 	}()
@@ -729,7 +730,7 @@ func TestHandler_FormData_POST(t *testing.T) {
 
 	go func() {
 		err = hs.ListenAndServe()
-		if err != nil && err != http.ErrServerClosed {
+		if err != nil && !errors.Is(http.ErrServerClosed, err) {
 			t.Errorf("error listening the interface: error %v", err)
 		}
 	}()
@@ -822,7 +823,7 @@ func TestHandler_FormData_POST_Overwrite(t *testing.T) {
 
 	go func() {
 		err = hs.ListenAndServe()
-		if err != nil && err != http.ErrServerClosed {
+		if err != nil && !errors.Is(http.ErrServerClosed, err) {
 			t.Errorf("error listening the interface: error %v", err)
 		}
 	}()
@@ -919,7 +920,7 @@ func TestHandler_FormData_POST_Form_UrlEncoded_Charset(t *testing.T) {
 
 	go func() {
 		err = hs.ListenAndServe()
-		if err != nil && err != http.ErrServerClosed {
+		if err != nil && !errors.Is(http.ErrServerClosed, err) {
 			t.Errorf("error listening the interface: error %v", err)
 		}
 	}()
@@ -1012,7 +1013,7 @@ func TestHandler_FormData_PUT(t *testing.T) {
 
 	go func() {
 		err = hs.ListenAndServe()
-		if err != nil && err != http.ErrServerClosed {
+		if err != nil && !errors.Is(http.ErrServerClosed, err) {
 			t.Errorf("error listening the interface: error %v", err)
 		}
 	}()
@@ -1106,7 +1107,7 @@ func TestHandler_FormData_PATCH(t *testing.T) {
 
 	go func() {
 		err = hs.ListenAndServe()
-		if err != nil && err != http.ErrServerClosed {
+		if err != nil && !errors.Is(http.ErrServerClosed, err) {
 			t.Errorf("error listening the interface: error %v", err)
 		}
 	}()
@@ -1199,7 +1200,7 @@ func TestHandler_Multipart_POST(t *testing.T) {
 
 	go func() {
 		err = hs.ListenAndServe()
-		if err != nil && err != http.ErrServerClosed {
+		if err != nil && !errors.Is(http.ErrServerClosed, err) {
 			t.Errorf("error listening the interface: error %v", err)
 		}
 	}()
@@ -1334,7 +1335,7 @@ func TestHandler_Multipart_PUT(t *testing.T) {
 
 	go func() {
 		err = hs.ListenAndServe()
-		if err != nil && err != http.ErrServerClosed {
+		if err != nil && !errors.Is(http.ErrServerClosed, err) {
 			t.Errorf("error listening the interface: error %v", err)
 		}
 	}()
@@ -1470,7 +1471,7 @@ func TestHandler_Multipart_PATCH(t *testing.T) {
 	go func() {
 		err = hs.ListenAndServe()
 
-		if err != nil && err != http.ErrServerClosed {
+		if err != nil && !errors.Is(http.ErrServerClosed, err) {
 			t.Errorf("error listening the interface: error %v", err)
 		}
 	}()
@@ -1606,7 +1607,7 @@ func TestHandler_Error(t *testing.T) {
 
 	go func() {
 		err = hs.ListenAndServe()
-		if err != nil && err != http.ErrServerClosed {
+		if err != nil && !errors.Is(http.ErrServerClosed, err) {
 			t.Errorf("error listening the interface: error %v", err)
 		}
 	}()
@@ -1662,7 +1663,7 @@ func TestHandler_Error2(t *testing.T) {
 
 	go func() {
 		err = hs.ListenAndServe()
-		if err != nil && err != http.ErrServerClosed {
+		if err != nil && !errors.Is(http.ErrServerClosed, err) {
 			t.Errorf("error listening the interface: error %v", err)
 		}
 	}()
@@ -1718,7 +1719,7 @@ func TestHandler_ResponseDuration(t *testing.T) {
 
 	go func() {
 		err = hs.ListenAndServe()
-		if err != nil && err != http.ErrServerClosed {
+		if err != nil && !errors.Is(http.ErrServerClosed, err) {
 			t.Errorf("error listening the interface: error %v", err)
 		}
 	}()
@@ -1817,7 +1818,7 @@ func TestHandler_ErrorDuration(t *testing.T) {
 
 	go func() {
 		err = hs.ListenAndServe()
-		if err != nil && err != http.ErrServerClosed {
+		if err != nil && !errors.Is(http.ErrServerClosed, err) {
 			t.Errorf("error listening the interface: error %v", err)
 		}
 	}()
@@ -1874,7 +1875,7 @@ func TestHandler_IP(t *testing.T) {
 
 	go func() {
 		err = hs.ListenAndServe()
-		if err != nil && err != http.ErrServerClosed {
+		if err != nil && !errors.Is(http.ErrServerClosed, err) {
 			t.Errorf("error listening the interface: error %v", err)
 		}
 	}()
@@ -1931,7 +1932,7 @@ func BenchmarkHandler_Listen_Echo(b *testing.B) {
 
 	go func() {
 		err = hs.ListenAndServe()
-		if err != nil && err != http.ErrServerClosed {
+		if err != nil && !errors.Is(http.ErrServerClosed, err) {
 			b.Errorf("error listening the interface: error %v", err)
 		}
 	}()
