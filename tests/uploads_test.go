@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/sha512"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -66,7 +67,7 @@ func TestHandler_Upload_File(t *testing.T) {
 
 	go func() {
 		errL := hs.ListenAndServe()
-		if errL != nil && errL != http.ErrServerClosed {
+		if errL != nil && !errors.Is(http.ErrServerClosed, errL) {
 			t.Errorf("error listening the interface: error %v", errL)
 		}
 	}()
@@ -160,7 +161,7 @@ func TestHandler_Upload_NestedFile(t *testing.T) {
 
 	go func() {
 		errL := hs.ListenAndServe()
-		if errL != nil && errL != http.ErrServerClosed {
+		if errL != nil && !errors.Is(http.ErrServerClosed, errL) {
 			t.Errorf("error listening the interface: error %v", errL)
 		}
 	}()
@@ -512,25 +513,25 @@ type fInfo struct {
 func fileString(f string, errNo int, mime string) string {
 	s, err := os.Stat(f)
 	if err != nil {
-		fmt.Println(fmt.Errorf("error stat the file, error: %v", err))
+		fmt.Println(fmt.Errorf("error stat the file, error: %w", err))
 	}
 
 	ff, err := os.Open(f)
 	if err != nil {
-		fmt.Println(fmt.Errorf("error opening the file, error: %v", err))
+		fmt.Println(fmt.Errorf("error opening the file, error: %w", err))
 	}
 
 	defer func() {
 		er := ff.Close()
 		if er != nil {
-			fmt.Println(fmt.Errorf("error closing the file, error: %v", er))
+			fmt.Println(fmt.Errorf("error closing the file, error: %w", er))
 		}
 	}()
 
 	h := sha512.New()
 	_, err = io.Copy(h, ff)
 	if err != nil {
-		fmt.Println(fmt.Errorf("error copying the file, error: %v", err))
+		fmt.Println(fmt.Errorf("error copying the file, error: %w", err))
 	}
 
 	v := &fInfo{
