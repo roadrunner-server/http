@@ -7,7 +7,7 @@ toolchain go1.21.0
 require (
 	github.com/caddyserver/certmagic v0.19.2
 	github.com/goccy/go-json v0.10.2
-	github.com/google/go-cmp v0.5.9
+	github.com/google/go-cmp v0.6.0
 	github.com/mholt/acmez v1.2.0
 	github.com/prometheus/client_golang v1.17.0
 	github.com/roadrunner-server/api/v4 v4.9.0
@@ -21,7 +21,7 @@ require (
 	go.opentelemetry.io/otel v1.19.0
 	go.opentelemetry.io/otel/trace v1.19.0
 	go.uber.org/zap v1.26.0
-	golang.org/x/net v0.16.0
+	golang.org/x/net v0.17.0
 	golang.org/x/sys v0.13.0
 )
 
