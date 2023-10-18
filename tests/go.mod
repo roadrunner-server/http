@@ -6,23 +6,23 @@ toolchain go1.21.1
 
 require (
 	github.com/goccy/go-json v0.10.2
-	github.com/roadrunner-server/config/v4 v4.4.6
+	github.com/roadrunner-server/config/v4 v4.4.7
 	github.com/roadrunner-server/endure/v2 v2.4.3
-	github.com/roadrunner-server/fileserver/v4 v4.1.5
+	github.com/roadrunner-server/fileserver/v4 v4.1.6
 	github.com/roadrunner-server/goridge/v3 v3.8.1
-	github.com/roadrunner-server/gzip/v4 v4.1.5
-	github.com/roadrunner-server/headers/v4 v4.2.6
-	github.com/roadrunner-server/http/v4 v4.4.2
-	github.com/roadrunner-server/informer/v4 v4.3.2
-	github.com/roadrunner-server/logger/v4 v4.2.4
-	github.com/roadrunner-server/memory/v4 v4.6.4
-	github.com/roadrunner-server/otel/v4 v4.3.2
-	github.com/roadrunner-server/resetter/v4 v4.0.11
-	github.com/roadrunner-server/rpc/v4 v4.2.5
+	github.com/roadrunner-server/gzip/v4 v4.1.6
+	github.com/roadrunner-server/headers/v4 v4.2.7
+	github.com/roadrunner-server/http/v4 v4.4.3
+	github.com/roadrunner-server/informer/v4 v4.3.4
+	github.com/roadrunner-server/logger/v4 v4.2.5
+	github.com/roadrunner-server/memory/v4 v4.6.5
+	github.com/roadrunner-server/otel/v4 v4.3.3
+	github.com/roadrunner-server/resetter/v4 v4.0.12
+	github.com/roadrunner-server/rpc/v4 v4.2.6
 	github.com/roadrunner-server/sdk/v4 v4.5.2
-	github.com/roadrunner-server/send/v4 v4.2.6
-	github.com/roadrunner-server/server/v4 v4.4.2
-	github.com/roadrunner-server/static/v4 v4.1.6
+	github.com/roadrunner-server/send/v4 v4.2.7
+	github.com/roadrunner-server/server/v4 v4.4.3
+	github.com/roadrunner-server/static/v4 v4.1.7
 	github.com/stretchr/testify v1.8.4
 	github.com/yookoala/gofast v0.7.0
 	go.uber.org/zap v1.26.0
@@ -32,7 +32,7 @@ require (
 replace github.com/roadrunner-server/http/v4 => ../
 
 require (
-	github.com/andybalholm/brotli v1.0.5 // indirect
+	github.com/andybalholm/brotli v1.0.6 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/caddyserver/certmagic v0.19.2 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
@@ -45,7 +45,7 @@ require (
 	github.com/go-logr/logr v1.2.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
-	github.com/gofiber/fiber/v2 v2.49.2 // indirect
+	github.com/gofiber/fiber/v2 v2.50.0 // indirect
 	github.com/gogo/googleapis v1.4.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/gogo/status v1.1.1 // indirect
@@ -56,14 +56,14 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.18.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
-	github.com/klauspost/compress v1.17.0 // indirect
+	github.com/klauspost/compress v1.17.1 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.5 // indirect
 	github.com/libdns/libdns v0.2.1 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
-	github.com/mattn/go-isatty v0.0.19 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect
-	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
+	github.com/matttproud/golang_protobuf_extensions/v2 v2.0.0 // indirect
 	github.com/mholt/acmez v1.2.0 // indirect
 	github.com/miekg/dns v1.1.56 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
@@ -73,7 +73,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/client_golang v1.17.0 // indirect
 	github.com/prometheus/client_model v0.5.0 // indirect
-	github.com/prometheus/common v0.44.0 // indirect
+	github.com/prometheus/common v0.45.0 // indirect
 	github.com/prometheus/procfs v0.12.0 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/roadrunner-server/api/v4 v4.9.0 // indirect
@@ -114,7 +114,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.19.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.0.0 // indirect
 	go.temporal.io/api v1.24.0 // indirect
-	go.temporal.io/sdk v1.25.0 // indirect
+	go.temporal.io/sdk v1.25.1 // indirect
 	go.temporal.io/sdk/contrib/opentelemetry v0.3.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
@@ -126,10 +126,10 @@ require (
 	golang.org/x/text v0.13.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/tools v0.14.0 // indirect
-	google.golang.org/genproto v0.0.0-20231009173412-8bfb1ae86b6c // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20231009173412-8bfb1ae86b6c // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20231009173412-8bfb1ae86b6c // indirect
-	google.golang.org/grpc v1.58.3 // indirect
+	google.golang.org/genproto v0.0.0-20231016165738-49dd2c1f3d0b // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20231016165738-49dd2c1f3d0b // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20231016165738-49dd2c1f3d0b // indirect
+	google.golang.org/grpc v1.59.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
