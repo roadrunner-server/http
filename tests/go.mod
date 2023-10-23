@@ -6,22 +6,22 @@ toolchain go1.21.1
 
 require (
 	github.com/goccy/go-json v0.10.2
-	github.com/roadrunner-server/config/v4 v4.4.7
+	github.com/roadrunner-server/config/v4 v4.4.8
 	github.com/roadrunner-server/endure/v2 v2.4.3
-	github.com/roadrunner-server/fileserver/v4 v4.1.6
+	github.com/roadrunner-server/fileserver/v4 v4.1.7
 	github.com/roadrunner-server/goridge/v3 v3.8.1
-	github.com/roadrunner-server/gzip/v4 v4.1.6
-	github.com/roadrunner-server/headers/v4 v4.2.7
-	github.com/roadrunner-server/http/v4 v4.4.3
-	github.com/roadrunner-server/informer/v4 v4.3.4
-	github.com/roadrunner-server/logger/v4 v4.2.5
-	github.com/roadrunner-server/memory/v4 v4.6.5
-	github.com/roadrunner-server/otel/v4 v4.3.3
-	github.com/roadrunner-server/resetter/v4 v4.0.12
-	github.com/roadrunner-server/rpc/v4 v4.2.6
+	github.com/roadrunner-server/gzip/v4 v4.1.7
+	github.com/roadrunner-server/headers/v4 v4.2.8
+	github.com/roadrunner-server/http/v4 v4.4.4
+	github.com/roadrunner-server/informer/v4 v4.3.6
+	github.com/roadrunner-server/logger/v4 v4.2.6
+	github.com/roadrunner-server/memory/v4 v4.6.6
+	github.com/roadrunner-server/otel/v4 v4.3.4
+	github.com/roadrunner-server/resetter/v4 v4.0.13
+	github.com/roadrunner-server/rpc/v4 v4.2.7
 	github.com/roadrunner-server/sdk/v4 v4.5.2
 	github.com/roadrunner-server/send/v4 v4.2.7
-	github.com/roadrunner-server/server/v4 v4.4.3
+	github.com/roadrunner-server/server/v4 v4.4.4
 	github.com/roadrunner-server/static/v4 v4.1.7
 	github.com/stretchr/testify v1.8.4
 	github.com/yookoala/gofast v0.7.0
@@ -41,7 +41,7 @@ require (
 	github.com/facebookgo/clock v0.0.0-20150410010913-600d898af40a // indirect
 	github.com/fatih/color v1.15.0 // indirect
 	github.com/felixge/httpsnoop v1.0.3 // indirect
-	github.com/fsnotify/fsnotify v1.6.0 // indirect
+	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/go-logr/logr v1.2.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
@@ -56,7 +56,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.18.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
-	github.com/klauspost/compress v1.17.1 // indirect
+	github.com/klauspost/compress v1.17.2 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.5 // indirect
 	github.com/libdns/libdns v0.2.1 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
