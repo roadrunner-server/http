@@ -33,6 +33,8 @@ require (
 	github.com/go-logr/logr v1.3.0 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
+	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 // indirect
+	github.com/google/pprof v0.0.0-20231023181126-ff6d637d2a7b // indirect
 	github.com/google/uuid v1.4.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.6 // indirect
 	github.com/libdns/libdns v0.2.1 // indirect
@@ -42,6 +44,8 @@ require (
 	github.com/prometheus/client_model v0.5.0 // indirect
 	github.com/prometheus/common v0.45.0 // indirect
 	github.com/prometheus/procfs v0.12.0 // indirect
+	github.com/quic-go/qtls-go1-20 v0.4.1 // indirect
+	github.com/quic-go/quic-go v0.39.3 // indirect
 	github.com/roadrunner-server/tcplisten v1.4.0 // indirect
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect

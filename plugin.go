@@ -64,7 +64,6 @@ type Plugin struct {
 
 	// middlewares to chain
 	mdwr map[string]common.Middleware
-
 	// Pool which attached to all servers
 	pool common.Pool
 	// servers RR handler
@@ -203,7 +202,7 @@ func (p *Plugin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		r = r.WithContext(ctx)
 	}
 
-	// protect the case, when user send Reset, and we are replacing handler with pool
+	// protect the case, when user sends Reset, and we are replacing handler with pool
 	p.mu.RLock()
 	p.handler.ServeHTTP(w, r)
 	p.mu.RUnlock()
