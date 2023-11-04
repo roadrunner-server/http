@@ -106,7 +106,16 @@ func (dt dataTree) mount(keys, v []string) error {
 		return nil
 	}
 
-	return dt[keys[0]].(dataTree).mount(keys[1:], v)
+	res, ok := dt[keys[0]].(dataTree)
+	if !ok {
+		dt[keys[0]] = make(dataTree, 1)
+		res, ok = dt[keys[0]].(dataTree)
+		if !ok {
+			return nil
+		}
+	}
+
+	return res.mount(keys[1:], v)
 }
 
 func prepareTreeNode[T dataTree | fileTree, V []string | []*FileUpload](tree T, i []string, v V) (bool, error) {
