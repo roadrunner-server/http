@@ -69,6 +69,104 @@ func TestDataTreePush(t *testing.T) {
 		wantErr error
 	}{
 		{
+			name: "the longest chain is visible in tree structure",
+			values: orderedData{
+				{
+					key:   "key[questions][2]",
+					value: []string{""},
+				},
+				{
+					key:   "key[questions][2][answers][3][clue]",
+					value: []string{""},
+				},
+			},
+			wantVal: dataTree{
+				"questions": dataTree{
+					"2": dataTree{
+						"answers": dataTree{
+							"3": dataTree{
+								"clue": "",
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "values from chain which contains shorter chains will have high priority",
+			values: orderedData{
+
+				{
+					key:   "key[questions][10][answers][3][clue]",
+					value: []string{"wwwww"},
+				},
+				{
+					key:   "key[questions][10]",
+					value: []string{""},
+				},
+				{
+					key:   "key[questions][10][answers][4][clue]",
+					value: []string{"12345"},
+				},
+			},
+			wantVal: dataTree{
+				"questions": dataTree{
+					"10": dataTree{
+						"answers": dataTree{
+							"3": dataTree{
+								"clue": "wwwww",
+							},
+							"4": dataTree{
+								"clue": "12345",
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "chain with same prefix and empty value should be overwriteen by full path",
+			values: orderedData{
+				{
+					key:   "key[questions][5]",
+					value: []string{""},
+				},
+				{
+					key:   "key[questions][5][answers][3]",
+					value: []string{""},
+				},
+				{
+					key:   "key[questions][5][answers][3][clue]",
+					value: []string{"xxxxx"},
+				},
+			},
+			wantVal: dataTree{
+				"questions": dataTree{
+					"5": dataTree{
+						"answers": dataTree{
+							"3": dataTree{
+								"clue": "xxxxx",
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "chains with similar structure should fail when all has assigned value",
+			values: orderedData{
+				{
+					key:   "key[questions][5]",
+					value: []string{"1"},
+				},
+				{
+					key:   "key[questions][5][answers][3][clue]",
+					value: []string{"2"},
+				},
+			},
+			wantErr: errors.New("invalid multiple values to key '5' in tree"),
+		},
+		{
 			name: "non associated array should stay",
 			values: orderedData{
 				{
