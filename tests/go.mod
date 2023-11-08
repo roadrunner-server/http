@@ -6,7 +6,7 @@ toolchain go1.21.1
 
 require (
 	github.com/goccy/go-json v0.10.2
-	github.com/roadrunner-server/config/v4 v4.5.0
+	github.com/roadrunner-server/config/v4 v4.6.0
 	github.com/roadrunner-server/endure/v2 v2.4.3
 	github.com/roadrunner-server/fileserver/v4 v4.1.8
 	github.com/roadrunner-server/goridge/v3 v3.8.1
