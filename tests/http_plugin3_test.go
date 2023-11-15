@@ -37,6 +37,91 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestDebugModeResponse(t *testing.T) {
+	cont := endure.New(slog.LevelDebug)
+
+	cfg := &config.Plugin{
+		Version: "2023.3.0",
+		Path:    "configs/.rr-debugmode-fail.yaml",
+		Prefix:  "rr",
+	}
+
+	err := cont.RegisterAll(
+		cfg,
+		&logger.Plugin{},
+		&server.Plugin{},
+		&gzip.Plugin{},
+		&httpPlugin.Plugin{},
+	)
+	assert.NoError(t, err)
+
+	err = cont.Init()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ch, err := cont.Serve()
+	assert.NoError(t, err)
+
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
+
+	stopCh := make(chan struct{}, 1)
+
+	go func() {
+		defer wg.Done()
+		for {
+			select {
+			case e := <-ch:
+				assert.Fail(t, "error", e.Error.Error())
+				err = cont.Stop()
+				if err != nil {
+					assert.FailNow(t, "error", err.Error())
+				}
+			case <-sig:
+				err = cont.Stop()
+				if err != nil {
+					assert.FailNow(t, "error", err.Error())
+				}
+				return
+			case <-stopCh:
+				// timeout
+				err = cont.Stop()
+				if err != nil {
+					assert.FailNow(t, "error", err.Error())
+				}
+				return
+			}
+		}
+	}()
+
+	time.Sleep(time.Second * 2)
+
+	req, err := http.NewRequest("GET", "http://127.0.0.1:19995", nil)
+	assert.NoError(t, err)
+
+	r, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	require.NotNil(t, r)
+
+	data, err := io.ReadAll(r.Body)
+	require.NoError(t, err)
+
+	require.Contains(t, string(data), "Exception: test")
+
+	assert.Equal(t, 500, r.StatusCode)
+
+	if r.Body != nil {
+		_ = r.Body.Close()
+	}
+
+	stopCh <- struct{}{}
+	wg.Wait()
+}
+
 func TestStreamFail(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
