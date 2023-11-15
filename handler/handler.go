@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	stderr "errors"
+	"fmt"
 	"net/http"
 	"strings"
 	"sync"
@@ -41,6 +42,7 @@ type Handler struct {
 
 	internalHTTPCode uint64
 	sendRawBody      bool
+	debugMode        bool
 
 	// permissions
 	uid int
@@ -62,6 +64,7 @@ func NewHandler(cfg *config.Config, pool common.Pool, log *zap.Logger) (*Handler
 			forbid: cfg.Uploads.Forbidden,
 		},
 		pool:             pool,
+		debugMode:        checkDebug(cfg),
 		log:              log,
 		internalHTTPCode: cfg.InternalErrorCode,
 		sendRawBody:      cfg.RawBody,
@@ -113,8 +116,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	req := h.getReq(r)
 	err := request(r, req, h.uid, h.gid, h.sendRawBody)
 	if err != nil {
-		// if pipe is broken, there is no sense to write the header
-		// in this case we just report about error
+		// if the pipe is broken, there is no sense to write the header
+		// in this case, we just report about error
 		if stderr.Is(err, errEPIPE) {
 			req.Close(h.log, r)
 			h.putReq(req)
@@ -193,26 +196,38 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // handleError will handle internal RR errors and return 500
 func (h *Handler) handleError(w http.ResponseWriter, err error) {
-	if errors.Is(errors.NoFreeWorkers, err) {
+	switch {
+	case errors.Is(errors.NoFreeWorkers, err):
 		// set header for the prometheus
 		w.Header().Set(noWorkers, trueStr)
 		// write an internal server error
 		w.WriteHeader(int(h.internalHTTPCode))
-		return
-	}
 
-	// internal error types, user should not see them
-	if errors.Is(errors.SoftJob, err) ||
-		errors.Is(errors.WatcherStopped, err) ||
-		errors.Is(errors.WorkerAllocate, err) ||
-		errors.Is(errors.ExecTTL, err) ||
-		errors.Is(errors.IdleTTL, err) ||
-		errors.Is(errors.TTL, err) ||
-		errors.Is(errors.Encode, err) ||
-		errors.Is(errors.Decode, err) ||
-		errors.Is(errors.Network, err) {
+		if h.debugMode {
+			_, _ = fmt.Fprintln(w, err)
+		}
+		return
+	case
+		// internal error types, user should not see them
+		errors.Is(errors.SoftJob, err) ||
+			errors.Is(errors.WatcherStopped, err) ||
+			errors.Is(errors.WorkerAllocate, err) ||
+			errors.Is(errors.ExecTTL, err) ||
+			errors.Is(errors.IdleTTL, err) ||
+			errors.Is(errors.TTL, err) ||
+			errors.Is(errors.Encode, err) ||
+			errors.Is(errors.Decode, err) ||
+			errors.Is(errors.Network, err):
 		// write an internal server error
 		w.WriteHeader(int(h.internalHTTPCode))
+
+		if h.debugMode {
+			_, _ = fmt.Fprintln(w, err)
+		}
+	default:
+		if h.debugMode {
+			_, _ = fmt.Fprintln(w, err)
+		}
 	}
 }
 
@@ -288,4 +303,12 @@ func (h *Handler) getCh() chan struct{} {
 
 func (h *Handler) putCh(ch chan struct{}) {
 	h.stopChPool.Put(ch)
+}
+
+func checkDebug(cfg *config.Config) bool {
+	if cfg != nil && cfg.Pool != nil {
+		return cfg.Pool.Debug
+	}
+
+	return false
 }
