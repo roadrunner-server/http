@@ -21,11 +21,14 @@ http:
     destroy_timeout: 1s
 
 otel:
+  resource:
+    service_name: "rr_test"
+    service_version: "1.0.0"
+    service_namespace: "RR-Shop2"
+    service_instance_id: "UUID2"
   insecure: false
   compress: true
   exporter: stderr
-  service_name: rr_test
-  service_version: 1.0.0
 
 logs:
   mode: development
