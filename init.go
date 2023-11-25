@@ -16,7 +16,7 @@ import (
 func (p *Plugin) initServers() error {
 	if p.cfg.HTTP3Config != nil {
 		p.servers = append(p.servers, http3Server.NewHTTP3server(p, p.cfg.HTTP3Config, p.log))
-	} else {
+	} else if p.cfg.EnableHTTP() {
 		p.servers = append(p.servers, httpServer.NewHTTPServer(p, p.cfg, p.stdLog, p.log))
 	}
 
