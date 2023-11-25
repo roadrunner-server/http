@@ -40,8 +40,7 @@ func (p *Plugin) applyBundledMiddleware() {
 	// apply max_req_size and logger middleware
 	for i := 0; i < len(p.servers); i++ {
 		server := p.servers[i].Server()
-		if _, ok := server.(*http.Server); ok {
-			serv := server.(*http.Server)
+		if serv, ok := server.(*http.Server); ok {
 			serv.Handler = bundledMw.MaxRequestSize(serv.Handler, p.cfg.MaxRequestSize*MB)
 			serv.Handler = bundledMw.NewLogMiddleware(serv.Handler, p.cfg.AccessLogs, p.log)
 		}
