@@ -2,16 +2,18 @@ package http
 
 import (
 	"github.com/roadrunner-server/http/v4/common"
-	bundledMw "github.com/roadrunner-server/http/v4/middleware"
 	"github.com/roadrunner-server/http/v4/servers/fcgi"
-	httpServer "github.com/roadrunner-server/http/v4/servers/http"
+	httpServer "github.com/roadrunner-server/http/v4/servers/http11"
+	http3Server "github.com/roadrunner-server/http/v4/servers/http3"
 	httpsServer "github.com/roadrunner-server/http/v4/servers/https"
 )
 
 // ------- PRIVATE ---------
 
 func (p *Plugin) initServers() error {
-	if p.cfg.EnableHTTP() {
+	if p.cfg.HTTP3Config != nil {
+		p.servers = append(p.servers, http3Server.NewHTTP3server(p, p.cfg.HTTP3Config, p.log))
+	} else {
 		p.servers = append(p.servers, httpServer.NewHTTPServer(p, p.cfg, p.stdLog, p.log))
 	}
 
@@ -31,14 +33,14 @@ func (p *Plugin) initServers() error {
 	return nil
 }
 
-func (p *Plugin) applyBundledMiddleware() {
-	// apply max_req_size and logger middleware
-	for i := 0; i < len(p.servers); i++ {
-		serv := p.servers[i].Server()
-		serv.Handler = bundledMw.MaxRequestSize(serv.Handler, p.cfg.MaxRequestSize*MB)
-		serv.Handler = bundledMw.NewLogMiddleware(serv.Handler, p.cfg.AccessLogs, p.log)
-	}
-}
+// func (p *Plugin) applyBundledMiddleware() {
+// 	// apply max_req_size and logger middleware
+// 	for i := 0; i < len(p.servers); i++ {
+// 		serv := p.servers[i].Server()
+// 		serv.Handler = bundledMw.MaxRequestSize(serv.Handler, p.cfg.MaxRequestSize*MB)
+// 		serv.Handler = bundledMw.NewLogMiddleware(serv.Handler, p.cfg.AccessLogs, p.log)
+// 	}
+// }
 
 func (p *Plugin) unmarshal(cfg common.Configurer) error {
 	// unmarshal general section

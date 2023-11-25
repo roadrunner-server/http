@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/roadrunner-server/http/v4/common"
+	"github.com/roadrunner-server/http/v4/servers"
 
 	"github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/sdk/v4/utils"
@@ -21,7 +22,7 @@ type Server struct {
 	fcgi *http.Server
 }
 
-func NewFCGIServer(handler http.Handler, cfg *FCGI, log *zap.Logger, errLog *log.Logger) *Server {
+func NewFCGIServer(handler http.Handler, cfg *FCGI, log *zap.Logger, errLog *log.Logger) servers.InternalServer[any] {
 	return &Server{
 		cfg: cfg,
 		log: log,
@@ -53,7 +54,7 @@ func (s *Server) Serve(mdwr map[string]common.Middleware, order []string) error 
 	return nil
 }
 
-func (s *Server) Server() *http.Server {
+func (s *Server) Server() any {
 	return s.fcgi
 }
 

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/roadrunner-server/http/v4/servers/fcgi"
+	"github.com/roadrunner-server/http/v4/servers/http3"
 	"github.com/roadrunner-server/http/v4/servers/https"
 
 	"github.com/roadrunner-server/errors"
@@ -33,7 +34,8 @@ type Config struct {
 	// FCGIConfig configuration. You can use FastCGI without HTTP server.
 	FCGIConfig *fcgi.FCGI `mapstructure:"fcgi"`
 	// HTTP2Config configuration
-	HTTP2Config *https.HTTP2 `mapstructure:"http2"`
+	HTTP2Config *https.HTTP2  `mapstructure:"http2"`
+	HTTP3Config *http3.Config `mapstructure:"http3"`
 	// Uploads configures uploads configuration.
 	Uploads *Uploads `mapstructure:"uploads"`
 

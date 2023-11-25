@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/roadrunner-server/http/v4/common"
+	"github.com/roadrunner-server/http/v4/servers"
 
 	"github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/http/v4/config"
@@ -26,7 +27,7 @@ type Server struct {
 	redirectPort int
 }
 
-func NewHTTPServer(handler http.Handler, cfg *config.Config, errLog *log.Logger, log *zap.Logger) *Server {
+func NewHTTPServer(handler http.Handler, cfg *config.Config, errLog *log.Logger, log *zap.Logger) servers.InternalServer[any] {
 	var redirect bool
 	var redirectPort int
 
@@ -93,7 +94,7 @@ func (s *Server) Serve(mdwr map[string]common.Middleware, order []string) error 
 	return nil
 }
 
-func (s *Server) Server() *http.Server {
+func (s *Server) Server() any {
 	return s.http
 }
 

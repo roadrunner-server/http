@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/roadrunner-server/http/v4/common"
+	"github.com/roadrunner-server/http/v4/servers"
 
 	"github.com/mholt/acmez"
 	"github.com/roadrunner-server/errors"
@@ -27,7 +28,7 @@ type Server struct {
 	https *http.Server
 }
 
-func NewHTTPSServer(handler http.Handler, cfg *SSL, cfgHTTP2 *HTTP2, errLog *log.Logger, logger *zap.Logger) (*Server, error) {
+func NewHTTPSServer(handler http.Handler, cfg *SSL, cfgHTTP2 *HTTP2, errLog *log.Logger, logger *zap.Logger) (servers.InternalServer[any], error) {
 	httpsServer := initTLS(handler, errLog, cfg.Address, cfg.Port)
 
 	if cfg.RootCA != "" {
@@ -132,7 +133,7 @@ func (s *Server) Serve(mdwr map[string]common.Middleware, order []string) error 
 	return nil
 }
 
-func (s *Server) Server() *http.Server {
+func (s *Server) Server() any {
 	return s.https
 }
 

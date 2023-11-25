@@ -8,6 +8,7 @@ import (
 
 	"github.com/roadrunner-server/endure/v2/dep"
 	"github.com/roadrunner-server/http/v4/common"
+	"github.com/roadrunner-server/http/v4/servers"
 
 	"github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/http/v4/config"
@@ -39,13 +40,6 @@ const (
 	RrModeHTTP = "http"
 )
 
-// internal interface to start-stop http servers
-type internalServer interface {
-	Serve(map[string]common.Middleware, []string) error
-	Server() *http.Server
-	Stop()
-}
-
 // Plugin manages pool, http servers. The main http plugin structure
 type Plugin struct {
 	mu sync.RWMutex
@@ -71,7 +65,7 @@ type Plugin struct {
 	// metrics
 	statsExporter *metrics.StatsExporter
 	// servers
-	servers []internalServer
+	servers []servers.InternalServer[any]
 }
 
 // Init must return configure svc and return true if svc hasStatus enabled. Must return error in case of
@@ -110,7 +104,7 @@ func (p *Plugin) Init(cfg common.Configurer, rrLogger common.Logger, srv common.
 	// initialize statsExporter
 	p.statsExporter = newWorkersExporter(p)
 	p.server = srv
-	p.servers = make([]internalServer, 0, 4)
+	p.servers = make([]servers.InternalServer[any], 0, 4)
 	p.prop = propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}, jprop.Jaeger{})
 
 	return nil
@@ -148,7 +142,7 @@ func (p *Plugin) Serve() chan error {
 	}
 
 	// apply access_logs, max_request, redirect middleware if specified by user
-	p.applyBundledMiddleware()
+	//p.applyBundledMiddleware()
 
 	// start all servers
 	for i := 0; i < len(p.servers); i++ {

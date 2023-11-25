@@ -1,25 +1,33 @@
 package http3
 
 import (
+	"crypto/tls"
+	"net/http"
+
 	"github.com/quic-go/quic-go"
 	"github.com/quic-go/quic-go/http3"
 	"github.com/roadrunner-server/errors"
 	"go.uber.org/zap"
 
 	"github.com/roadrunner-server/http/v4/common"
+	"github.com/roadrunner-server/http/v4/servers"
 )
 
 type Server struct {
 	server *http3.Server
 	log    *zap.Logger
+	cfg    *Config
 }
 
-func NewHTTP3server(address string, log *zap.Logger) *Server {
+func NewHTTP3server(handler http.Handler, cfg *Config, log *zap.Logger) servers.InternalServer[any] {
 	return &Server{
 		log: log,
+		cfg: cfg,
 		server: &http3.Server{
-			Addr:       address,
+			Addr:       cfg.Address,
+			Handler:    handler,
 			QuicConfig: &quic.Config{},
+			TLSConfig:  &tls.Config{},
 		},
 	}
 }
@@ -32,7 +40,7 @@ func (s *Server) Serve(mdwr map[string]common.Middleware, order []string) error 
 	}
 
 	s.log.Debug("http3 server was started", zap.String("address", s.server.Addr))
-	err := s.server.ListenAndServe()
+	err := s.server.ListenAndServeTLS(s.cfg.Cert, s.cfg.Key)
 	if err != nil {
 		return errors.E(op, err)
 	}
@@ -40,7 +48,7 @@ func (s *Server) Serve(mdwr map[string]common.Middleware, order []string) error 
 	return nil
 }
 
-func (s *Server) Server() *http3.Server {
+func (s *Server) Server() any {
 	return s.server
 }
 
