@@ -27,7 +27,9 @@ func NewHTTP3server(handler http.Handler, cfg *Config, log *zap.Logger) servers.
 			Addr:       cfg.Address,
 			Handler:    handler,
 			QuicConfig: &quic.Config{},
-			TLSConfig:  &tls.Config{},
+			TLSConfig: &tls.Config{
+				MinVersion: tls.VersionTLS12,
+			},
 		},
 	}
 }
