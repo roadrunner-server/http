@@ -1,0 +1,17 @@
+version: '3'
+
+rpc:
+  listen: tcp://0.0.0.0:6001
+
+server:
+  command: "php php_test_files/http/client.php echo pipes"
+  relay: "pipes"
+  relay_timeout: "20s"
+
+http:
+  address: "0.0.0.0:8080"
+  middleware: []
+  http3:
+    address: 127.0.0.1:8081
+    key: "test-certs/localhost+2-key.pem"
+    cert: "test-certs/localhost+2.pem"
