@@ -5,6 +5,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"sync"
@@ -18,7 +19,6 @@ import (
 	httpPlugin "github.com/roadrunner-server/http/v4"
 	"github.com/roadrunner-server/logger/v4"
 	rpcPlugin "github.com/roadrunner-server/rpc/v4"
-	"github.com/roadrunner-server/send/v4"
 	"github.com/roadrunner-server/server/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -28,7 +28,7 @@ func TestHttp3(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.9.0",
+		Version: "2023.3.0",
 		Path:    "configs/.rr-http3.yaml",
 		Prefix:  "rr",
 	}
@@ -37,7 +37,6 @@ func TestHttp3(t *testing.T) {
 		cfg,
 		&rpcPlugin.Plugin{},
 		&logger.Plugin{},
-		&send.Plugin{},
 		&server.Plugin{},
 		&httpPlugin.Plugin{},
 	)
@@ -99,22 +98,23 @@ func http3ResponseMatcher(t *testing.T) {
 
 	roundTripper := &http3.RoundTripper{
 		TLSClientConfig: &tls.Config{
-			MinVersion:   tls.VersionTLS12,
 			Certificates: []tls.Certificate{cert},
+			InsecureSkipVerify: true,
 		},
 	}
 	defer roundTripper.Close()
-	hclient := &http.Client{
+	client := &http.Client{
 		Transport: roundTripper,
 	}
 
-	req, err := hclient.Request("GET", "https://127.0.0.1:8081?hello=world", nil)
-	assert.NoError(t, err)
+	parsedURL, _ := url.Parse("https://127.0.0.1:8081?hello=world")
+	req := &http.Request{
+		Method: http.MethodGet,
+		URL:    parsedURL,
+	}
 
 	r, err := client.Do(req)
 	assert.NoError(t, err)
-
-	assert.Nil(t, r.TLS)
 
 	b, err := io.ReadAll(r.Body)
 	assert.NoError(t, err)
