@@ -142,7 +142,7 @@ func (p *Plugin) Serve() chan error {
 	}
 
 	// apply access_logs, max_request, redirect middleware if specified by user
-	//p.applyBundledMiddleware()
+	p.applyBundledMiddleware()
 
 	// start all servers
 	for i := 0; i < len(p.servers); i++ {

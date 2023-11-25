@@ -1,7 +1,10 @@
 package http
 
 import (
+	"net/http"
+
 	"github.com/roadrunner-server/http/v4/common"
+	bundledMw "github.com/roadrunner-server/http/v4/middleware"
 	"github.com/roadrunner-server/http/v4/servers/fcgi"
 	httpServer "github.com/roadrunner-server/http/v4/servers/http11"
 	http3Server "github.com/roadrunner-server/http/v4/servers/http3"
@@ -33,14 +36,17 @@ func (p *Plugin) initServers() error {
 	return nil
 }
 
-// func (p *Plugin) applyBundledMiddleware() {
-// 	// apply max_req_size and logger middleware
-// 	for i := 0; i < len(p.servers); i++ {
-// 		serv := p.servers[i].Server()
-// 		serv.Handler = bundledMw.MaxRequestSize(serv.Handler, p.cfg.MaxRequestSize*MB)
-// 		serv.Handler = bundledMw.NewLogMiddleware(serv.Handler, p.cfg.AccessLogs, p.log)
-// 	}
-// }
+func (p *Plugin) applyBundledMiddleware() {
+	// apply max_req_size and logger middleware
+	for i := 0; i < len(p.servers); i++ {
+		server := p.servers[i].Server()
+		if _, ok := server.(*http.Server); ok {
+			serv := server.(*http.Server)
+			serv.Handler = bundledMw.MaxRequestSize(serv.Handler, p.cfg.MaxRequestSize*MB)
+			serv.Handler = bundledMw.NewLogMiddleware(serv.Handler, p.cfg.AccessLogs, p.log)
+		}
+	}
+}
 
 func (p *Plugin) unmarshal(cfg common.Configurer) error {
 	// unmarshal general section
