@@ -49,6 +49,11 @@ func (c *Config) EnableHTTP() bool {
 	return c.Address != ""
 }
 
+// EnableHTTP3 is true when http server must run.
+func (c *Config) EnableHTTP3() bool {
+	return c.HTTP3Config != nil
+}
+
 // EnableTLS returns true if pool must listen TLS connections.
 func (c *Config) EnableTLS() bool {
 	if c.SSLConfig == nil {
