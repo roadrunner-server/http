@@ -1,17 +1,20 @@
 package http3
 
 import (
-	"crypto/tls"
 	"net/http"
 
 	"github.com/quic-go/quic-go"
 	"github.com/quic-go/quic-go/http3"
 	"github.com/roadrunner-server/errors"
+	"github.com/roadrunner-server/http/v4/acme"
+	"github.com/roadrunner-server/http/v4/tlsconf"
 	"go.uber.org/zap"
 
 	"github.com/roadrunner-server/http/v4/common"
 	"github.com/roadrunner-server/http/v4/servers"
 )
+
+const ACMETLS1Protocol string = "acme-tls/1"
 
 type Server struct {
 	server *http3.Server
@@ -19,19 +22,39 @@ type Server struct {
 	cfg    *Config
 }
 
-func NewHTTP3server(handler http.Handler, cfg *Config, log *zap.Logger) servers.InternalServer[any] {
-	return &Server{
+func NewHTTP3server(handler http.Handler, acmeCfg *acme.Config, cfg *Config, log *zap.Logger) (servers.InternalServer[any], error) {
+	http3Srv := &Server{
 		log: log,
 		cfg: cfg,
 		server: &http3.Server{
 			Addr:       cfg.Address,
 			Handler:    handler,
 			QuicConfig: &quic.Config{},
-			TLSConfig: &tls.Config{
-				MinVersion: tls.VersionTLS12,
-			},
+			TLSConfig:  tlsconf.DefaultTLSConfig(),
 		},
 	}
+
+	if acmeCfg != nil {
+		tlsCfg, err := acme.IssueCertificates(
+			acmeCfg.CacheDir,
+			acmeCfg.Email,
+			acmeCfg.ChallengeType,
+			acmeCfg.Domains,
+			acmeCfg.UseProductionEndpoint,
+			acmeCfg.AltHTTPPort,
+			acmeCfg.AltTLSALPNPort,
+			log,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		http3Srv.server.TLSConfig.GetCertificate = tlsCfg.GetCertificate
+		http3Srv.server.TLSConfig.NextProtos = append(http3Srv.server.TLSConfig.NextProtos, ACMETLS1Protocol)
+	}
+
+	return http3Srv, nil
 }
 
 func (s *Server) Serve(mdwr map[string]common.Middleware, order []string) error {

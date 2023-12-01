@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/roadrunner-server/errors"
+	"github.com/roadrunner-server/http/v4/acme"
 )
 
 type ClientAuthType string
@@ -44,25 +45,18 @@ func (h2 *HTTP2) EnableHTTP2() bool {
 type SSL struct {
 	// Address to listen as HTTPS server, defaults to 0.0.0.0:443.
 	Address string
-
 	// ACME configuration
-	Acme *AcmeConfig `mapstructure:"acme"`
-
+	Acme *acme.Config `mapstructure:"acme"`
 	// Redirect when enabled forces all http connections to switch to https.
 	Redirect bool
-
 	// Key defined private server key.
 	Key string
-
 	// Cert is https certificate.
 	Cert string
-
 	// Root CA file
 	RootCA string `mapstructure:"root_ca"`
-
 	// mTLS auth
 	AuthType ClientAuthType `mapstructure:"client_auth_type"`
-
 	// internal
 	host string
 	// internal
