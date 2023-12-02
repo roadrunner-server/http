@@ -16,24 +16,29 @@ import (
 // ------- PRIVATE ---------
 
 func (p *Plugin) initServers() error {
-	switch {
-	case p.cfg.EnableHTTP3() && p.experimentalFeatures:
+	if p.cfg.EnableHTTP3() && p.experimentalFeatures {
 		http3Srv, err := http3Server.NewHTTP3server(p, nilOr(p.cfg), p.cfg.HTTP3Config, p.log)
 		if err != nil {
 			return err
 		}
 
 		p.servers = append(p.servers, http3Srv)
-	case p.cfg.EnableHTTP():
+	}
+
+	if p.cfg.EnableHTTP() {
 		p.servers = append(p.servers, httpServer.NewHTTPServer(p, p.cfg, p.stdLog, p.log))
-	case p.cfg.EnableTLS():
+	}
+
+	if p.cfg.EnableTLS() {
 		https, err := httpsServer.NewHTTPSServer(p, p.cfg.SSLConfig, p.cfg.HTTP2Config, p.stdLog, p.log)
 		if err != nil {
 			return err
 		}
 
 		p.servers = append(p.servers, https)
-	case p.cfg.EnableFCGI():
+	}
+
+	if p.cfg.EnableFCGI() {
 		p.servers = append(p.servers, fcgi.NewFCGIServer(p, p.cfg.FCGIConfig, p.log, p.stdLog))
 	}
 
