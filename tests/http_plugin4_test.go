@@ -28,9 +28,10 @@ func TestHttp3(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2023.3.0",
-		Path:    "configs/.rr-http3.yaml",
-		Prefix:  "rr",
+		Version:              "2023.3.0",
+		ExperimentalFeatures: true,
+		Path:                 "configs/.rr-http3.yaml",
+		Prefix:               "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -99,10 +100,14 @@ func http3ResponseMatcher(t *testing.T) {
 	roundTripper := &http3.RoundTripper{
 		TLSClientConfig: &tls.Config{
 			Certificates: []tls.Certificate{cert},
-			InsecureSkipVerify: true,
 		},
 	}
-	defer roundTripper.Close()
+	defer func() {
+		err = roundTripper.Close()
+		if err != nil {
+			t.Log(err)
+		}
+	}()
 	client := &http.Client{
 		Transport: roundTripper,
 	}

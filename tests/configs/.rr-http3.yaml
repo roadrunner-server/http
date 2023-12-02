@@ -10,7 +10,6 @@ server:
 
 http:
   address: "0.0.0.0:8080"
-  middleware: []
   http3:
     address: 127.0.0.1:8081
     key: "test-certs/localhost+2-key.pem"

@@ -2,7 +2,7 @@ package http
 
 import (
 	"context"
-	"log"
+	stdlog "log"
 	"net/http"
 	"sync"
 
@@ -51,7 +51,8 @@ type Plugin struct {
 	server common.Server
 	log    *zap.Logger
 	// stdlog passed to the http/https/fcgi servers to log their internal messages
-	stdLog *log.Logger
+	stdLog               *stdlog.Logger
+	experimentalFeatures bool
 
 	// http configuration
 	cfg *config.Config
@@ -70,7 +71,7 @@ type Plugin struct {
 
 // Init must return configure svc and return true if svc hasStatus enabled. Must return error in case of
 // misconfiguration. Services must not be used without proper configuration pushed first.
-func (p *Plugin) Init(cfg common.Configurer, rrLogger common.Logger, srv common.Server) error {
+func (p *Plugin) Init(cfg common.Configurer, log common.Logger, srv common.Server) error {
 	const op = errors.Op("http_plugin_init")
 	if !cfg.Has(PluginName) {
 		return errors.E(op, errors.Disabled)
@@ -86,15 +87,18 @@ func (p *Plugin) Init(cfg common.Configurer, rrLogger common.Logger, srv common.
 		return errors.E(op, err)
 	}
 
+	// check if we have experimental features enabled
+	p.experimentalFeatures = cfg.Experimental()
+
 	// get permissions
 	p.cfg.UID = srv.UID()
 	p.cfg.GID = srv.GID()
 
 	// rr logger (via plugin)
-	p.log = rrLogger.NamedLogger(PluginName)
+	p.log = log.NamedLogger(PluginName)
 
 	// use time and date in UTC format
-	p.stdLog = log.New(NewStdAdapter(p.log), "http_plugin: ", log.Ldate|log.Ltime|log.LUTC)
+	p.stdLog = stdlog.New(NewStdAdapter(p.log), "http_plugin: ", stdlog.Ldate|stdlog.Ltime|stdlog.LUTC)
 	p.mdwr = make(map[string]common.Middleware)
 
 	if !p.cfg.EnableHTTP() && !p.cfg.EnableTLS() && !p.cfg.EnableFCGI() {

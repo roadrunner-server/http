@@ -51,9 +51,9 @@ func DefaultTLSConfig() *tls.Config {
 		}
 	}
 
-	DefaultCipherSuites := make([]uint16, 0, 22)
-	DefaultCipherSuites = append(DefaultCipherSuites, topCipherSuites...)
-	DefaultCipherSuites = append(DefaultCipherSuites, defaultCipherSuitesTLS13...)
+	defaultCipherSuites := make([]uint16, 0, 22)
+	defaultCipherSuites = append(defaultCipherSuites, topCipherSuites...)
+	defaultCipherSuites = append(defaultCipherSuites, defaultCipherSuitesTLS13...)
 
 	return &tls.Config{
 		CurvePreferences: []tls.CurveID{
@@ -62,7 +62,7 @@ func DefaultTLSConfig() *tls.Config {
 			tls.CurveP384,
 			tls.CurveP521,
 		},
-		CipherSuites: DefaultCipherSuites,
+		CipherSuites: defaultCipherSuites,
 		MinVersion:   tls.VersionTLS12,
 	}
 }
