@@ -112,7 +112,7 @@ func http3ResponseMatcher(t *testing.T) {
 		Transport: roundTripper,
 	}
 
-	parsedURL, _ := url.Parse("https://127.0.0.1:8081?hello=world")
+	parsedURL, _ := url.Parse("https://127.0.0.1:34555?hello=world")
 	req := &http.Request{
 		Method: http.MethodGet,
 		URL:    parsedURL,

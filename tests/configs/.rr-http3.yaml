@@ -9,8 +9,8 @@ server:
   relay_timeout: "20s"
 
 http:
-  address: "0.0.0.0:8080"
+  address: "0.0.0.0:34554"
   http3:
-    address: 127.0.0.1:8081
+    address: 127.0.0.1:34555
     key: "test-certs/localhost+2-key.pem"
     cert: "test-certs/localhost+2.pem"

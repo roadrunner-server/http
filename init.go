@@ -3,6 +3,7 @@ package http
 import (
 	"net/http"
 
+	"github.com/quic-go/quic-go/http3"
 	"github.com/roadrunner-server/http/v4/acme"
 	"github.com/roadrunner-server/http/v4/common"
 	"github.com/roadrunner-server/http/v4/config"
@@ -11,6 +12,7 @@ import (
 	httpServer "github.com/roadrunner-server/http/v4/servers/http11"
 	http3Server "github.com/roadrunner-server/http/v4/servers/http3"
 	httpsServer "github.com/roadrunner-server/http/v4/servers/https"
+	"go.uber.org/zap"
 )
 
 // ------- PRIVATE ---------
@@ -57,9 +59,15 @@ func (p *Plugin) applyBundledMiddleware() {
 	// apply max_req_size and logger middleware
 	for i := 0; i < len(p.servers); i++ {
 		server := p.servers[i].Server()
-		if serv, ok := server.(*http.Server); ok {
-			serv.Handler = bundledMw.MaxRequestSize(serv.Handler, p.cfg.MaxRequestSize*MB)
-			serv.Handler = bundledMw.NewLogMiddleware(serv.Handler, p.cfg.AccessLogs, p.log)
+		switch srv := server.(type) {
+		case *http.Server:
+			srv.Handler = bundledMw.MaxRequestSize(srv.Handler, p.cfg.MaxRequestSize*MB)
+			srv.Handler = bundledMw.NewLogMiddleware(srv.Handler, p.cfg.AccessLogs, p.log)
+		case *http3.Server:
+			srv.Handler = bundledMw.MaxRequestSize(srv.Handler, p.cfg.MaxRequestSize*MB)
+			srv.Handler = bundledMw.NewLogMiddleware(srv.Handler, p.cfg.AccessLogs, p.log)
+		default:
+			p.log.DPanic("unknown server type", zap.Any("server", server))
 		}
 	}
 }
