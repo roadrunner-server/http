@@ -1,16 +1,32 @@
 package http
 
 import (
+	"net/http"
+
+	"github.com/quic-go/quic-go/http3"
+	"github.com/roadrunner-server/http/v4/acme"
 	"github.com/roadrunner-server/http/v4/common"
+	"github.com/roadrunner-server/http/v4/config"
 	bundledMw "github.com/roadrunner-server/http/v4/middleware"
 	"github.com/roadrunner-server/http/v4/servers/fcgi"
-	httpServer "github.com/roadrunner-server/http/v4/servers/http"
+	httpServer "github.com/roadrunner-server/http/v4/servers/http11"
+	http3Server "github.com/roadrunner-server/http/v4/servers/http3"
 	httpsServer "github.com/roadrunner-server/http/v4/servers/https"
+	"go.uber.org/zap"
 )
 
 // ------- PRIVATE ---------
 
 func (p *Plugin) initServers() error {
+	if p.cfg.EnableHTTP3() && p.experimentalFeatures {
+		http3Srv, err := http3Server.NewHTTP3server(p, nilOr(p.cfg), p.cfg.HTTP3Config, p.log)
+		if err != nil {
+			return err
+		}
+
+		p.servers = append(p.servers, http3Srv)
+	}
+
 	if p.cfg.EnableHTTP() {
 		p.servers = append(p.servers, httpServer.NewHTTPServer(p, p.cfg, p.stdLog, p.log))
 	}
@@ -31,12 +47,27 @@ func (p *Plugin) initServers() error {
 	return nil
 }
 
+func nilOr(cfg *config.Config) *acme.Config {
+	if cfg.SSLConfig == nil || cfg.SSLConfig.Acme == nil {
+		return nil
+	}
+
+	return cfg.SSLConfig.Acme
+}
+
 func (p *Plugin) applyBundledMiddleware() {
 	// apply max_req_size and logger middleware
 	for i := 0; i < len(p.servers); i++ {
-		serv := p.servers[i].Server()
-		serv.Handler = bundledMw.MaxRequestSize(serv.Handler, p.cfg.MaxRequestSize*MB)
-		serv.Handler = bundledMw.NewLogMiddleware(serv.Handler, p.cfg.AccessLogs, p.log)
+		switch srv := p.servers[i].Server().(type) {
+		case *http.Server:
+			srv.Handler = bundledMw.MaxRequestSize(srv.Handler, p.cfg.MaxRequestSize*MB)
+			srv.Handler = bundledMw.NewLogMiddleware(srv.Handler, p.cfg.AccessLogs, p.log)
+		case *http3.Server:
+			srv.Handler = bundledMw.MaxRequestSize(srv.Handler, p.cfg.MaxRequestSize*MB)
+			srv.Handler = bundledMw.NewLogMiddleware(srv.Handler, p.cfg.AccessLogs, p.log)
+		default:
+			p.log.DPanic("unknown server type", zap.Any("server", p.servers[i].Server()))
+		}
 	}
 }
 

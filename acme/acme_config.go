@@ -1,33 +1,27 @@
-package https
+package acme
 
 import (
 	"github.com/roadrunner-server/errors"
 )
 
-type AcmeConfig struct {
+type Config struct {
 	// directory to save the certificates, le_certs default
 	CacheDir string `mapstructure:"cache_dir"`
-
 	// User email, mandatory
 	Email string `mapstructure:"email"`
-
 	// supported values: http-01, tlsalpn-01
 	ChallengeType string `mapstructure:"challenge_type"`
-
 	// The alternate port to use for the ACME HTTP challenge
 	AltHTTPPort int `mapstructure:"alt_http_port"`
-
 	// The alternate port to use for the ACME TLS-ALPN
 	AltTLSALPNPort int `mapstructure:"alt_tlsalpn_port"`
-
 	// Use LE production endpoint or staging
 	UseProductionEndpoint bool `mapstructure:"use_production_endpoint"`
-
 	// Domains to obtain certificates
 	Domains []string `mapstructure:"domains"`
 }
 
-func (ac *AcmeConfig) InitDefaults() error {
+func (ac *Config) InitDefaults() error {
 	if ac.CacheDir == "" {
 		ac.CacheDir = "rr_cache_dir"
 	}

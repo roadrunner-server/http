@@ -549,7 +549,7 @@ func fileString(f string, errNo int, mime string) string {
 
 	r, err := json.Marshal(v)
 	if err != nil {
-		fmt.Println(fmt.Errorf("error marshaling fInfo, error: %v", err))
+		fmt.Println(fmt.Errorf("error marshaling fInfo, error: %w", err))
 	}
 	return string(r)
 }

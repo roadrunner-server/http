@@ -2,12 +2,13 @@ package http
 
 import (
 	"context"
-	"log"
+	stdlog "log"
 	"net/http"
 	"sync"
 
 	"github.com/roadrunner-server/endure/v2/dep"
 	"github.com/roadrunner-server/http/v4/common"
+	"github.com/roadrunner-server/http/v4/servers"
 
 	"github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/http/v4/config"
@@ -39,13 +40,6 @@ const (
 	RrModeHTTP = "http"
 )
 
-// internal interface to start-stop http servers
-type internalServer interface {
-	Serve(map[string]common.Middleware, []string) error
-	Server() *http.Server
-	Stop()
-}
-
 // Plugin manages pool, http servers. The main http plugin structure
 type Plugin struct {
 	mu sync.RWMutex
@@ -57,14 +51,14 @@ type Plugin struct {
 	server common.Server
 	log    *zap.Logger
 	// stdlog passed to the http/https/fcgi servers to log their internal messages
-	stdLog *log.Logger
+	stdLog               *stdlog.Logger
+	experimentalFeatures bool
 
 	// http configuration
 	cfg *config.Config
 
 	// middlewares to chain
 	mdwr map[string]common.Middleware
-
 	// Pool which attached to all servers
 	pool common.Pool
 	// servers RR handler
@@ -72,12 +66,12 @@ type Plugin struct {
 	// metrics
 	statsExporter *metrics.StatsExporter
 	// servers
-	servers []internalServer
+	servers []servers.InternalServer[any]
 }
 
 // Init must return configure svc and return true if svc hasStatus enabled. Must return error in case of
 // misconfiguration. Services must not be used without proper configuration pushed first.
-func (p *Plugin) Init(cfg common.Configurer, rrLogger common.Logger, srv common.Server) error {
+func (p *Plugin) Init(cfg common.Configurer, log common.Logger, srv common.Server) error {
 	const op = errors.Op("http_plugin_init")
 	if !cfg.Has(PluginName) {
 		return errors.E(op, errors.Disabled)
@@ -93,15 +87,18 @@ func (p *Plugin) Init(cfg common.Configurer, rrLogger common.Logger, srv common.
 		return errors.E(op, err)
 	}
 
+	// check if we have experimental features enabled
+	p.experimentalFeatures = cfg.Experimental()
+
 	// get permissions
 	p.cfg.UID = srv.UID()
 	p.cfg.GID = srv.GID()
 
 	// rr logger (via plugin)
-	p.log = rrLogger.NamedLogger(PluginName)
+	p.log = log.NamedLogger(PluginName)
 
 	// use time and date in UTC format
-	p.stdLog = log.New(NewStdAdapter(p.log), "http_plugin: ", log.Ldate|log.Ltime|log.LUTC)
+	p.stdLog = stdlog.New(NewStdAdapter(p.log), "http_plugin: ", stdlog.Ldate|stdlog.Ltime|stdlog.LUTC)
 	p.mdwr = make(map[string]common.Middleware)
 
 	if !p.cfg.EnableHTTP() && !p.cfg.EnableTLS() && !p.cfg.EnableFCGI() {
@@ -111,7 +108,7 @@ func (p *Plugin) Init(cfg common.Configurer, rrLogger common.Logger, srv common.
 	// initialize statsExporter
 	p.statsExporter = newWorkersExporter(p)
 	p.server = srv
-	p.servers = make([]internalServer, 0, 4)
+	p.servers = make([]servers.InternalServer[any], 0, 4)
 	p.prop = propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}, jprop.Jaeger{})
 
 	return nil
@@ -203,7 +200,7 @@ func (p *Plugin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		r = r.WithContext(ctx)
 	}
 
-	// protect the case, when user send Reset, and we are replacing handler with pool
+	// protect the case, when user sends Reset, and we are replacing handler with pool
 	p.mu.RLock()
 	p.handler.ServeHTTP(w, r)
 	p.mu.RUnlock()
