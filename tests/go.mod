@@ -6,7 +6,7 @@ toolchain go1.21.5
 
 require (
 	github.com/goccy/go-json v0.10.2
-	github.com/quic-go/quic-go v0.40.0
+	github.com/quic-go/quic-go v0.40.1
 	github.com/roadrunner-server/config/v4 v4.6.2
 	github.com/roadrunner-server/endure/v2 v2.4.3
 	github.com/roadrunner-server/fileserver/v4 v4.1.10
@@ -20,7 +20,7 @@ require (
 	github.com/roadrunner-server/otel/v4 v4.3.7
 	github.com/roadrunner-server/resetter/v4 v4.0.16
 	github.com/roadrunner-server/rpc/v4 v4.2.10
-	github.com/roadrunner-server/sdk/v4 v4.5.3
+	github.com/roadrunner-server/sdk/v4 v4.5.4
 	github.com/roadrunner-server/send/v4 v4.2.10
 	github.com/roadrunner-server/server/v4 v4.5.2
 	github.com/roadrunner-server/static/v4 v4.1.10
@@ -53,8 +53,8 @@ require (
 	github.com/gogo/status v1.1.1 // indirect
 	github.com/golang/mock v1.7.0-rc.1 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
-	github.com/google/pprof v0.0.0-20231205033806-a5a03c77bf08 // indirect
-	github.com/google/uuid v1.4.0 // indirect
+	github.com/google/pprof v0.0.0-20231212022811-ec68065c825e // indirect
+	github.com/google/uuid v1.5.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.18.1 // indirect
@@ -132,7 +132,7 @@ require (
 	golang.org/x/sys v0.15.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.4.0 // indirect
-	golang.org/x/tools v0.16.0 // indirect
+	golang.org/x/tools v0.16.1 // indirect
 	google.golang.org/genproto v0.0.0-20231120223509-83a465c0220f // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20231120223509-83a465c0220f // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20231120223509-83a465c0220f // indirect
