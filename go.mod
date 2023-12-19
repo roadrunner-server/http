@@ -2,7 +2,7 @@ module github.com/roadrunner-server/http/v4
 
 go 1.21
 
-toolchain go1.21.0
+toolchain go1.21.5
 
 require (
 	github.com/caddyserver/certmagic v0.20.0
@@ -49,12 +49,12 @@ require (
 	github.com/quic-go/qpack v0.4.0 // indirect
 	github.com/quic-go/qtls-go1-20 v0.4.1 // indirect
 	github.com/roadrunner-server/tcplisten v1.4.0 // indirect
-	github.com/rogpeppe/go-internal v1.11.0 // indirect
+	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/tklauser/go-sysconf v0.3.13 // indirect
 	github.com/tklauser/numcpus v0.7.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
-	github.com/zeebo/assert v1.3.0 // indirect
+	github.com/zeebo/assert v1.3.1 // indirect
 	github.com/zeebo/blake3 v0.2.3 // indirect
 	go.opentelemetry.io/otel/metric v1.21.0 // indirect
 	go.uber.org/goleak v1.3.0 // indirect
