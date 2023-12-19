@@ -11,7 +11,7 @@ require (
 	github.com/mholt/acmez v1.2.0
 	github.com/prometheus/client_golang v1.17.0
 	github.com/quic-go/quic-go v0.40.1
-	github.com/roadrunner-server/api/v4 v4.9.0
+	github.com/roadrunner-server/api/v4 v4.10.0
 	github.com/roadrunner-server/endure/v2 v2.4.3
 	github.com/roadrunner-server/errors v1.3.0
 	github.com/roadrunner-server/goridge/v3 v3.8.1
@@ -60,8 +60,8 @@ require (
 	go.uber.org/goleak v1.3.0 // indirect
 	go.uber.org/mock v0.3.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.16.0 // indirect
-	golang.org/x/exp v0.0.0-20231206192017-f3f8817b8deb // indirect
+	golang.org/x/crypto v0.17.0 // indirect
+	golang.org/x/exp v0.0.0-20231214170342-aacd6d4b4611 // indirect
 	golang.org/x/mod v0.14.0 // indirect
 	golang.org/x/sync v0.5.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
