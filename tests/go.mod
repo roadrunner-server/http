@@ -20,14 +20,14 @@ require (
 	github.com/roadrunner-server/otel/v4 v4.3.10
 	github.com/roadrunner-server/resetter/v4 v4.0.19
 	github.com/roadrunner-server/rpc/v4 v4.2.13
-	github.com/roadrunner-server/sdk/v4 v4.5.5
+	github.com/roadrunner-server/sdk/v4 v4.5.6
 	github.com/roadrunner-server/send/v4 v4.2.13
 	github.com/roadrunner-server/server/v4 v4.5.5
 	github.com/roadrunner-server/static/v4 v4.1.13
 	github.com/stretchr/testify v1.8.4
 	github.com/yookoala/gofast v0.7.0
 	go.uber.org/zap v1.26.0
-	golang.org/x/net v0.19.0
+	golang.org/x/net v0.20.0
 )
 
 replace github.com/roadrunner-server/http/v4 => ../
@@ -125,7 +125,7 @@ require (
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/mock v0.4.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.17.0 // indirect
+	golang.org/x/crypto v0.18.0 // indirect
 	golang.org/x/exp v0.0.0-20240103183307-be819d1f06fc // indirect
 	golang.org/x/mod v0.14.0 // indirect
 	golang.org/x/sync v0.6.0 // indirect
@@ -133,9 +133,9 @@ require (
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	golang.org/x/tools v0.16.1 // indirect
-	google.golang.org/genproto v0.0.0-20240102182953-50ed04b92917 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20240102182953-50ed04b92917 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240102182953-50ed04b92917 // indirect
+	google.golang.org/genproto v0.0.0-20240108191215-35c7eff3a6b1 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20240108191215-35c7eff3a6b1 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240108191215-35c7eff3a6b1 // indirect
 	google.golang.org/grpc v1.60.1 // indirect
 	google.golang.org/protobuf v1.32.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect

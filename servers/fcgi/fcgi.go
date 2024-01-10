@@ -1,7 +1,6 @@
 package fcgi
 
 import (
-	"context"
 	stderr "errors"
 	"log"
 	"net/http"
@@ -59,7 +58,7 @@ func (s *Server) Server() any {
 }
 
 func (s *Server) Stop() {
-	err := s.fcgi.Shutdown(context.Background())
+	err := s.fcgi.Close()
 	if err != nil && !stderr.Is(err, http.ErrServerClosed) {
 		s.log.Error("fcgi shutdown", zap.Error(err))
 	}

@@ -1,7 +1,6 @@
 package https
 
 import (
-	"context"
 	"crypto/tls"
 	"crypto/x509"
 	stderr "errors"
@@ -139,7 +138,7 @@ func (s *Server) Server() any {
 }
 
 func (s *Server) Stop() {
-	err := s.https.Shutdown(context.Background())
+	err := s.https.Close()
 	if err != nil && !stderr.Is(err, http.ErrServerClosed) {
 		s.log.Error("https shutdown", zap.Error(err))
 	}
