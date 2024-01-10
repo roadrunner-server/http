@@ -176,16 +176,16 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		err = h.Write(recv.Payload(), w)
 		if err != nil {
 			// send stop signal to the worker pool
-			stopCh <- struct{}{}
+			select {
+			case stopCh <- struct{}{}:
+			default:
+			}
 
-			req.Close(h.log, r)
-			h.putReq(req)
-			h.putCh(stopCh)
-			h.log.Error("write response error",
+			// we should not exit from the loop here, since after sending close signal, it should be closed from the SDK side
+			h.log.Error("write response (chunk) error",
 				zap.Time("start", start),
 				zap.Duration("elapsed", time.Since(start)),
 				zap.Error(err))
-			return
 		}
 	}
 
@@ -291,17 +291,15 @@ func (h *Handler) getPld() *payload.Payload {
 }
 
 func (h *Handler) getCh() chan struct{} {
-	ch := h.stopChPool.Get().(chan struct{})
+	return h.stopChPool.Get().(chan struct{})
+}
+
+func (h *Handler) putCh(ch chan struct{}) {
 	// just check if the chan is not empty
 	select {
 	case <-ch:
 	default:
 	}
-
-	return ch
-}
-
-func (h *Handler) putCh(ch chan struct{}) {
 	h.stopChPool.Put(ch)
 }
 

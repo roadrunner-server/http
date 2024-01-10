@@ -1,7 +1,6 @@
 package http
 
 import (
-	"context"
 	stderr "errors"
 	"log"
 	"net/http"
@@ -47,9 +46,10 @@ func NewHTTPServer(handler http.Handler, cfg *config.Config, errLog *log.Logger,
 					MaxConcurrentStreams:         cfg.HTTP2Config.MaxConcurrentStreams,
 					PermitProhibitedCipherSuites: false,
 				}),
-				ReadTimeout:       time.Minute,
-				ReadHeaderTimeout: time.Minute,
-				WriteTimeout:      time.Minute,
+				ReadTimeout:       time.Minute * 5,
+				WriteTimeout:      time.Minute * 5,
+				IdleTimeout:       time.Hour,
+				ReadHeaderTimeout: time.Minute * 5,
 				ErrorLog:          errLog,
 			},
 		}
@@ -60,6 +60,9 @@ func NewHTTPServer(handler http.Handler, cfg *config.Config, errLog *log.Logger,
 		redirectPort: redirectPort,
 		address:      cfg.Address,
 		http: &http.Server{
+			ReadTimeout:       time.Minute * 5,
+			WriteTimeout:      time.Minute * 5,
+			IdleTimeout:       time.Hour,
 			ReadHeaderTimeout: time.Minute * 5,
 			Handler:           handler,
 			ErrorLog:          errLog,
@@ -99,7 +102,7 @@ func (s *Server) Server() any {
 }
 
 func (s *Server) Stop() {
-	err := s.http.Shutdown(context.Background())
+	err := s.http.Close()
 	if err != nil && !stderr.Is(err, http.ErrServerClosed) {
 		s.log.Error("http shutdown", zap.Error(err))
 	}
