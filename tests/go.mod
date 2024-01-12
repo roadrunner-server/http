@@ -7,23 +7,23 @@ toolchain go1.22rc1
 require (
 	github.com/goccy/go-json v0.10.2
 	github.com/quic-go/quic-go v0.40.1
-	github.com/roadrunner-server/config/v4 v4.6.5
+	github.com/roadrunner-server/config/v4 v4.6.6
 	github.com/roadrunner-server/endure/v2 v2.4.3
-	github.com/roadrunner-server/fileserver/v4 v4.1.13
+	github.com/roadrunner-server/fileserver/v4 v4.1.14
 	github.com/roadrunner-server/goridge/v3 v3.8.1
-	github.com/roadrunner-server/gzip/v4 v4.1.13
-	github.com/roadrunner-server/headers/v4 v4.2.14
-	github.com/roadrunner-server/http/v4 v4.4.11
-	github.com/roadrunner-server/informer/v4 v4.3.12
-	github.com/roadrunner-server/logger/v4 v4.2.12
-	github.com/roadrunner-server/memory/v4 v4.6.12
-	github.com/roadrunner-server/otel/v4 v4.3.10
-	github.com/roadrunner-server/resetter/v4 v4.0.19
-	github.com/roadrunner-server/rpc/v4 v4.2.13
+	github.com/roadrunner-server/gzip/v4 v4.1.14
+	github.com/roadrunner-server/headers/v4 v4.2.15
+	github.com/roadrunner-server/http/v4 v4.4.12
+	github.com/roadrunner-server/informer/v4 v4.3.13
+	github.com/roadrunner-server/logger/v4 v4.2.13
+	github.com/roadrunner-server/memory/v4 v4.6.13
+	github.com/roadrunner-server/otel/v4 v4.3.11
+	github.com/roadrunner-server/resetter/v4 v4.0.20
+	github.com/roadrunner-server/rpc/v4 v4.2.14
 	github.com/roadrunner-server/sdk/v4 v4.5.6
-	github.com/roadrunner-server/send/v4 v4.2.13
-	github.com/roadrunner-server/server/v4 v4.5.5
-	github.com/roadrunner-server/static/v4 v4.1.13
+	github.com/roadrunner-server/send/v4 v4.2.14
+	github.com/roadrunner-server/server/v4 v4.5.6
+	github.com/roadrunner-server/static/v4 v4.1.14
 	github.com/stretchr/testify v1.8.4
 	github.com/yookoala/gofast v0.7.0
 	go.uber.org/zap v1.26.0
@@ -33,7 +33,7 @@ require (
 replace github.com/roadrunner-server/http/v4 => ../
 
 require (
-	github.com/andybalholm/brotli v1.0.6 // indirect
+	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/caddyserver/certmagic v0.20.0 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
@@ -71,7 +71,7 @@ require (
 	github.com/mholt/acmez v1.2.0 // indirect
 	github.com/miekg/dns v1.1.57 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
-	github.com/onsi/ginkgo/v2 v2.13.2 // indirect
+	github.com/onsi/ginkgo/v2 v2.14.0 // indirect
 	github.com/openzipkin/zipkin-go v0.4.2 // indirect
 	github.com/pborman/uuid v1.2.1 // indirect
 	github.com/pelletier/go-toml/v2 v2.1.1 // indirect
@@ -126,13 +126,13 @@ require (
 	go.uber.org/mock v0.4.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.18.0 // indirect
-	golang.org/x/exp v0.0.0-20240110193028-0dcbfd608b1e // indirect
+	golang.org/x/exp v0.0.0-20240112132812-db7319d0e0e3 // indirect
 	golang.org/x/mod v0.14.0 // indirect
 	golang.org/x/sync v0.6.0 // indirect
 	golang.org/x/sys v0.16.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
-	golang.org/x/tools v0.16.1 // indirect
+	golang.org/x/tools v0.17.0 // indirect
 	google.golang.org/genproto v0.0.0-20240108191215-35c7eff3a6b1 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240108191215-35c7eff3a6b1 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240108191215-35c7eff3a6b1 // indirect
