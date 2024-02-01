@@ -13,14 +13,14 @@ require (
 	github.com/roadrunner-server/goridge/v3 v3.8.1
 	github.com/roadrunner-server/gzip/v4 v4.1.14
 	github.com/roadrunner-server/headers/v4 v4.2.15
-	github.com/roadrunner-server/http/v4 v4.4.12
+	github.com/roadrunner-server/http/v4 v4.5.0
 	github.com/roadrunner-server/informer/v4 v4.3.13
 	github.com/roadrunner-server/logger/v4 v4.2.13
 	github.com/roadrunner-server/memory/v4 v4.6.13
 	github.com/roadrunner-server/otel/v4 v4.3.11
 	github.com/roadrunner-server/resetter/v4 v4.0.20
 	github.com/roadrunner-server/rpc/v4 v4.2.14
-	github.com/roadrunner-server/sdk/v4 v4.5.6
+	github.com/roadrunner-server/sdk/v4 v4.6.0
 	github.com/roadrunner-server/send/v4 v4.2.14
 	github.com/roadrunner-server/server/v4 v4.5.6
 	github.com/roadrunner-server/static/v4 v4.1.14
