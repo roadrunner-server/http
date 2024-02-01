@@ -121,14 +121,24 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if stderr.Is(err, errEPIPE) {
 			req.Close(h.log, r)
 			h.putReq(req)
-			h.log.Error("write response error", zap.Time("start", start), zap.Duration("elapsed", time.Since(start)), zap.Error(err))
+			h.log.Error(
+				"write response error",
+				zap.Time("start", start),
+				zap.Duration("elapsed", time.Since(start)),
+				zap.Error(err),
+			)
 			return
 		}
 
 		req.Close(h.log, r)
 		h.putReq(req)
 		http.Error(w, errors.E(op, err).Error(), 500)
-		h.log.Error("request forming error", zap.Time("start", start), zap.Duration("elapsed", time.Since(start)), zap.Error(err))
+		h.log.Error(
+			"request forming error",
+			zap.Time("start", start),
+			zap.Duration("elapsed", time.Since(start)),
+			zap.Error(err),
+		)
 		return
 	}
 
@@ -142,7 +152,12 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.putReq(req)
 		h.putPld(pld)
 		h.handleError(w, err)
-		h.log.Error("payload forming error", zap.Time("start", start), zap.Duration("elapsed", time.Since(start)), zap.Error(err))
+		h.log.Error(
+			"payload forming error",
+			zap.Time("start", start),
+			zap.Duration("elapsed", time.Since(start)),
+			zap.Error(err),
+		)
 		return
 	}
 
@@ -212,12 +227,13 @@ func (h *Handler) handleError(w http.ResponseWriter, err error) {
 		errors.Is(errors.SoftJob, err) ||
 			errors.Is(errors.WatcherStopped, err) ||
 			errors.Is(errors.WorkerAllocate, err) ||
+			errors.Is(errors.Network, err) ||
 			errors.Is(errors.ExecTTL, err) ||
 			errors.Is(errors.IdleTTL, err) ||
 			errors.Is(errors.TTL, err) ||
 			errors.Is(errors.Encode, err) ||
 			errors.Is(errors.Decode, err) ||
-			errors.Is(errors.Network, err):
+			errors.Is(errors.QueueSize, err):
 		// write an internal server error
 		w.WriteHeader(int(h.internalHTTPCode))
 

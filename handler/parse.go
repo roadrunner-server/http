@@ -61,7 +61,7 @@ func invalidMultipleValuesErr(key string) error {
 
 // mount mounts data tree recursively.
 //
-// This is written to handle this very edge case
+// This is written to handle this very-edge case
 // Assume that we have the following POST data
 //
 // _token: NM8eor1JFGRLxfaTNHanGX4en0ZMFtatdz1Muu5Z
@@ -75,9 +75,9 @@ func invalidMultipleValuesErr(key string) error {
 // id: 97b64557-19ba-49bd-bdec-783e32fbc6e8
 // _save_action: save_and_back
 //
-// If we don't ignore empty options we will lose the whole array of data in key options[x]
+// If we don't ignore empty options, we will lose the whole array of data in key options[x]
 // So we will ignore it and process the array of data in options[x] if those present in the request.
-// Same is done for fileTree data structure underneath
+// The same is done for fileTree data structure underneath
 func (dt dataTree) mount(keys, v []string) error {
 	if len(keys) == 0 {
 		return nil
@@ -91,7 +91,7 @@ func (dt dataTree) mount(keys, v []string) error {
 		return nil
 	}
 
-	// getting all elements of non associated array
+	// getting all elements of non-associated array
 	if len(keys) == 2 && keys[1] == "" {
 		dt[keys[0]] = v
 		return nil
@@ -131,7 +131,7 @@ func prepareTreeNode[T dataTree | fileTree, V []string | []*FileUpload](tree T, 
 
 	if !isBranch {
 		if !isDataInTreeEmpty {
-			// we have leaf node with value but there is incoming branch data in the input
+			// we have a leaf node with value, but there is incoming branch data in the input
 			if len(i) > 1 && len(i[1]) > 0 {
 				return true, invalidMultipleValuesErr(i[0])
 			}
@@ -150,7 +150,7 @@ func prepareTreeNode[T dataTree | fileTree, V []string | []*FileUpload](tree T, 
 	}
 
 	if isBranch && isLeafNodeIncoming {
-		// we have a branch with tree data but there is incoming value in the input
+		// we have a branch with tree data, but there is incoming value in the input
 		if !isIncomingValueEmpty {
 			return true, invalidMultipleValuesErr(i[0])
 		}
@@ -225,7 +225,7 @@ func (ft fileTree) mount(i []string, v []*FileUpload) error {
 
 	switch {
 	case len(i) == 2 && i[1] == "":
-		// non associated array of elements
+		// non-associated array of elements
 		ft[i[0]] = v
 		return nil
 	case len(i) == 1 && len(v) > 0:
