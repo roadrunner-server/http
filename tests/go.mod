@@ -30,8 +30,6 @@ require (
 	golang.org/x/net v0.20.0
 )
 
-exclude go.temporal.io/api v1.26.1
-
 replace github.com/roadrunner-server/http/v4 => ../
 
 require (
@@ -50,9 +48,7 @@ require (
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 // indirect
 	github.com/gofiber/fiber/v2 v2.52.0 // indirect
-	github.com/gogo/googleapis v1.4.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/gogo/status v1.1.1 // indirect
 	github.com/golang/mock v1.7.0-rc.1 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/pprof v0.0.0-20240130152714-0ed6a68c8d9e // indirect
@@ -119,9 +115,8 @@ require (
 	go.opentelemetry.io/otel/trace v1.22.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.1.0 // indirect
 	go.temporal.io/api v1.27.0 // indirect
-	go.temporal.io/sdk v1.25.1 // indirect
+	go.temporal.io/sdk v1.26.0-rc.2 // indirect
 	go.temporal.io/sdk/contrib/opentelemetry v0.4.0 // indirect
-	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/mock v0.4.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.18.0 // indirect
