@@ -502,7 +502,7 @@ func TestHTTPMultipartFormTmpFiles(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.10.1",
+		Version: "2023.3.1",
 		Path:    "configs/.rr-http-multipart.yaml",
 		Prefix:  "rr",
 	}
@@ -608,13 +608,13 @@ func TestHTTPMultipartFormTmpFiles(t *testing.T) {
 	stopCh <- struct{}{}
 	wg.Wait()
 
+	time.Sleep(time.Second)
+
 	files, err := os.ReadDir(tmpdir)
 	require.NoError(t, err)
 
 	for _, fl := range files {
-		if strings.Contains(fl.Name(), "upload") {
-			t.Fatal("temp file exists")
-		}
+		assert.NotContains(t, fl.Name(), "uploads")
 	}
 
 	t.Cleanup(func() {

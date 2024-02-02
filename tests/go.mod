@@ -58,7 +58,6 @@ require (
 	github.com/google/pprof v0.0.0-20240130152714-0ed6a68c8d9e // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0 // indirect
-	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.19.1 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
@@ -119,7 +118,7 @@ require (
 	go.opentelemetry.io/otel/sdk v1.22.0 // indirect
 	go.opentelemetry.io/otel/trace v1.22.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.1.0 // indirect
-	go.temporal.io/api v1.26.0 // indirect
+	go.temporal.io/api v1.27.0 // indirect
 	go.temporal.io/sdk v1.25.1 // indirect
 	go.temporal.io/sdk/contrib/opentelemetry v0.4.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect

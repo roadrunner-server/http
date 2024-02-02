@@ -93,6 +93,90 @@ func TestHttp3(t *testing.T) {
 	wg.Wait()
 }
 
+func TestBug1843(t *testing.T) {
+	cont := endure.New(slog.LevelDebug)
+
+	cfg := &config.Plugin{
+		Version:              "2023.3.0",
+		ExperimentalFeatures: true,
+		Path:                 "configs/.rr-bug1843.yaml",
+		Prefix:               "rr",
+	}
+
+	err := cont.RegisterAll(
+		cfg,
+		&rpcPlugin.Plugin{},
+		&logger.Plugin{},
+		&server.Plugin{},
+		&httpPlugin.Plugin{},
+	)
+	assert.NoError(t, err)
+
+	err = cont.Init()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ch, err := cont.Serve()
+	assert.NoError(t, err)
+
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
+
+	stopCh := make(chan struct{}, 1)
+
+	go func() {
+		defer wg.Done()
+		for {
+			select {
+			case e := <-ch:
+				assert.Fail(t, "error", e.Error.Error())
+				err = cont.Stop()
+				if err != nil {
+					assert.FailNow(t, "error", err.Error())
+				}
+			case <-sig:
+				err = cont.Stop()
+				if err != nil {
+					assert.FailNow(t, "error", err.Error())
+				}
+				return
+			case <-stopCh:
+				// timeout
+				err = cont.Stop()
+				if err != nil {
+					assert.FailNow(t, "error", err.Error())
+				}
+				return
+			}
+		}
+	}()
+
+	time.Sleep(time.Second * 1)
+
+	client := &http.Client{}
+
+	req, err := http.NewRequest(http.MethodGet, "http://127.0.0.1:16322", nil)
+	require.NoError(t, err)
+
+	r, err := client.Do(req)
+	require.NoError(t, err)
+	require.NotNil(t, r)
+
+	bd, err := io.ReadAll(r.Body)
+	require.NoError(t, err)
+
+	assert.Equal(t, int(500), r.StatusCode)
+	assert.Contains(t, string(bd), "goridge_frame_receive: validation failed on the message sent to STDOUT")
+	_ = r.Body.Close()
+
+	stopCh <- struct{}{}
+	wg.Wait()
+}
+
 func http3ResponseMatcher(t *testing.T) {
 	cert, err := tls.LoadX509KeyPair("test-certs/localhost+2-client.pem", "test-certs/localhost+2-client-key.pem")
 	require.NoError(t, err)
@@ -100,6 +184,7 @@ func http3ResponseMatcher(t *testing.T) {
 	roundTripper := &http3.RoundTripper{
 		TLSClientConfig: &tls.Config{
 			Certificates: []tls.Certificate{cert},
+			MinVersion:   tls.VersionTLS12,
 		},
 	}
 	defer func() {

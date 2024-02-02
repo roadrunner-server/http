@@ -16,3 +16,4 @@ vendor/
 **/vendor/
 .idea
 .DS_Store
+**/tests/test_certs/**
