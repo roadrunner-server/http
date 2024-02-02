@@ -17,7 +17,7 @@ jobs:
     timeout-minutes: 60
     strategy:
       matrix:
-        php: [ "8.2" ]
+        php: [ "8.3" ]
         go: [ stable ]
         os: [ "ubuntu-latest" ]
     steps:
@@ -77,6 +77,7 @@ jobs:
           mkcert -install
           mkcert localhost 127.0.0.1 ::1
           mkcert -client localhost 127.0.0.1 ::1 
+          mkdir test-certs
           cp -r localhost+2-client-key.pem localhost+2-client.pem localhost+2-key.pem localhost+2.pem test-certs/
           cp -r $(mkcert -CAROOT)/rootCA.pem test-certs/
 
