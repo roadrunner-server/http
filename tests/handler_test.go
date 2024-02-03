@@ -1460,7 +1460,7 @@ func TestHandler_Multipart_PATCH(t *testing.T) {
 	h, err := handler.NewHandler(cfg, p, testLog.ZapLogger())
 	assert.NoError(t, err)
 
-	hs := &http.Server{Addr: ":8021", Handler: h, ReadHeaderTimeout: time.Minute * 5}
+	hs := &http.Server{Addr: ":34432", Handler: h, ReadHeaderTimeout: time.Minute * 5}
 	defer func() {
 		errS := hs.Shutdown(context.Background())
 		if errS != nil {

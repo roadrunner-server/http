@@ -211,39 +211,18 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // handleError will handle internal RR errors and return 500
 func (h *Handler) handleError(w http.ResponseWriter, err error) {
-	switch {
-	case errors.Is(errors.NoFreeWorkers, err):
+	// write an internal server error
+	w.WriteHeader(int(h.internalHTTPCode))
+
+	// if there are no free workers -> write a special header
+	if errors.Is(errors.NoFreeWorkers, err) {
 		// set header for the prometheus
 		w.Header().Set(noWorkers, trueStr)
-		// write an internal server error
-		w.WriteHeader(int(h.internalHTTPCode))
+	}
 
-		if h.debugMode {
-			_, _ = fmt.Fprintln(w, err)
-		}
-		return
-	case
-		// internal error types, user should not see them
-		errors.Is(errors.SoftJob, err) ||
-			errors.Is(errors.WatcherStopped, err) ||
-			errors.Is(errors.WorkerAllocate, err) ||
-			errors.Is(errors.Network, err) ||
-			errors.Is(errors.ExecTTL, err) ||
-			errors.Is(errors.IdleTTL, err) ||
-			errors.Is(errors.TTL, err) ||
-			errors.Is(errors.Encode, err) ||
-			errors.Is(errors.Decode, err) ||
-			errors.Is(errors.QueueSize, err):
-		// write an internal server error
-		w.WriteHeader(int(h.internalHTTPCode))
-
-		if h.debugMode {
-			_, _ = fmt.Fprintln(w, err)
-		}
-	default:
-		if h.debugMode {
-			_, _ = fmt.Fprintln(w, err)
-		}
+	// in debug mode, write all output into the browser/curl/any_tool
+	if h.debugMode {
+		_, _ = fmt.Fprintln(w, err)
 	}
 }
 
