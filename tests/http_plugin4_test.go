@@ -8,9 +8,11 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
+	"runtime"
 	"sync"
 	"syscall"
 	"testing"
+	mocklogger "tests/mock"
 	"time"
 
 	"github.com/quic-go/quic-go/http3"
@@ -22,6 +24,7 @@ import (
 	"github.com/roadrunner-server/server/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 )
 
 func TestHttp3(t *testing.T) {
@@ -103,10 +106,11 @@ func TestBug1843(t *testing.T) {
 		Prefix:               "rr",
 	}
 
+	l, oLogger := mocklogger.ZapTestLogger(zap.DebugLevel)
 	err := cont.RegisterAll(
 		cfg,
 		&rpcPlugin.Plugin{},
-		&logger.Plugin{},
+		l,
 		&server.Plugin{},
 		&httpPlugin.Plugin{},
 	)
@@ -170,11 +174,16 @@ func TestBug1843(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, int(500), r.StatusCode)
-	assert.Contains(t, string(bd), "goridge_frame_receive: validation failed on the message sent to STDOUT")
+	// on darwin pipes behave different, so, we can see the error in the stdout
+	if runtime.GOOS == "darwin" {
+		assert.Contains(t, string(bd), "goridge_frame_receive: validation failed on the message sent to STDOUT")
+	}
 	_ = r.Body.Close()
 
 	stopCh <- struct{}{}
 	wg.Wait()
+
+	assert.Equal(t, 1, oLogger.FilterMessageSnippet("PHP Fatal error:  Uncaught RuntimeException").Len())
 }
 
 func http3ResponseMatcher(t *testing.T) {
