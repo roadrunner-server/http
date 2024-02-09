@@ -138,7 +138,7 @@ func (l *lm) writeLog(accessLog bool, r *http.Request, bw *wrapper, start time.T
 			zap.Int("read_bytes", bw.read),
 			zap.Int("write_bytes", bw.write),
 			zap.Time("start", start),
-			zap.Duration("elapsed", time.Since(start)))
+			zap.Int("elapsed", time.Since(start).Milliseconds()))
 	case true:
 		// external/cwe/cwe-117
 		usrA := r.UserAgent()
@@ -168,7 +168,7 @@ func (l *lm) writeLog(accessLog bool, r *http.Request, bw *wrapper, start time.T
 			zap.String("time_local", time.Now().Format("02/Jan/06:15:04:05 -0700")),
 			zap.Time("request_time", time.Now()),
 			zap.Time("start", start),
-			zap.Duration("elapsed", time.Since(start)))
+			zap.Int("elapsed", time.Since(start).Milliseconds()))
 	}
 }
 
