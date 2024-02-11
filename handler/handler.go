@@ -169,7 +169,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.putPld(pld)
 		h.putCh(stopCh)
 		h.handleError(w, err)
-		h.log.Error("execute", zap.Time("start", start), zap.Int("elapsed", time.Since(start).Milliseconds()), zap.Error(err))
+		h.log.Error("execute", zap.Time("start", start), zap.Int64("elapsed", time.Since(start).Milliseconds()), zap.Error(err))
 		return
 	}
 	// return payload to the pool
