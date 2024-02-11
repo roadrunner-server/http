@@ -168,7 +168,7 @@ func (l *lm) writeLog(accessLog bool, r *http.Request, bw *wrapper, start time.T
 			zap.String("time_local", time.Now().Format("02/Jan/06:15:04:05 -0700")),
 			zap.Time("request_time", time.Now()),
 			zap.Time("start", start),
-			zap.Int("elapsed", time.Since(start).Milliseconds()))
+			zap.Int64("elapsed", time.Since(start).Milliseconds()))
 	}
 }
 
