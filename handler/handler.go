@@ -199,7 +199,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			// we should not exit from the loop here, since after sending close signal, it should be closed from the SDK side
 			h.log.Error("write response (chunk) error",
 				zap.Time("start", start),
-				zap.Int("elapsed", time.Since(start).Milliseconds()),
+				zap.Int64("elapsed", time.Since(start).Milliseconds()),
 				zap.Error(err))
 		}
 	}
