@@ -124,7 +124,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			h.log.Error(
 				"write response error",
 				zap.Time("start", start),
-				zap.Int("elapsed", time.Since(start).Milliseconds()),
+				zap.Int64("elapsed", time.Since(start).Milliseconds()),
 				zap.Error(err),
 			)
 			return
