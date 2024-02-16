@@ -1,0 +1,20 @@
+version: '3'
+
+rpc:
+  listen: tcp://127.0.0.1:6001
+
+server:
+  command: "php php_test_files/bug1843.php"
+  relay: "pipes"
+  relay_timeout: "20s"
+
+http:
+  address: 127.0.0.1:16322
+  max_request_size: 1024
+  pool:
+    num_workers: 1
+    debug: true
+
+logs:
+  mode: development
+  level: debug

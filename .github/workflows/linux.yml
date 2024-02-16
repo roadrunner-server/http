@@ -17,7 +17,7 @@ jobs:
     timeout-minutes: 60
     strategy:
       matrix:
-        php: [ "8.2" ]
+        php: [ "8.3" ]
         go: [ stable ]
         os: [ "ubuntu-latest" ]
     steps:
@@ -65,6 +65,10 @@ jobs:
       - name: Install Go dependencies
         run: go mod download
 
+      - name: Run HTTP unit tests with coverage
+        run: |
+          go test -timeout 20m -v -race -cover -tags=debug -failfast -coverpkg=$(cat ./tests/pkgs.txt) -coverprofile=./tests/coverage-ci/httpu.out -covermode=atomic ./handler
+
       - name: Run golang tests with coverage
         run: |
           cd tests
@@ -77,17 +81,15 @@ jobs:
           mkcert -install
           mkcert localhost 127.0.0.1 ::1
           mkcert -client localhost 127.0.0.1 ::1 
+          mkdir test-certs
           cp -r localhost+2-client-key.pem localhost+2-client.pem localhost+2-key.pem localhost+2.pem test-certs/
           cp -r $(mkcert -CAROOT)/rootCA.pem test-certs/
 
           docker-compose -f env/docker-compose-otel.yaml up -d
           sleep 30
-          go test -timeout 20m -v -race -cover -tags=debug -failfast -coverpkg=$(cat pkgs.txt) -coverprofile=./coverage-ci/http.out -covermode=atomic ./...
-          docker compose -f env/docker-compose-otel.yaml down
+          go test -timeout 20m -v -race -cover -tags=debug -failfast -coverpkg=$(cat pkgs.txt) -coverprofile=./coverage-ci/http.out -covermode=atomic attributes_test.go handler_test.go http_otlp_test.go http_plugin2_test.go http_plugin3_test.go http_plugin4_test.go http_plugin_test.go uploads_test.go
 
-      - name: Run HTTP unit tests with coverage
-        run: |
-          go test -timeout 20m -v -race -cover -tags=debug -failfast -coverpkg=$(cat ./tests/pkgs.txt) -coverprofile=./tests/coverage-ci/httpu.out -covermode=atomic ./...
+          docker compose -f env/docker-compose-otel.yaml down
 
       - name: Archive code coverage results
         uses: actions/upload-artifact@v3

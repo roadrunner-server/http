@@ -18,7 +18,7 @@ const (
 
 func IssueCertificates(cacheDir, email, challengeType string, domains []string, useProduction bool, altHTTPPort, altTLSAlpnPort int, log *zap.Logger) (*tls.Config, error) {
 	cache := certmagic.NewCache(certmagic.CacheOptions{
-		GetConfigForCert: func(c certmagic.Certificate) (*certmagic.Config, error) {
+		GetConfigForCert: func(_ certmagic.Certificate) (*certmagic.Config, error) {
 			return &certmagic.Config{
 				RenewalWindowRatio: 0,
 				MustStaple:         false,
