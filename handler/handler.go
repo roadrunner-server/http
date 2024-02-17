@@ -124,7 +124,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			h.log.Error(
 				"write response error",
 				zap.Time("start", start),
-				zap.Duration("elapsed", time.Since(start)),
+				zap.Int64("elapsed", time.Since(start).Milliseconds()),
 				zap.Error(err),
 			)
 			return
@@ -136,7 +136,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.log.Error(
 			"request forming error",
 			zap.Time("start", start),
-			zap.Duration("elapsed", time.Since(start)),
+			zap.Int64("elapsed", time.Since(start).Milliseconds()),
 			zap.Error(err),
 		)
 		return
@@ -155,7 +155,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.log.Error(
 			"payload forming error",
 			zap.Time("start", start),
-			zap.Duration("elapsed", time.Since(start)),
+			zap.Int64("elapsed", time.Since(start).Milliseconds()),
 			zap.Error(err),
 		)
 		return
@@ -169,7 +169,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.putPld(pld)
 		h.putCh(stopCh)
 		h.handleError(w, err)
-		h.log.Error("execute", zap.Time("start", start), zap.Duration("elapsed", time.Since(start)), zap.Error(err))
+		h.log.Error("execute", zap.Time("start", start), zap.Int64("elapsed", time.Since(start).Milliseconds()), zap.Error(err))
 		return
 	}
 	// return payload to the pool
@@ -183,7 +183,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(int(h.internalHTTPCode))
 			h.log.Error("read stream",
 				zap.Time("start", start),
-				zap.Duration("elapsed", time.Since(start)),
+				zap.Int64("elapsed", time.Since(start).Milliseconds()),
 				zap.Error(recv.Error()))
 			return
 		}
@@ -199,7 +199,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			// we should not exit from the loop here, since after sending close signal, it should be closed from the SDK side
 			h.log.Error("write response (chunk) error",
 				zap.Time("start", start),
-				zap.Duration("elapsed", time.Since(start)),
+				zap.Int64("elapsed", time.Since(start).Milliseconds()),
 				zap.Error(err))
 		}
 	}
