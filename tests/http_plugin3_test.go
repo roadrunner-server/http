@@ -421,7 +421,7 @@ func TestHTTPNonExistingHTTPCode(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.9.2",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-http-code.yaml",
 		Prefix:  "rr",
 	}
@@ -627,7 +627,7 @@ func TestMTLS1(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.10.1",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-mtls1.yaml",
 		Prefix:  "rr",
 	}
@@ -724,7 +724,7 @@ func TestMTLS2(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.10.1",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-mtls2.yaml",
 		Prefix:  "rr",
 	}
@@ -817,7 +817,7 @@ func TestMTLS3(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.10.1",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-mtls3.yaml",
 		Prefix:  "rr",
 	}
@@ -910,7 +910,7 @@ func TestMTLS4(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.10.1",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-mtls4.yaml",
 		Prefix:  "rr",
 	}
@@ -1003,7 +1003,7 @@ func TestMTLS5(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.10.1",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-mtls1.yaml",
 		Prefix:  "rr",
 	}
@@ -1084,7 +1084,7 @@ func TestHTTPBigURLEncoded(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.10.5",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-http-urlencoded1.yaml",
 		Prefix:  "rr",
 	}
@@ -1170,7 +1170,7 @@ func TestHTTPBigURLEncoded2(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.10.5",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-http-urlencoded2.yaml",
 		Prefix:  "rr",
 	}
@@ -1257,7 +1257,7 @@ func TestHTTPBigURLEncoded3(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.10.5",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-http-urlencoded3.yaml",
 		Prefix:  "rr",
 	}

@@ -49,7 +49,7 @@ func TestHTTPInit(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.9.0",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-http-init.yaml",
 		Prefix:  "rr",
 	}
@@ -105,7 +105,7 @@ func TestHTTPInit(t *testing.T) {
 		}
 	}()
 
-	time.Sleep(time.Second * 2)
+	time.Sleep(time.Second * 200)
 	stopCh <- struct{}{}
 	wg.Wait()
 }
@@ -114,7 +114,7 @@ func TestHTTPAccessLogs(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.9.0",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-http-access-logs.yaml",
 		Prefix:  "rr",
 	}
@@ -198,7 +198,7 @@ func TestHTTPXSendFile(t *testing.T) {
 	cont := endure.New(slog.LevelDebug, endure.GracefulShutdownTimeout(time.Minute))
 
 	cfg := &config.Plugin{
-		Version: "2.12.2",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-http-sendfile.yaml",
 		Prefix:  "rr",
 	}
@@ -289,7 +289,7 @@ func TestHTTPNoConfigSection(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.9.0",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-no-http.yaml",
 		Prefix:  "rr",
 	}
@@ -353,7 +353,7 @@ func TestHTTPInformerReset(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.9.0",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-resetter.yaml",
 		Prefix:  "rr",
 	}
@@ -428,7 +428,7 @@ func TestSSL(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.9.0",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-ssl.yaml",
 		Prefix:  "rr",
 	}
@@ -589,7 +589,7 @@ func TestSSLRedirect(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.9.0",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-ssl-redirect.yaml",
 		Prefix:  "rr",
 	}
@@ -691,7 +691,7 @@ func TestSSLPushPipes(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.9.0",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-ssl-push.yaml",
 		Prefix:  "rr",
 	}
@@ -794,7 +794,7 @@ func TestFastCGI_Echo(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.9.0",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-fcgi.yaml",
 		Prefix:  "rr",
 	}
@@ -880,7 +880,7 @@ func TestFastCGI_EchoUnix(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.9.0",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-fcgi-unix.yaml",
 		Prefix:  "rr",
 	}
@@ -970,7 +970,7 @@ func TestFastCGI_RequestUri(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.9.0",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-fcgi-reqUri.yaml",
 		Prefix:  "rr",
 	}
@@ -1056,7 +1056,7 @@ func TestHTTP2Req(t *testing.T) {
 	cont := endure.New(slog.LevelDebug, endure.GracefulShutdownTimeout(time.Second*5))
 
 	cfg := &config.Plugin{
-		Version: "2.9.0",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-h2-ssl.yaml",
 		Prefix:  "rr",
 	}
@@ -1156,7 +1156,7 @@ func TestH2CUpgrade(t *testing.T) {
 	cont := endure.New(slog.LevelDebug, endure.GracefulShutdownTimeout(time.Second*5))
 
 	cfg := &config.Plugin{
-		Version: "2.9.0",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-h2c.yaml",
 		Prefix:  "rr",
 	}
@@ -1248,7 +1248,7 @@ func TestH2C(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.9.0",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-h2c.yaml",
 		Prefix:  "rr",
 	}
@@ -1310,7 +1310,7 @@ func TestH2C(t *testing.T) {
 
 	tr := &http2.Transport{
 		AllowHTTP: true,
-		DialTLSContext: func(ctx context.Context, network, addr string, cfg *tls.Config) (net.Conn, error) {
+		DialTLSContext: func(_ context.Context, network, addr string, _ *tls.Config) (net.Conn, error) {
 			// use the http dial (w/o tls)
 			return net.Dial(network, addr)
 		},
@@ -1344,7 +1344,7 @@ func TestHttpMiddleware(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.9.0",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-http.yaml",
 		Prefix:  "rr",
 	}
@@ -1474,7 +1474,7 @@ logs:
 `
 
 	cfg := &config.Plugin{
-		Version:   "2.9.0",
+		Version:   "2023.3.5",
 		Type:      "yaml",
 		ReadInCfg: []byte(rIn),
 	}
@@ -1561,7 +1561,7 @@ func TestHttpBrokenPipes(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.9.0",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-broken-pipes.yaml",
 		Prefix:  "rr",
 		Type:    "yaml",
@@ -1589,7 +1589,7 @@ func TestHTTPSupervisedPool(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.9.0",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-http-supervised-pool.yaml",
 		Prefix:  "rr",
 	}
@@ -1722,7 +1722,7 @@ func TestHTTPBigRequestSize(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.9.0",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-big-req-size.yaml",
 		Prefix:  "rr",
 		Type:    "yaml",
@@ -1809,7 +1809,7 @@ func TestStaticEtagPlugin(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.9.0",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-http-static.yaml",
 		Prefix:  "rr",
 	}
@@ -1920,7 +1920,7 @@ func TestStaticPluginSecurity(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.9.0",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-http-static-security.yaml",
 		Prefix:  "rr",
 	}
@@ -2142,7 +2142,7 @@ func TestStaticPlugin(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.9.0",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-http-static.yaml",
 		Prefix:  "rr",
 	}
@@ -2262,7 +2262,7 @@ func TestStaticDisabled_Error(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.9.0",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-http-static-disabled.yaml",
 		Prefix:  "rr",
 	}
@@ -2283,7 +2283,7 @@ func TestStaticFilesDisabled(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.9.0",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-http-static-files-disable.yaml",
 		Prefix:  "rr",
 	}
@@ -2361,7 +2361,7 @@ func TestStaticFilesForbid(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.9.0",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-http-static-files.yaml",
 		Prefix:  "rr",
 	}
@@ -2462,7 +2462,7 @@ func TestHTTPIssue659(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.9.0",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-issue659.yaml",
 		Prefix:  "rr",
 	}
@@ -2531,7 +2531,7 @@ func TestHTTPIPv6Long(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.9.0",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-http-ipv6.yaml",
 		Prefix:  "rr",
 	}
@@ -2600,7 +2600,7 @@ func TestHTTPIPv6Short(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.9.0",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-http-ipv6-2.yaml",
 		Prefix:  "rr",
 	}
