@@ -11,6 +11,7 @@ import (
 
 	"github.com/roadrunner-server/http/v4/common"
 
+	httpV1Beta "github.com/roadrunner-server/api/v4/build/http/v1beta"
 	"github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/goridge/v3/pkg/frame"
 	"github.com/roadrunner-server/http/v4/attributes"
@@ -49,10 +50,11 @@ type Handler struct {
 	gid int
 
 	// internal
-	reqPool    sync.Pool
-	respPool   sync.Pool
-	pldPool    sync.Pool
-	stopChPool sync.Pool
+	reqPool       sync.Pool
+	respPool      sync.Pool
+	protoRespPool sync.Pool
+	pldPool       sync.Pool
+	stopChPool    sync.Pool
 }
 
 // NewHandler return handle interface implementation
@@ -85,6 +87,14 @@ func NewHandler(cfg *config.Config, pool common.Pool, log *zap.Logger) (*Handler
 					Attributes: make(map[string][]string),
 					Cookies:    make(map[string]string),
 					body:       nil,
+				}
+			},
+		},
+		protoRespPool: sync.Pool{
+			New: func() any {
+				return &httpV1Beta.Response{
+					Headers: make(map[string]*httpV1Beta.HeaderValue),
+					Status:  -1,
 				}
 			},
 		},
@@ -261,6 +271,16 @@ func (h *Handler) getReq(r *http.Request) *Request {
 	req.Parsed = false
 	req.body = nil
 	return req
+}
+
+func (h *Handler) putProtoRsp(rsp *httpV1Beta.Response) {
+	rsp.Headers = nil
+	rsp.Status = -1
+	h.protoRespPool.Put(rsp)
+}
+
+func (h *Handler) getProtoRsp() *httpV1Beta.Response {
+	return h.protoRespPool.Get().(*httpV1Beta.Response)
 }
 
 func (h *Handler) putRsp(rsp *Response) {
