@@ -3,6 +3,7 @@ package tests
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"crypto/rand"
 	"crypto/tls"
 	"fmt"
@@ -969,7 +970,7 @@ func TestMTLS4(t *testing.T) {
 
 	time.Sleep(time.Second * 1)
 
-	req, err := http.NewRequest("GET", "https://127.0.0.1:8898?hello=world", nil)
+	req, err := http.NewRequest(http.MethodGet, "https://127.0.0.1:8898?hello=world", nil)
 	assert.NoError(t, err)
 
 	cert, err := tls.LoadX509KeyPair("test-certs/localhost+2-client.pem", "test-certs/localhost+2-client-key.pem")
@@ -1152,7 +1153,11 @@ func TestHTTPBigURLEncoded(t *testing.T) {
 
 	form.Add("foo", string(buf))
 
-	resp, err := http.PostForm("http://127.0.0.1:55777", form)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, "http://127.0.0.1:55777", strings.NewReader(form.Encode()))
+	require.NoError(t, err)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	assert.NoError(t, err)
 	_, _ = io.ReadAll(resp.Body)
 
@@ -1239,7 +1244,11 @@ func TestHTTPBigURLEncoded2(t *testing.T) {
 	// after encode will be ~28mb
 	form.Add("foo", string(buf))
 
-	resp, err := http.PostForm("http://127.0.0.1:55778", form)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, "http://127.0.0.1:55778", strings.NewReader(form.Encode()))
+	require.NoError(t, err)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	assert.NoError(t, err)
 	_, _ = io.ReadAll(resp.Body)
 
@@ -1325,8 +1334,13 @@ func TestHTTPBigURLEncoded3(t *testing.T) {
 
 	form.Add("foo", string(buf))
 
-	resp, err := http.PostForm("http://127.0.0.1:55779", form)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, "http://127.0.0.1:55779", strings.NewReader(form.Encode()))
+	require.NoError(t, err)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	assert.NoError(t, err)
+
 	_, _ = io.ReadAll(resp.Body)
 
 	require.Equal(t, http.StatusOK, resp.StatusCode)

@@ -8,10 +8,11 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/goccy/go-json"
+	httpV1Beta "github.com/roadrunner-server/api/v4/build/http/v1beta"
 	"github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/sdk/v4/payload"
 	"go.uber.org/zap"
+	"google.golang.org/protobuf/proto"
 )
 
 const (
@@ -43,7 +44,7 @@ type Request struct {
 	// Uploads contain a list of uploaded files, their names, sized and associations with temporary files.
 	Uploads *Uploads `json:"uploads"`
 	// Attributes can be set by chained mdwr to safely pass value from Golang to PHP. See: GetAttribute, SetAttribute functions.
-	Attributes map[string]any `json:"attributes"`
+	Attributes map[string][]string `json:"attributes"`
 	// request body can be parsedData or []byte
 	body any
 }
@@ -88,6 +89,16 @@ func request(r *http.Request, req *Request, uid, gid int, sendRawBody bool) erro
 		return nil
 
 	case contentMultipart:
+		if sendRawBody {
+			var err error
+			req.body, err = io.ReadAll(r.Body)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		}
+
 		err := r.ParseMultipartForm(defaultMaxMemory)
 		if err != nil {
 			return err
@@ -106,17 +117,12 @@ func request(r *http.Request, req *Request, uid, gid int, sendRawBody bool) erro
 		req.Parsed = true
 	case contentURLEncoded:
 		if sendRawBody {
-			b, err := io.ReadAll(r.Body)
+			var err error
+			req.body, err = io.ReadAll(r.Body)
 			if err != nil {
 				return err
 			}
 
-			data, err := url.QueryUnescape(bytesToStr(b))
-			if err != nil {
-				return err
-			}
-
-			req.body = strToBytes(data)
 			return nil
 		}
 
@@ -161,10 +167,23 @@ func (r *Request) Close(log *zap.Logger, hr *http.Request) {
 func (r *Request) Payload(p *payload.Payload, sendRawBody bool) error {
 	const op = errors.Op("marshal_payload")
 
+	req := &httpV1Beta.Request{
+		RemoteAddr: r.RemoteAddr,
+		Protocol:   r.Protocol,
+		Method:     r.Method,
+		Uri:        r.URI,
+		Header:     convert(r.Header),
+		Cookies:    convertCookies(r.Cookies),
+		RawQuery:   r.RawQuery,
+		Parsed:     r.Parsed,
+		Uploads:    convertUploads(r.Uploads),
+		Attributes: convert(r.Attributes),
+	}
+
 	var err error
-	p.Context, err = json.MarshalWithOption(r, json.UnorderedMap())
+	p.Context, err = proto.Marshal(req)
 	if err != nil {
-		return err
+		return errors.E(op, err)
 	}
 
 	// if user wanted to get a raw body, just send it
@@ -175,14 +194,18 @@ func (r *Request) Payload(p *payload.Payload, sendRawBody bool) error {
 
 	// check if body was already parsed
 	if r.Parsed {
-		p.Body, err = json.MarshalWithOption(r.body, json.UnorderedMap())
+		bd := &httpV1Beta.Body{
+			Body: r.body.([]byte),
+		}
+		p.Body, err = proto.Marshal(bd)
 		if err != nil {
-			return errors.E(op, errors.Encode, err)
+			return errors.E(op, err)
 		}
 
 		return nil
 	}
 
+	// assume raw
 	if r.body != nil {
 		p.Body = r.body.([]byte)
 	}

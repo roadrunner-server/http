@@ -82,7 +82,7 @@ func NewHandler(cfg *config.Config, pool common.Pool, log *zap.Logger) (*Handler
 		reqPool: sync.Pool{
 			New: func() any {
 				return &Request{
-					Attributes: make(map[string]any),
+					Attributes: make(map[string][]string),
 					Cookies:    make(map[string]string),
 					body:       nil,
 				}
@@ -101,7 +101,7 @@ func NewHandler(cfg *config.Config, pool common.Pool, log *zap.Logger) (*Handler
 				return &payload.Payload{
 					Body:    make([]byte, 0, 100),
 					Context: make([]byte, 0, 100),
-					Codec:   frame.CodecJSON,
+					Codec:   frame.CodecProto,
 				}
 			},
 		},
@@ -281,7 +281,7 @@ func (h *Handler) putPld(pld *payload.Payload) {
 
 func (h *Handler) getPld() *payload.Payload {
 	pld := h.pldPool.Get().(*payload.Payload)
-	pld.Codec = frame.CodecJSON
+	pld.Codec = frame.CodecProto
 	return pld
 }
 

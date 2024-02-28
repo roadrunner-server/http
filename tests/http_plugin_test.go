@@ -667,7 +667,7 @@ func sslRedirect(t *testing.T) {
 		},
 	}
 
-	req, err := http.NewRequest("GET", "http://127.0.0.1:8087?hello=world", nil)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "http://127.0.0.1:8087?hello=world", nil)
 	assert.NoError(t, err)
 
 	r, err := client.Do(req)
@@ -767,7 +767,7 @@ func sslPush(t *testing.T) {
 		},
 	}
 
-	req, err := http.NewRequest("GET", "https://127.0.0.1:8894?hello=world", nil)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "https://127.0.0.1:8894?hello=world", nil)
 	assert.NoError(t, err)
 
 	r, err := client.Do(req)
@@ -1215,16 +1215,17 @@ func TestH2CUpgrade(t *testing.T) {
 	}()
 
 	time.Sleep(time.Second * 1)
+	client := &http.Client{}
 
-	req, err := http.NewRequest("PRI", "http://127.0.0.1:8083", nil)
-	require.NoError(t, err)
+	req, err := http.NewRequestWithContext(context.Background(), "PRI", "http://127.0.0.1:8083", nil)
+	assert.NoError(t, err)
 
 	req.Header.Add("Upgrade", "h2c")
 	req.Header.Add("Connection", "HTTP2-Settings")
 	req.Header.Add("Connection", "Upgrade")
 	req.Header.Add("HTTP2-Settings", "AAMAAABkAARAAAAAAAIAAAAA")
 
-	r, err := http.DefaultClient.Do(req)
+	r, err := client.Do(req)
 	require.NoError(t, err)
 
 	assert.Equal(t, "101 Switching Protocols", r.Status)
@@ -1232,7 +1233,10 @@ func TestH2CUpgrade(t *testing.T) {
 
 	assert.Equal(t, http.StatusSwitchingProtocols, r.StatusCode)
 
-	resp, err := http.Get("http://127.0.0.1:8083?hello=world")
+	req, err = http.NewRequestWithContext(context.Background(), http.MethodGet, "http://127.0.0.1:8083?hello=world", nil)
+	assert.NoError(t, err)
+
+	resp, err := client.Do(req)
 	require.NoError(t, err)
 	require.Equal(t, 1, resp.ProtoMajor)
 	_ = resp.Body.Close()
@@ -1909,8 +1913,8 @@ func noStaticHeaders(t *testing.T) {
 	// OK 200 response
 	_, r, err := helpers.Get("http://127.0.0.1:21603")
 	assert.NoError(t, err)
-	assert.NotContains(t, r.Header["input"], "custom-header")  //nolint:staticcheck
-	assert.NotContains(t, r.Header["output"], "output-header") //nolint:staticcheck
+	assert.NotContains(t, r.Header["Input"], "custom-header")
+	assert.NotContains(t, r.Header["Output"], "output-header")
 	assert.Equal(t, r.StatusCode, http.StatusOK)
 
 	_ = r.Body.Close()

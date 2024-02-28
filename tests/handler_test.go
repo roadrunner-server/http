@@ -355,13 +355,14 @@ func TestHandler_Cookies(t *testing.T) {
 	}()
 	time.Sleep(time.Millisecond * 10)
 
-	req, err := http.NewRequest("GET", "http://127.0.0.1:8079", nil)
+	client := &http.Client{}
+	req, err := http.NewRequest(http.MethodGet, "http://127.0.0.1:8079", nil)
 	assert.NoError(t, err)
-
 	req.AddCookie(&http.Cookie{Name: "input", Value: "input-value"})
 
-	r, err := http.DefaultClient.Do(req)
+	r, err := client.Do(req)
 	assert.NoError(t, err)
+
 	defer func() {
 		err = r.Body.Close()
 		if err != nil {
@@ -432,7 +433,7 @@ func TestHandler_JsonPayload_POST(t *testing.T) {
 
 	req, err := http.NewRequest(
 		"POST",
-		"http://127.0.0.1"+hs.Addr,
+		"http://127.0.0.1"+hs.Addr, //nolint:goconst
 		bytes.NewBufferString(`{"key":"value"}`),
 	)
 	assert.NoError(t, err)
@@ -1531,13 +1532,14 @@ func TestHandler_Multipart_PATCH(t *testing.T) {
 		t.Errorf("error closing the writer: error %v", err)
 	}
 
-	req, err := http.NewRequest("PATCH", "http://127.0.0.1"+hs.Addr, &mb)
+	client := &http.Client{}
+	req, err := http.NewRequest(http.MethodPatch, "http://127.0.0.1"+hs.Addr, &mb)
 	assert.NoError(t, err)
-
 	req.Header.Set("Content-Type", w.FormDataContentType())
 
-	r, err := http.DefaultClient.Do(req)
+	r, err := client.Do(req)
 	assert.NoError(t, err)
+
 	defer func() {
 		err = r.Body.Close()
 		if err != nil {
@@ -1941,11 +1943,14 @@ func BenchmarkHandler_Listen_Echo(b *testing.B) {
 	b.ResetTimer()
 	b.ReportAllocs()
 	bb := "WORLD"
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "http://127.0.0.1:8188/?hello=world", nil)
+	require.NoError(b, err)
+	client := &http.Client{}
+
 	for n := 0; n < b.N; n++ {
-		r, err := http.Get("http://127.0.0.1:8188/?hello=world")
-		if err != nil {
-			b.Fail()
-		}
+		r, err := client.Do(req)
+		require.NoError(b, err)
 		// Response might be nil here
 		if r != nil {
 			br, err := io.ReadAll(r.Body)

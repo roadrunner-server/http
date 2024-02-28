@@ -18,7 +18,7 @@ func (v attrs) get(key string) any {
 	return v[key]
 }
 
-func (v attrs) set(key string, value any) {
+func (v attrs) set(key string, value string) {
 	v[key] = value
 }
 
@@ -32,17 +32,23 @@ func Init(r *http.Request) *http.Request {
 	if val := r.Context().Value(utils.PsrContextKey); val == nil {
 		return r.WithContext(context.WithValue(r.Context(), utils.PsrContextKey, attrs{}))
 	}
+
 	return r
 }
 
 // All returns all context attributes.
-func All(r *http.Request) map[string]any {
+func All(r *http.Request) map[string][]string {
 	v := r.Context().Value(utils.PsrContextKey)
 	if v == nil {
-		return attrs{}
+		return nil
 	}
 
-	return v.(attrs)
+	switch t := v.(type) {
+	case map[string][]string:
+		return t
+	default:
+		return nil
+	}
 }
 
 // Get gets the value from request context. It replaces any existing
@@ -58,7 +64,7 @@ func Get(r *http.Request, key string) any {
 
 // Set sets the key to value. It replaces any existing
 // values. Context specific.
-func Set(r *http.Request, key string, value any) error {
+func Set(r *http.Request, key string, value string) error {
 	v := r.Context().Value(utils.PsrContextKey)
 	if v == nil {
 		return errors.New("unable to find `psr:attributes` context key")
