@@ -14,7 +14,7 @@ require (
 	github.com/roadrunner-server/errors v1.4.0
 	github.com/roadrunner-server/goridge/v3 v3.8.1
 	github.com/roadrunner-server/sdk/v4 v4.6.0
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.49.0
 	go.opentelemetry.io/contrib/propagators/jaeger v1.24.0
 	go.opentelemetry.io/otel v1.24.0
