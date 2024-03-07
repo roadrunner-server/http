@@ -51,7 +51,6 @@ type Handler struct {
 
 	// internal
 	reqPool       sync.Pool
-	respPool      sync.Pool
 	protoRespPool sync.Pool
 	pldPool       sync.Pool
 	stopChPool    sync.Pool
@@ -94,14 +93,6 @@ func NewHandler(cfg *config.Config, pool common.Pool, log *zap.Logger) (*Handler
 			New: func() any {
 				return &httpV1Beta.Response{
 					Headers: make(map[string]*httpV1Beta.HeaderValue),
-					Status:  -1,
-				}
-			},
-		},
-		respPool: sync.Pool{
-			New: func() any {
-				return &Response{
-					Headers: make(map[string][]string),
 					Status:  -1,
 				}
 			},
@@ -281,16 +272,6 @@ func (h *Handler) putProtoRsp(rsp *httpV1Beta.Response) {
 
 func (h *Handler) getProtoRsp() *httpV1Beta.Response {
 	return h.protoRespPool.Get().(*httpV1Beta.Response)
-}
-
-func (h *Handler) putRsp(rsp *Response) {
-	rsp.Headers = nil
-	rsp.Status = -1
-	h.respPool.Put(rsp)
-}
-
-func (h *Handler) getRsp() *Response {
-	return h.respPool.Get().(*Response)
 }
 
 func (h *Handler) putPld(pld *payload.Payload) {

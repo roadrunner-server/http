@@ -15,6 +15,9 @@ func convert(headers map[string][]string) map[string]*httpV1Beta.HeaderValue {
 	resp := make(map[string]*httpV1Beta.HeaderValue)
 
 	for k, v := range headers {
+		if resp[k] == nil {
+			resp[k] = &httpV1Beta.HeaderValue{}
+		}
 		resp[k].Value = append(resp[k].Value, v...)
 	}
 
@@ -29,6 +32,9 @@ func convertCookies(headers map[string]string) map[string]*httpV1Beta.HeaderValu
 	resp := make(map[string]*httpV1Beta.HeaderValue)
 
 	for k, v := range headers {
+		if resp[k] == nil {
+			resp[k] = &httpV1Beta.HeaderValue{}
+		}
 		resp[k].Value = append(resp[k].Value, v)
 	}
 
@@ -43,6 +49,9 @@ func convertMimeHeader(headers textproto.MIMEHeader) map[string]*httpV1Beta.Head
 	resp := make(map[string]*httpV1Beta.HeaderValue)
 
 	for k, v := range headers {
+		if resp[k] == nil {
+			resp[k] = &httpV1Beta.HeaderValue{}
+		}
 		resp[k].Value = append(resp[k].Value, v...)
 	}
 
@@ -50,6 +59,9 @@ func convertMimeHeader(headers textproto.MIMEHeader) map[string]*httpV1Beta.Head
 }
 
 func convertUploads(upl *Uploads) *httpV1Beta.Uploads {
+	if upl == nil {
+		return nil
+	}
 	resp := &httpV1Beta.Uploads{}
 
 	for _, v := range upl.list {
