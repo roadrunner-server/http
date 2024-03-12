@@ -164,21 +164,8 @@ func (r *Request) Close(log *zap.Logger, hr *http.Request) {
 
 // Payload request marshaled RoadRunner payload based on PSR7 data. values encode method is JSON. Make sure to open
 // files prior to calling this method.
-func (r *Request) Payload(p *payload.Payload, sendRawBody bool) error {
+func (r *Request) Payload(p *payload.Payload, sendRawBody bool, req *httpV1Beta.Request) error {
 	const op = errors.Op("marshal_payload")
-
-	req := &httpV1Beta.Request{
-		RemoteAddr: r.RemoteAddr,
-		Protocol:   r.Protocol,
-		Method:     r.Method,
-		Uri:        r.URI,
-		Header:     convert(r.Header),
-		Cookies:    convertCookies(r.Cookies),
-		RawQuery:   r.RawQuery,
-		Parsed:     r.Parsed,
-		Uploads:    convertUploads(r.Uploads),
-		Attributes: convert(r.Attributes),
-	}
 
 	var err error
 	p.Context, err = proto.Marshal(req)
@@ -188,26 +175,58 @@ func (r *Request) Payload(p *payload.Payload, sendRawBody bool) error {
 
 	// if user wanted to get a raw body, just send it
 	if sendRawBody {
-		p.Body = r.body.([]byte)
-		return nil
+		// should always
+		switch raw := r.body.(type) {
+		case []byte:
+			err = packRaw(p, raw)
+			if err != nil {
+				return errors.E(op, err)
+			}
+
+			return nil
+		default:
+			return errors.E(op, errors.Errorf("type is not []byte: %T", raw))
+		}
 	}
 
 	// check if body was already parsed
 	if r.Parsed {
-		bd := &httpV1Beta.Body{
-			Body: r.body.([]byte),
-		}
-		p.Body, err = proto.Marshal(bd)
-		if err != nil {
-			return errors.E(op, err)
-		}
+		switch bdy := r.body.(type) {
+		case []byte:
+			err = packRaw(p, bdy)
+			if err != nil {
+				return errors.E(op, err)
+			}
 
-		return nil
+			return nil
+		case dataTree:
+			err = packDataTree(bdy, p)
+			if err != nil {
+				return errors.E(op, err)
+			}
+
+			return nil
+		default:
+			return errors.E(op, errors.Errorf("unknown body type: %T", bdy))
+		}
 	}
 
-	// assume raw
+	// assume raw, but check
 	if r.body != nil {
-		p.Body = r.body.([]byte)
+		switch t := r.body.(type) {
+		case []byte:
+			err = packRaw(p, t)
+			if err != nil {
+				return errors.E(op, err)
+			}
+		case dataTree:
+			err = packDataTree(t, p)
+			if err != nil {
+				return errors.E(op, err)
+			}
+		default:
+			return errors.Errorf("unknown body type: %T", t)
+		}
 	}
 
 	return nil
@@ -247,4 +266,61 @@ func URI(r *http.Request) string {
 	}
 
 	return fmt.Sprintf("http://%s%s", r.Host, uri)
+}
+
+func packRaw(p *payload.Payload, body []byte) error {
+	bd := &httpV1Beta.Body{
+		Data: &httpV1Beta.Body_Body{
+			Body: body,
+		},
+	}
+
+	var err error
+	p.Body, err = proto.Marshal(bd)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func packDataTree(t dataTree, p *payload.Payload) error {
+	bodyHeader := &httpV1Beta.Body_Header{
+		Header: &httpV1Beta.Header{
+			Header: make(map[string]*httpV1Beta.HeaderValue),
+		},
+	}
+
+	for k, v := range t {
+		switch t := v.(type) {
+		case string:
+			if bodyHeader.Header.Header[k] == nil {
+				bodyHeader.Header.Header[k] = &httpV1Beta.HeaderValue{
+					Value: make([]string, 0, 2),
+				}
+			}
+
+			bodyHeader.Header.Header[k].Value = append(bodyHeader.Header.Header[k].Value, t)
+		case []string:
+			if bodyHeader.Header.Header[k] == nil {
+				bodyHeader.Header.Header[k] = &httpV1Beta.HeaderValue{
+					Value: make([]string, 0, 2),
+				}
+			}
+
+			bodyHeader.Header.Header[k].Value = append(bodyHeader.Header.Header[k].Value, t...)
+		}
+	}
+
+	bd := &httpV1Beta.Body{
+		Data: bodyHeader,
+	}
+
+	var err error
+	p.Body, err = proto.Marshal(bd)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
