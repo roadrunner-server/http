@@ -45,10 +45,12 @@ func parseMultipartData(r *http.Request) (dataTree, error) {
 
 // pushes value into data tree.
 func (dt dataTree) push(k string, v []string) error {
-	keys := fetchIndexes(k)
+	keys := make([]string, 1)
+	fetchIndexes(k, &keys)
 	if len(keys) <= MaxLevel {
 		return dt.mount(keys, v)
 	}
+
 	return nil
 }
 
@@ -202,7 +204,8 @@ func parseUploads(r *http.Request, uid, gid int) (*Uploads, error) {
 
 // pushes new file upload into it's proper place.
 func (ft fileTree) push(k string, v []*FileUpload) error {
-	keys := fetchIndexes(k)
+	keys := make([]string, 1)
+	fetchIndexes(k, &keys)
 	if len(keys) <= MaxLevel {
 		return ft.mount(keys, v)
 	}
@@ -240,12 +243,11 @@ func (ft fileTree) mount(i []string, v []*FileUpload) error {
 }
 
 // fetchIndexes parses input name and splits it into separate indexes list.
-func fetchIndexes(s string) []string {
+func fetchIndexes(s string, keys *[]string) {
 	const empty = ""
 	var (
-		pos  int
-		ch   string
-		keys = make([]string, 1)
+		pos int
+		ch  string
 	)
 
 	for _, c := range s {
@@ -259,18 +261,16 @@ func fetchIndexes(s string) []string {
 			continue
 		case "]":
 			if pos == 1 {
-				keys = append(keys, empty)
+				*keys = append(*keys, empty)
 			}
 			pos = 2
 		default:
 			if pos == 1 || pos == 2 {
-				keys = append(keys, empty)
+				*keys = append(*keys, empty)
 			}
 
-			keys[len(keys)-1] += ch
+			(*keys)[len(*keys)-1] += ch
 			pos = 0
 		}
 	}
-
-	return keys
 }

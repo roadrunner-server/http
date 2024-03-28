@@ -26,8 +26,10 @@ var samples = []struct { //nolint:gochecknoglobals
 
 func Test_FetchIndexes(t *testing.T) {
 	for i := 0; i < len(samples); i++ {
-		if !same(fetchIndexes(samples[i].in), samples[i].out) {
-			t.Errorf("got %q, want %q", fetchIndexes(samples[i].in), samples[i].out)
+		keys := make([]string, 1)
+		fetchIndexes(samples[i].in, &keys)
+		if !same(keys, samples[i].out) {
+			t.Errorf("got %q, want %q", keys, samples[i].out)
 		}
 	}
 }
@@ -36,7 +38,9 @@ func BenchmarkConfig_FetchIndexes(b *testing.B) {
 	b.ReportAllocs()
 	for _, tt := range samples {
 		for n := 0; n < b.N; n++ {
-			if !same(fetchIndexes(tt.in), tt.out) {
+			keys := make([]string, 1)
+			fetchIndexes(tt.in, &keys)
+			if !same(keys, tt.out) {
 				b.Fail()
 			}
 		}

@@ -1,4 +1,4 @@
-package test_plugins //nolint: stylecheck
+package test_plugins //nolint: stylecheck,revive
 
 import (
 	"net/http"

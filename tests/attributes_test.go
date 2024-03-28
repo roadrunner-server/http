@@ -17,22 +17,20 @@ func TestAllAttributes(t *testing.T) {
 		t.Errorf("error during the Set: error %v", err)
 	}
 
-	assert.Equal(t, attributes.All(r), map[string]any{
-		"key": "value",
-	})
+	assert.Equal(t, map[string][]string{"key": {"value"}}, attributes.All(r))
 }
 
 func TestAllAttributesNone(t *testing.T) {
 	r := &http.Request{}
 	r = attributes.Init(r)
 
-	assert.Equal(t, attributes.All(r), map[string]any{})
+	assert.Equal(t, attributes.All(r), map[string][]string{})
 }
 
 func TestAllAttributesNone2(t *testing.T) {
 	r := &http.Request{}
 
-	assert.Equal(t, attributes.All(r), map[string]any{})
+	assert.Nil(t, attributes.All(r))
 }
 
 func TestGetAttribute(t *testing.T) {
@@ -43,14 +41,13 @@ func TestGetAttribute(t *testing.T) {
 	if err != nil {
 		t.Errorf("error during the Set: error %v", err)
 	}
-	assert.Equal(t, attributes.Get(r, "key"), "value")
+	assert.Equal(t, attributes.Get(r, "key"), []string{"value"})
 }
 
 func TestGetAttributeNone(t *testing.T) {
 	r := &http.Request{}
 	r = attributes.Init(r)
-
-	assert.Equal(t, attributes.Get(r, "key"), nil)
+	assert.Nil(t, attributes.Get(r, "key"))
 }
 
 func TestGetAttributeNone2(t *testing.T) {
@@ -67,7 +64,7 @@ func TestSetAttribute(t *testing.T) {
 	if err != nil {
 		t.Errorf("error during the Set: error %v", err)
 	}
-	assert.Equal(t, attributes.Get(r, "key"), "value")
+	assert.Equal(t, []string{"value"}, attributes.Get(r, "key"))
 }
 
 func TestSetAttributeNone(t *testing.T) {

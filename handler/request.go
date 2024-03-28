@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net"
@@ -8,10 +9,11 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/goccy/go-json"
+	httpV1proto "github.com/roadrunner-server/api/v4/build/http/v1"
 	"github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/sdk/v4/payload"
 	"go.uber.org/zap"
+	"google.golang.org/protobuf/proto"
 )
 
 const (
@@ -43,7 +45,7 @@ type Request struct {
 	// Uploads contain a list of uploaded files, their names, sized and associations with temporary files.
 	Uploads *Uploads `json:"uploads"`
 	// Attributes can be set by chained mdwr to safely pass value from Golang to PHP. See: GetAttribute, SetAttribute functions.
-	Attributes map[string]any `json:"attributes"`
+	Attributes map[string][]string `json:"attributes"`
 	// request body can be parsedData or []byte
 	body any
 }
@@ -88,6 +90,16 @@ func request(r *http.Request, req *Request, uid, gid int, sendRawBody bool) erro
 		return nil
 
 	case contentMultipart:
+		if sendRawBody {
+			var err error
+			req.body, err = io.ReadAll(r.Body)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		}
+
 		err := r.ParseMultipartForm(defaultMaxMemory)
 		if err != nil {
 			return err
@@ -106,17 +118,12 @@ func request(r *http.Request, req *Request, uid, gid int, sendRawBody bool) erro
 		req.Parsed = true
 	case contentURLEncoded:
 		if sendRawBody {
-			b, err := io.ReadAll(r.Body)
+			var err error
+			req.body, err = io.ReadAll(r.Body)
 			if err != nil {
 				return err
 			}
 
-			data, err := url.QueryUnescape(bytesToStr(b))
-			if err != nil {
-				return err
-			}
-
-			req.body = strToBytes(data)
 			return nil
 		}
 
@@ -158,33 +165,71 @@ func (r *Request) Close(log *zap.Logger, hr *http.Request) {
 
 // Payload request marshaled RoadRunner payload based on PSR7 data. values encode method is JSON. Make sure to open
 // files prior to calling this method.
-func (r *Request) Payload(p *payload.Payload, sendRawBody bool) error {
+func (r *Request) Payload(p *payload.Payload, sendRawBody bool, req *httpV1proto.Request) error {
 	const op = errors.Op("marshal_payload")
 
+	if r.Uploads != nil {
+		data, err := json.Marshal(r.Uploads)
+		if err != nil {
+			return errors.E(op, err)
+		}
+
+		req.Uploads = data
+	}
+
 	var err error
-	p.Context, err = json.MarshalWithOption(r, json.UnorderedMap())
+	p.Context, err = proto.Marshal(req)
 	if err != nil {
-		return err
+		return errors.E(op, err)
 	}
 
 	// if user wanted to get a raw body, just send it
 	if sendRawBody {
-		p.Body = r.body.([]byte)
-		return nil
+		// should always
+		switch raw := r.body.(type) {
+		case []byte:
+			p.Body = raw
+
+			return nil
+		default:
+			return errors.E(op, errors.Errorf("type is not []byte: %T", raw))
+		}
 	}
 
 	// check if body was already parsed
 	if r.Parsed {
-		p.Body, err = json.MarshalWithOption(r.body, json.UnorderedMap())
-		if err != nil {
-			return errors.E(op, errors.Encode, err)
-		}
+		switch bdy := r.body.(type) {
+		case []byte:
+			p.Body = bdy
 
-		return nil
+			return nil
+		case dataTree:
+			err = packDataTree(bdy, p)
+			if err != nil {
+				return errors.E(op, err)
+			}
+
+			return nil
+		default:
+			return errors.E(op, errors.Errorf("unknown body type: %T", bdy))
+		}
 	}
 
+	// assume raw, but check
 	if r.body != nil {
-		p.Body = r.body.([]byte)
+		switch t := r.body.(type) {
+		case []byte:
+			p.Body = t
+		case dataTree:
+			err = packDataTree(t, p)
+			if err != nil {
+				return errors.E(op, err)
+			}
+
+			return nil
+		default:
+			return errors.Errorf("unknown body type: %T", t)
+		}
 	}
 
 	return nil
@@ -224,4 +269,18 @@ func URI(r *http.Request) string {
 	}
 
 	return fmt.Sprintf("http://%s%s", r.Host, uri)
+}
+
+func packDataTree(t dataTree, p *payload.Payload) error {
+	if len(t) == 0 {
+		return nil
+	}
+
+	var err error
+	p.Body, err = json.Marshal(t)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
