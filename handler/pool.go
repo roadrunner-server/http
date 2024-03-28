@@ -4,15 +4,15 @@ import (
 	"net/http"
 	"strings"
 
-	httpV1Beta "github.com/roadrunner-server/api/v4/build/http/v1beta"
+	httpV1proto "github.com/roadrunner-server/api/v4/build/http/v1"
 	"github.com/roadrunner-server/goridge/v3/pkg/frame"
 	"github.com/roadrunner-server/http/v4/attributes"
 	"github.com/roadrunner-server/http/v4/config"
 	"github.com/roadrunner-server/sdk/v4/payload"
 )
 
-func (h *Handler) getProtoReq(r *Request) *httpV1Beta.Request {
-	req := h.protoReqPool.Get().(*httpV1Beta.Request)
+func (h *Handler) getProtoReq(r *Request) *httpV1proto.Request {
+	req := h.protoReqPool.Get().(*httpV1proto.Request)
 
 	req.RemoteAddr = r.RemoteAddr
 	req.Protocol = r.Protocol
@@ -22,13 +22,12 @@ func (h *Handler) getProtoReq(r *Request) *httpV1Beta.Request {
 	req.Cookies = convertCookies(r.Cookies)
 	req.RawQuery = r.RawQuery
 	req.Parsed = r.Parsed
-	req.Uploads = convertUploads(r.Uploads)
 	req.Attributes = convert(r.Attributes)
 
 	return req
 }
 
-func (h *Handler) putProtoReq(req *httpV1Beta.Request) {
+func (h *Handler) putProtoReq(req *httpV1proto.Request) {
 	req.RemoteAddr = ""
 	req.Protocol = ""
 	req.Method = ""
@@ -80,14 +79,14 @@ func (h *Handler) putReq(req *Request) {
 	h.reqPool.Put(req)
 }
 
-func (h *Handler) putProtoRsp(rsp *httpV1Beta.Response) {
+func (h *Handler) putProtoRsp(rsp *httpV1proto.Response) {
 	rsp.Headers = nil
 	rsp.Status = -1
 	h.protoRespPool.Put(rsp)
 }
 
-func (h *Handler) getProtoRsp() *httpV1Beta.Response {
-	return h.protoRespPool.Get().(*httpV1Beta.Response)
+func (h *Handler) getProtoRsp() *httpV1proto.Response {
+	return h.protoRespPool.Get().(*httpV1proto.Response)
 }
 
 func (h *Handler) putPld(pld *payload.Payload) {

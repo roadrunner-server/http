@@ -8,7 +8,7 @@ import (
 	"github.com/roadrunner-server/sdk/v4/utils"
 )
 
-type attrs map[string]any
+type attrs map[string][]string
 
 func (v attrs) get(key string) any {
 	if v == nil {
@@ -19,7 +19,11 @@ func (v attrs) get(key string) any {
 }
 
 func (v attrs) set(key string, value string) {
-	v[key] = value
+	if v[key] == nil {
+		v[key] = []string{value}
+		return
+	}
+	v[key] = append(v[key], value)
 }
 
 func (v attrs) del(key string) {
@@ -44,8 +48,17 @@ func All(r *http.Request) map[string][]string {
 	}
 
 	switch t := v.(type) {
+	case attrs:
+		return t
 	case map[string][]string:
 		return t
+	case map[string]string:
+		newm := make(map[string][]string)
+		for k, v := range t {
+			newm[k] = []string{v}
+		}
+
+		return newm
 	default:
 		return nil
 	}

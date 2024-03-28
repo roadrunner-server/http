@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	httpV1Beta "github.com/roadrunner-server/api/v4/build/http/v1beta"
+	httpV1proto "github.com/roadrunner-server/api/v4/build/http/v1"
 	"github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/goridge/v3/pkg/frame"
 	"github.com/roadrunner-server/sdk/v4/payload"
@@ -102,7 +102,7 @@ func (h *Handler) handlePROTOresponse(pld *payload.Payload, w http.ResponseWrite
 	return nil
 }
 
-func handleProtoTrailers(h map[string]*httpV1Beta.HeaderValue) {
+func handleProtoTrailers(h map[string]*httpV1proto.HeaderValue) {
 	for _, tr := range h[Trailer].GetValue() {
 		for _, n := range strings.Split(tr, ",") {
 			n = strings.Trim(n, "\t ")

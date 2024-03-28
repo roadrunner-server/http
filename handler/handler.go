@@ -10,7 +10,7 @@ import (
 
 	"github.com/roadrunner-server/http/v4/common"
 
-	httpV1Beta "github.com/roadrunner-server/api/v4/build/http/v1beta"
+	httpV1proto "github.com/roadrunner-server/api/v4/build/http/v1"
 	"github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/goridge/v3/pkg/frame"
 	"github.com/roadrunner-server/http/v4/config"
@@ -90,15 +90,15 @@ func NewHandler(cfg *config.Config, pool common.Pool, log *zap.Logger) (*Handler
 		},
 		protoRespPool: sync.Pool{
 			New: func() any {
-				return &httpV1Beta.Response{
-					Headers: make(map[string]*httpV1Beta.HeaderValue),
+				return &httpV1proto.Response{
+					Headers: make(map[string]*httpV1proto.HeaderValue),
 					Status:  -1,
 				}
 			},
 		},
 		protoReqPool: sync.Pool{
 			New: func() any {
-				return &httpV1Beta.Request{}
+				return &httpV1proto.Request{}
 			},
 		},
 		pldPool: sync.Pool{
@@ -150,6 +150,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	req.Open(h.log, h.uploads.dir, h.uploads.forbid, h.uploads.allow)
 	// get payload from the pool
 	pld := h.getPld()
+	// get proto request from the pool
 	reqproto := h.getProtoReq(req)
 	err = req.Payload(pld, h.sendRawBody, reqproto)
 	h.putProtoReq(reqproto)

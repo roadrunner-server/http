@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net"
@@ -8,7 +9,7 @@ import (
 	"net/url"
 	"strings"
 
-	httpV1Beta "github.com/roadrunner-server/api/v4/build/http/v1beta"
+	httpV1proto "github.com/roadrunner-server/api/v4/build/http/v1"
 	"github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/sdk/v4/payload"
 	"go.uber.org/zap"
@@ -164,8 +165,17 @@ func (r *Request) Close(log *zap.Logger, hr *http.Request) {
 
 // Payload request marshaled RoadRunner payload based on PSR7 data. values encode method is JSON. Make sure to open
 // files prior to calling this method.
-func (r *Request) Payload(p *payload.Payload, sendRawBody bool, req *httpV1Beta.Request) error {
+func (r *Request) Payload(p *payload.Payload, sendRawBody bool, req *httpV1proto.Request) error {
 	const op = errors.Op("marshal_payload")
+
+	if r.Uploads != nil {
+		data, err := json.Marshal(r.Uploads)
+		if err != nil {
+			return errors.E(op, err)
+		}
+
+		req.Uploads = data
+	}
 
 	var err error
 	p.Context, err = proto.Marshal(req)
@@ -178,10 +188,7 @@ func (r *Request) Payload(p *payload.Payload, sendRawBody bool, req *httpV1Beta.
 		// should always
 		switch raw := r.body.(type) {
 		case []byte:
-			err = packRaw(p, raw)
-			if err != nil {
-				return errors.E(op, err)
-			}
+			p.Body = raw
 
 			return nil
 		default:
@@ -193,10 +200,7 @@ func (r *Request) Payload(p *payload.Payload, sendRawBody bool, req *httpV1Beta.
 	if r.Parsed {
 		switch bdy := r.body.(type) {
 		case []byte:
-			err = packRaw(p, bdy)
-			if err != nil {
-				return errors.E(op, err)
-			}
+			p.Body = bdy
 
 			return nil
 		case dataTree:
@@ -215,15 +219,14 @@ func (r *Request) Payload(p *payload.Payload, sendRawBody bool, req *httpV1Beta.
 	if r.body != nil {
 		switch t := r.body.(type) {
 		case []byte:
-			err = packRaw(p, t)
-			if err != nil {
-				return errors.E(op, err)
-			}
+			p.Body = t
 		case dataTree:
 			err = packDataTree(t, p)
 			if err != nil {
 				return errors.E(op, err)
 			}
+
+			return nil
 		default:
 			return errors.Errorf("unknown body type: %T", t)
 		}
@@ -268,56 +271,13 @@ func URI(r *http.Request) string {
 	return fmt.Sprintf("http://%s%s", r.Host, uri)
 }
 
-func packRaw(p *payload.Payload, body []byte) error {
-	bd := &httpV1Beta.Body{
-		Data: &httpV1Beta.Body_Body{
-			Body: body,
-		},
-	}
-
-	var err error
-	p.Body, err = proto.Marshal(bd)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func packDataTree(t dataTree, p *payload.Payload) error {
-	bodyHeader := &httpV1Beta.Body_Header{
-		Header: &httpV1Beta.Header{
-			Header: make(map[string]*httpV1Beta.HeaderValue),
-		},
-	}
-
-	for k, v := range t {
-		switch t := v.(type) {
-		case string:
-			if bodyHeader.Header.Header[k] == nil {
-				bodyHeader.Header.Header[k] = &httpV1Beta.HeaderValue{
-					Value: make([]string, 0, 2),
-				}
-			}
-
-			bodyHeader.Header.Header[k].Value = append(bodyHeader.Header.Header[k].Value, t)
-		case []string:
-			if bodyHeader.Header.Header[k] == nil {
-				bodyHeader.Header.Header[k] = &httpV1Beta.HeaderValue{
-					Value: make([]string, 0, 2),
-				}
-			}
-
-			bodyHeader.Header.Header[k].Value = append(bodyHeader.Header.Header[k].Value, t...)
-		}
-	}
-
-	bd := &httpV1Beta.Body{
-		Data: bodyHeader,
+	if len(t) == 0 {
+		return nil
 	}
 
 	var err error
-	p.Body, err = proto.Marshal(bd)
+	p.Body, err = json.Marshal(t)
 	if err != nil {
 		return err
 	}
