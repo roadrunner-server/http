@@ -105,7 +105,7 @@ func TestHTTPInit(t *testing.T) {
 		}
 	}()
 
-	time.Sleep(time.Second * 200)
+	time.Sleep(time.Second)
 	stopCh <- struct{}{}
 	wg.Wait()
 }

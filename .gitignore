@@ -17,3 +17,5 @@ vendor/
 .idea
 .DS_Store
 **/tests/test_certs/**
+**/tests/test-certs/**
+**/tests/php_test_files/.composer.lock
