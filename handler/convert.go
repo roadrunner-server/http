@@ -2,7 +2,6 @@ package handler
 
 import (
 	"net/http"
-	"net/textproto"
 
 	httpV1proto "github.com/roadrunner-server/api/v4/build/http/v1"
 )
@@ -37,23 +36,6 @@ func convertCookies(headers map[string]string) map[string]*httpV1proto.HeaderVal
 		}
 
 		resp[k].Value = append(resp[k].Value, v)
-	}
-
-	return resp
-}
-
-func convertMimeHeader(headers textproto.MIMEHeader) map[string]*httpV1proto.HeaderValue {
-	if len(headers) == 0 {
-		return nil
-	}
-
-	resp := make(map[string]*httpV1proto.HeaderValue)
-
-	for k, v := range headers {
-		if resp[k] == nil {
-			resp[k] = &httpV1proto.HeaderValue{}
-		}
-		resp[k].Value = append(resp[k].Value, v...)
 	}
 
 	return resp
