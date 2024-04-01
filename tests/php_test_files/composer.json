@@ -5,7 +5,6 @@
 		"ext-curl": "*",
 		"guzzlehttp/guzzle": "^6.5",
 		"nyholm/psr7": "^1.5",
-		"temporal/sdk": "^2.7.0-dev",
 		"spiral/tokenizer": ">=2.7",
 		"spiral/roadrunner-metrics": "^3.0",
 		"spiral/roadrunner-grpc": "^3.0",
@@ -20,9 +19,9 @@
 		"psr/http-factory": "^1.0",
 		"php-http/message-factory": "^1.1",
 		"spiral/roadrunner-kv": "^4.0",
-		"spiral/roadrunner-http": "dev-feature-proto-payloads as 3.4.0",
-		"spiral/roadrunner-worker": "dev-feature/codec as 3.5.0",
-		"roadrunner-php/roadrunner-api-dto": "dev-http-beta as 1.6.0",
+		"spiral/roadrunner-http": "^3.5",
+		"spiral/roadrunner-worker": "^3.5",
+		"roadrunner-php/roadrunner-api-dto": "^1.6",
 		"spiral/roadrunner-services": "^2.0"
 	},
 	"autoload": {

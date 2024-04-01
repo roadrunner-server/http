@@ -2,8 +2,6 @@ module tests
 
 go 1.22.1
 
-toolchain go1.22.1
-
 require (
 	github.com/goccy/go-json v0.10.2
 	github.com/quic-go/quic-go v0.42.0
