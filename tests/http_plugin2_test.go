@@ -2,6 +2,7 @@ package tests
 
 import (
 	"bytes"
+	"context"
 	"crypto/tls"
 	"io"
 	"log/slog"
@@ -37,7 +38,7 @@ func TestHTTPPost(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.9.0",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-post-test.yaml",
 		Prefix:  "rr",
 	}
@@ -115,8 +116,12 @@ func echoHTTPPost(t *testing.T) {
 	require.NoError(t, err)
 
 	rdr := bytes.NewReader(bd)
+	client := &http.Client{}
 
-	resp, err := http.Post("http://127.0.0.1:10084/", "", rdr)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, "http://127.0.0.1:10084/", rdr)
+	assert.NoError(t, err)
+
+	resp, err := client.Do(req)
 	assert.NoError(t, err)
 
 	b, err := io.ReadAll(resp.Body)
@@ -129,7 +134,11 @@ func echoHTTPPost(t *testing.T) {
 
 	for i := 0; i < 20; i++ {
 		rdr = bytes.NewReader(bd)
-		resp, err = http.Post("http://127.0.0.1:10084/", "application/json", rdr)
+		req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, "http://127.0.0.1:10084/", rdr)
+		assert.NoError(t, err)
+		req.Header.Add("Content-Type", "application/json")
+
+		resp, err := client.Do(req)
 		assert.NoError(t, err)
 
 		b, err = io.ReadAll(resp.Body)
@@ -146,7 +155,7 @@ func TestSSLNoHTTP(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.9.0",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-ssl-no-http.yaml",
 		Prefix:  "rr",
 	}
@@ -248,7 +257,7 @@ func TestFileServer(t *testing.T) {
 	cont := endure.New(slog.LevelDebug, endure.GracefulShutdownTimeout(time.Second*30))
 
 	cfg := &config.Plugin{
-		Version: "2.9.0",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-http-static-new.yaml",
 		Prefix:  "rr",
 	}
@@ -342,7 +351,7 @@ func TestHTTPBigResp(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.9.0",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-init-big-resp.yaml",
 		Prefix:  "rr",
 	}
@@ -440,7 +449,7 @@ func TestHTTPExecTTL(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.9.1",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-http-exec_ttl.yaml",
 		Prefix:  "rr",
 	}
@@ -499,7 +508,7 @@ func TestHTTPExecTTL(t *testing.T) {
 
 	time.Sleep(time.Second)
 
-	req, err2 := http.NewRequest(http.MethodGet, "http://127.0.0.1:18988", nil)
+	req, err2 := http.NewRequestWithContext(context.Background(), http.MethodGet, "http://127.0.0.1:18988", nil)
 	require.NoError(t, err2)
 
 	r, err2 := http.DefaultClient.Do(req)
@@ -524,7 +533,7 @@ func TestHTTPBigRespMaxReqSize(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.9.1",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-init-big-resp-max-req-size.yaml",
 		Prefix:  "rr",
 	}

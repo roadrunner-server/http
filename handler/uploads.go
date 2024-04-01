@@ -15,20 +15,15 @@ import (
 const (
 	// UploadErrorOK - no error, the file uploaded with success.
 	UploadErrorOK = 0
-
 	// UploadErrorNoFile - no file was uploaded.
 	UploadErrorNoFile = 4
-
 	// UploadErrorNoTmpDir - missing a temporary folder.
 	UploadErrorNoTmpDir = 6
-
 	// UploadErrorCantWrite - failed to write file to disk.
 	UploadErrorCantWrite = 7
-
 	// UploadErrorExtension - forbidden file extension.
 	UploadErrorExtension = 8
-
-	pattern = "upload"
+	pattern              = "upload"
 )
 
 // Uploads tree manages uploaded files tree and temporary files.
@@ -79,19 +74,14 @@ func (u *Uploads) Clear(log *zap.Logger) {
 type FileUpload struct {
 	// ID contains filename specified by the client.
 	Name string `json:"name"`
-
 	// Mime contains mime-type provided by the client.
 	Mime string `json:"mime"`
-
 	// Size of the uploaded file.
 	Size int64 `json:"size"`
-
 	// Error indicates file upload error (if any). See http://php.net/manual/en/features.file-upload.errors.php
 	Error int `json:"error"`
-
 	// TempFilename points to temporary file location.
 	TempFilename string `json:"tmpName"`
-
 	// associated file header
 	header *multipart.FileHeader
 

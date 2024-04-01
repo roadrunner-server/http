@@ -35,7 +35,7 @@ func TestHTTPOTLP_Init(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.10.0",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-http-otel.yaml",
 		Prefix:  "rr",
 	}
@@ -132,7 +132,7 @@ func TestHTTPOTLP_WithPHP(t *testing.T) {
 	assert.NoError(t, err)
 
 	cfg := &config.Plugin{
-		Version: "2.10.0",
+		Version: "2023.3.5",
 		Path:    "configs/.rr-http-otel2.yaml",
 		Prefix:  "rr",
 	}

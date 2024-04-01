@@ -355,13 +355,14 @@ func TestHandler_Cookies(t *testing.T) {
 	}()
 	time.Sleep(time.Millisecond * 10)
 
-	req, err := http.NewRequest("GET", "http://127.0.0.1:8079", nil)
+	client := &http.Client{}
+	req, err := http.NewRequest(http.MethodGet, "http://127.0.0.1:8079", nil)
 	assert.NoError(t, err)
-
 	req.AddCookie(&http.Cookie{Name: "input", Value: "input-value"})
 
-	r, err := http.DefaultClient.Do(req)
+	r, err := client.Do(req)
 	assert.NoError(t, err)
+
 	defer func() {
 		err = r.Body.Close()
 		if err != nil {
@@ -432,7 +433,7 @@ func TestHandler_JsonPayload_POST(t *testing.T) {
 
 	req, err := http.NewRequest(
 		"POST",
-		"http://127.0.0.1"+hs.Addr,
+		"http://127.0.0.1"+hs.Addr, //nolint:goconst
 		bytes.NewBufferString(`{"key":"value"}`),
 	)
 	assert.NoError(t, err)
@@ -867,11 +868,11 @@ func TestHandler_FormData_POST_Overwrite(t *testing.T) {
 	assert.Equal(t, res["arr"].(map[string]any)["c"].(map[string]any)["p"], "l")
 	assert.Equal(t, res["arr"].(map[string]any)["c"].(map[string]any)["z"], "")
 
-	assert.Equal(t, res["arr"].(map[string]any)["x"].(map[string]any)["y"].(map[string]interface{})["z"], "y")
-	assert.Equal(t, res["arr"].(map[string]interface{})["x"].(map[string]interface{})["y"].(map[string]interface{})["e"], "f")
+	assert.Equal(t, res["arr"].(map[string]any)["x"].(map[string]any)["y"].(map[string]any)["z"], "y")
+	assert.Equal(t, res["arr"].(map[string]any)["x"].(map[string]any)["y"].(map[string]any)["e"], "f")
 
 	assert.Equal(t, res["key"], "value2")
-	assert.Equal(t, res["name"], []interface{}{"name1", "name2", "name3"})
+	assert.Equal(t, res["name"], []any{"name1", "name2", "name3"})
 
 	t.Cleanup(func() {
 		_ = hs.Shutdown(context.Background())
@@ -957,18 +958,18 @@ func TestHandler_FormData_POST_Form_UrlEncoded_Charset(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 200, r.StatusCode)
 
-	var res map[string]interface{}
+	var res map[string]any
 	err = json.Unmarshal(b, &res)
 	require.NoError(t, err)
-	assert.Equal(t, res["arr"].(map[string]interface{})["c"].(map[string]interface{})["p"], "l")
-	assert.Equal(t, res["arr"].(map[string]interface{})["c"].(map[string]interface{})["z"], "")
+	assert.Equal(t, res["arr"].(map[string]any)["c"].(map[string]any)["p"], "l")
+	assert.Equal(t, res["arr"].(map[string]any)["c"].(map[string]any)["z"], "")
 
-	assert.Equal(t, res["arr"].(map[string]interface{})["x"].(map[string]interface{})["y"].(map[string]interface{})["z"], "y")
-	assert.Equal(t, res["arr"].(map[string]interface{})["x"].(map[string]interface{})["y"].(map[string]interface{})["e"], "f")
+	assert.Equal(t, res["arr"].(map[string]any)["x"].(map[string]any)["y"].(map[string]any)["z"], "y")
+	assert.Equal(t, res["arr"].(map[string]any)["x"].(map[string]any)["y"].(map[string]any)["e"], "f")
 
 	assert.Equal(t, res["key"], "value")
 
-	assert.Equal(t, res["name"], []interface{}{"name1", "name2", "name3"})
+	assert.Equal(t, res["name"], []any{"name1", "name2", "name3"})
 }
 
 func TestHandler_FormData_PUT(t *testing.T) {
@@ -1049,20 +1050,20 @@ func TestHandler_FormData_PUT(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, 200, r.StatusCode)
-	var res map[string]interface{}
+	var res map[string]any
 	err = json.Unmarshal(b, &res)
 	require.NoError(t, err)
 
 	// `{"arr":{"c":{"p":"l","z":""},"x":{"y":{"e":"f","z":"y"}}},"key":"value","name":["name1","name2","name3"]}`
-	assert.Equal(t, res["arr"].(map[string]interface{})["c"].(map[string]interface{})["p"], "l")
-	assert.Equal(t, res["arr"].(map[string]interface{})["c"].(map[string]interface{})["z"], "")
+	assert.Equal(t, res["arr"].(map[string]any)["c"].(map[string]any)["p"], "l")
+	assert.Equal(t, res["arr"].(map[string]any)["c"].(map[string]any)["z"], "")
 
-	assert.Equal(t, res["arr"].(map[string]interface{})["x"].(map[string]interface{})["y"].(map[string]interface{})["z"], "y")
-	assert.Equal(t, res["arr"].(map[string]interface{})["x"].(map[string]interface{})["y"].(map[string]interface{})["e"], "f")
+	assert.Equal(t, res["arr"].(map[string]any)["x"].(map[string]any)["y"].(map[string]any)["z"], "y")
+	assert.Equal(t, res["arr"].(map[string]any)["x"].(map[string]any)["y"].(map[string]any)["e"], "f")
 
 	assert.Equal(t, res["key"], "value")
 
-	assert.Equal(t, res["name"], []interface{}{"name1", "name2", "name3"})
+	assert.Equal(t, res["name"], []any{"name1", "name2", "name3"})
 }
 
 func TestHandler_FormData_PATCH(t *testing.T) {
@@ -1144,18 +1145,18 @@ func TestHandler_FormData_PATCH(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 200, r.StatusCode)
 
-	var res map[string]interface{}
+	var res map[string]any
 	err = json.Unmarshal(b, &res)
 	require.NoError(t, err)
-	assert.Equal(t, res["arr"].(map[string]interface{})["c"].(map[string]interface{})["p"], "l")
-	assert.Equal(t, res["arr"].(map[string]interface{})["c"].(map[string]interface{})["z"], "")
+	assert.Equal(t, res["arr"].(map[string]any)["c"].(map[string]any)["p"], "l")
+	assert.Equal(t, res["arr"].(map[string]any)["c"].(map[string]any)["z"], "")
 
-	assert.Equal(t, res["arr"].(map[string]interface{})["x"].(map[string]interface{})["y"].(map[string]interface{})["z"], "y")
-	assert.Equal(t, res["arr"].(map[string]interface{})["x"].(map[string]interface{})["y"].(map[string]interface{})["e"], "f")
+	assert.Equal(t, res["arr"].(map[string]any)["x"].(map[string]any)["y"].(map[string]any)["z"], "y")
+	assert.Equal(t, res["arr"].(map[string]any)["x"].(map[string]any)["y"].(map[string]any)["e"], "f")
 
 	assert.Equal(t, res["key"], "value")
 
-	assert.Equal(t, res["name"], []interface{}{"name1", "name2", "name3"})
+	assert.Equal(t, res["name"], []any{"name1", "name2", "name3"})
 }
 
 func TestHandler_Multipart_POST(t *testing.T) {
@@ -1279,18 +1280,18 @@ func TestHandler_Multipart_POST(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 200, r.StatusCode)
 
-	var res map[string]interface{}
+	var res map[string]any
 	err = json.Unmarshal(b, &res)
 	require.NoError(t, err)
-	assert.Equal(t, res["arr"].(map[string]interface{})["c"].(map[string]interface{})["p"], "l")
-	assert.Equal(t, res["arr"].(map[string]interface{})["c"].(map[string]interface{})["z"], "")
+	assert.Equal(t, res["arr"].(map[string]any)["c"].(map[string]any)["p"], "l")
+	assert.Equal(t, res["arr"].(map[string]any)["c"].(map[string]any)["z"], "")
 
-	assert.Equal(t, res["arr"].(map[string]interface{})["x"].(map[string]interface{})["y"].(map[string]interface{})["z"], "y")
-	assert.Equal(t, res["arr"].(map[string]interface{})["x"].(map[string]interface{})["y"].(map[string]interface{})["e"], "f")
+	assert.Equal(t, res["arr"].(map[string]any)["x"].(map[string]any)["y"].(map[string]any)["z"], "y")
+	assert.Equal(t, res["arr"].(map[string]any)["x"].(map[string]any)["y"].(map[string]any)["e"], "f")
 
 	assert.Equal(t, res["key"], "value")
 
-	assert.Equal(t, res["name"], []interface{}{"name1", "name2", "name3"})
+	assert.Equal(t, res["name"], []any{"name1", "name2", "name3"})
 }
 
 func TestHandler_Multipart_PUT(t *testing.T) {
@@ -1414,18 +1415,18 @@ func TestHandler_Multipart_PUT(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 200, r.StatusCode)
 
-	var res map[string]interface{}
+	var res map[string]any
 	err = json.Unmarshal(b, &res)
 	require.NoError(t, err)
-	assert.Equal(t, res["arr"].(map[string]interface{})["c"].(map[string]interface{})["p"], "l")
-	assert.Equal(t, res["arr"].(map[string]interface{})["c"].(map[string]interface{})["z"], "")
+	assert.Equal(t, res["arr"].(map[string]any)["c"].(map[string]any)["p"], "l")
+	assert.Equal(t, res["arr"].(map[string]any)["c"].(map[string]any)["z"], "")
 
-	assert.Equal(t, res["arr"].(map[string]interface{})["x"].(map[string]interface{})["y"].(map[string]interface{})["z"], "y")
-	assert.Equal(t, res["arr"].(map[string]interface{})["x"].(map[string]interface{})["y"].(map[string]interface{})["e"], "f")
+	assert.Equal(t, res["arr"].(map[string]any)["x"].(map[string]any)["y"].(map[string]any)["z"], "y")
+	assert.Equal(t, res["arr"].(map[string]any)["x"].(map[string]any)["y"].(map[string]any)["e"], "f")
 
 	assert.Equal(t, res["key"], "value")
 
-	assert.Equal(t, res["name"], []interface{}{"name1", "name2", "name3"})
+	assert.Equal(t, res["name"], []any{"name1", "name2", "name3"})
 }
 
 func TestHandler_Multipart_PATCH(t *testing.T) {
@@ -1531,13 +1532,14 @@ func TestHandler_Multipart_PATCH(t *testing.T) {
 		t.Errorf("error closing the writer: error %v", err)
 	}
 
-	req, err := http.NewRequest("PATCH", "http://127.0.0.1"+hs.Addr, &mb)
+	client := &http.Client{}
+	req, err := http.NewRequest(http.MethodPatch, "http://127.0.0.1"+hs.Addr, &mb)
 	assert.NoError(t, err)
-
 	req.Header.Set("Content-Type", w.FormDataContentType())
 
-	r, err := http.DefaultClient.Do(req)
+	r, err := client.Do(req)
 	assert.NoError(t, err)
+
 	defer func() {
 		err = r.Body.Close()
 		if err != nil {
@@ -1551,18 +1553,18 @@ func TestHandler_Multipart_PATCH(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 200, r.StatusCode)
 
-	var res map[string]interface{}
+	var res map[string]any
 	err = json.Unmarshal(b, &res)
 	require.NoError(t, err)
-	assert.Equal(t, res["arr"].(map[string]interface{})["c"].(map[string]interface{})["p"], "l")
-	assert.Equal(t, res["arr"].(map[string]interface{})["c"].(map[string]interface{})["z"], "")
+	assert.Equal(t, res["arr"].(map[string]any)["c"].(map[string]any)["p"], "l")
+	assert.Equal(t, res["arr"].(map[string]any)["c"].(map[string]any)["z"], "")
 
-	assert.Equal(t, res["arr"].(map[string]interface{})["x"].(map[string]interface{})["y"].(map[string]interface{})["z"], "y")
-	assert.Equal(t, res["arr"].(map[string]interface{})["x"].(map[string]interface{})["y"].(map[string]interface{})["e"], "f")
+	assert.Equal(t, res["arr"].(map[string]any)["x"].(map[string]any)["y"].(map[string]any)["z"], "y")
+	assert.Equal(t, res["arr"].(map[string]any)["x"].(map[string]any)["y"].(map[string]any)["e"], "f")
 
 	assert.Equal(t, res["key"], "value")
 
-	assert.Equal(t, res["name"], []interface{}{"name1", "name2", "name3"})
+	assert.Equal(t, res["name"], []any{"name1", "name2", "name3"})
 }
 
 func TestHandler_Error(t *testing.T) {
@@ -1941,11 +1943,14 @@ func BenchmarkHandler_Listen_Echo(b *testing.B) {
 	b.ResetTimer()
 	b.ReportAllocs()
 	bb := "WORLD"
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "http://127.0.0.1:8188/?hello=world", nil)
+	require.NoError(b, err)
+	client := &http.Client{}
+
 	for n := 0; n < b.N; n++ {
-		r, err := http.Get("http://127.0.0.1:8188/?hello=world")
-		if err != nil {
-			b.Fail()
-		}
+		r, err := client.Do(req)
+		require.NoError(b, err)
 		// Response might be nil here
 		if r != nil {
 			br, err := io.ReadAll(r.Body)

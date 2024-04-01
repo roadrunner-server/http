@@ -2,19 +2,16 @@
 
 run:
   timeout: 1m
-  skip-dirs:
-    - .github
-    - .git
   allow-parallel-runners: true
 
 output:
-  format: colored-line-number # colored-line-number|line-number|json|tab|checkstyle|code-climate
+  formats: colored-line-number # colored-line-number|line-number|json|tab|checkstyle|code-climate
 
 linters-settings:
   wsl:
     allow-assign-and-anything: true
   govet:
-    check-shadowing: true
+    shadow: true
   golint:
     min-confidence: 0.1
   gocyclo:
@@ -52,7 +49,6 @@ linters: # All available linters list: <https://golangci-lint.run/usage/linters/
     - exportloopref # checks for pointers to enclosing loop variables
     - gochecknoglobals # Checks that no globals are present in Go code
     - gochecknoinits # Checks that no init functions are present in Go code
-    - gocognit # Computes and checks the cognitive complexity of functions
     - goconst # Finds repeated strings that could be replaced by a constant
     - gocritic # The most opinionated Go source code linter
     - gocyclo # Computes and checks the cyclomatic complexity of functions
@@ -79,6 +75,9 @@ linters: # All available linters list: <https://golangci-lint.run/usage/linters/
     - whitespace # Tool for detection of leading and trailing whitespace
 
 issues:
+  exclude-dirs:
+    - .github
+    - .git
   exclude-rules:
     - path: _test\.go
       linters:
