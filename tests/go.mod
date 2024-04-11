@@ -20,7 +20,7 @@ require (
 	github.com/roadrunner-server/rpc/v4 v4.3.0
 	github.com/roadrunner-server/sdk/v4 v4.7.1
 	github.com/roadrunner-server/send/v4 v4.3.0
-	github.com/roadrunner-server/server/v4 v4.6.0
+	github.com/roadrunner-server/server/v4 v4.7.0
 	github.com/roadrunner-server/static/v4 v4.2.0
 	github.com/stretchr/testify v1.9.0
 	github.com/yookoala/gofast v0.8.0
