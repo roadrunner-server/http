@@ -136,6 +136,7 @@ func request(r *http.Request, req *Request, uid, gid int, sendRawBody bool) erro
 		if err != nil {
 			return err
 		}
+	default:
 	}
 
 	req.Parsed = true
