@@ -192,6 +192,8 @@ func (r *Request) Payload(p *payload.Payload, sendRawBody bool, req *httpV1proto
 			p.Body = raw
 
 			return nil
+		case nil:
+			return nil
 		default:
 			return errors.E(op, errors.Errorf("type is not []byte: %T", raw))
 		}
