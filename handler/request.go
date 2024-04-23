@@ -186,6 +186,10 @@ func (r *Request) Payload(p *payload.Payload, sendRawBody bool, req *httpV1proto
 
 	// if user wanted to get a raw body, just send it
 	if sendRawBody {
+		if r.body == nil {
+			return nil
+		}
+
 		// should always
 		switch raw := r.body.(type) {
 		case []byte:
