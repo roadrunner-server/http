@@ -29,7 +29,7 @@ func NewHTTP3server(handler http.Handler, acmeCfg *acme.Config, cfg *Config, log
 		server: &http3.Server{
 			Addr:       cfg.Address,
 			Handler:    handler,
-			QuicConfig: &quic.Config{},
+			QUICConfig: &quic.Config{},
 			TLSConfig:  tlsconf.DefaultTLSConfig(),
 		},
 	}
