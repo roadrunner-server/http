@@ -1,6 +1,6 @@
 module github.com/roadrunner-server/http/v4
 
-go 1.22.2
+go 1.22.3
 
 require (
 	github.com/caddyserver/certmagic v0.21.0
