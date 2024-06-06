@@ -8,7 +8,7 @@ require (
 	github.com/google/go-cmp v0.6.0
 	github.com/mholt/acmez v1.2.0
 	github.com/prometheus/client_golang v1.19.1
-	github.com/quic-go/quic-go v0.44.0
+	github.com/quic-go/quic-go v0.45.0
 	github.com/roadrunner-server/api/v4 v4.12.0
 	github.com/roadrunner-server/endure/v2 v2.4.5
 	github.com/roadrunner-server/errors v1.4.0

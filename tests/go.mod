@@ -4,7 +4,7 @@ go 1.22.4
 
 require (
 	github.com/goccy/go-json v0.10.3
-	github.com/quic-go/quic-go v0.44.0
+	github.com/quic-go/quic-go v0.45.0
 	github.com/roadrunner-server/config/v4 v4.9.0
 	github.com/roadrunner-server/endure/v2 v2.4.5
 	github.com/roadrunner-server/fileserver/v4 v4.3.2
