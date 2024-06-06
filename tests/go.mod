@@ -18,7 +18,7 @@ require (
 	github.com/roadrunner-server/otel/v4 v4.5.2
 	github.com/roadrunner-server/resetter/v4 v4.3.2
 	github.com/roadrunner-server/rpc/v4 v4.4.2
-	github.com/roadrunner-server/sdk/v4 v4.7.2
+	github.com/roadrunner-server/sdk/v4 v4.7.3
 	github.com/roadrunner-server/send/v4 v4.4.2
 	github.com/roadrunner-server/server/v4 v4.8.2
 	github.com/roadrunner-server/static/v4 v4.3.2
