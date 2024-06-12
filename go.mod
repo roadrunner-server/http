@@ -22,7 +22,7 @@ require (
 	go.uber.org/zap v1.27.0
 	golang.org/x/net v0.26.0
 	golang.org/x/sys v0.21.0
-	google.golang.org/protobuf v1.34.1
+	google.golang.org/protobuf v1.34.2
 )
 
 require (
@@ -37,7 +37,7 @@ require (
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/google/pprof v0.0.0-20240528025155-186aa0362fba // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/klauspost/cpuid/v2 v2.2.7 // indirect
+	github.com/klauspost/cpuid/v2 v2.2.8 // indirect
 	github.com/libdns/libdns v0.2.2 // indirect
 	github.com/mholt/acmez/v2 v2.0.1 // indirect
 	github.com/miekg/dns v1.1.59 // indirect
