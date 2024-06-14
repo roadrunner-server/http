@@ -5,22 +5,22 @@ go 1.22.4
 require (
 	github.com/goccy/go-json v0.10.3
 	github.com/quic-go/quic-go v0.45.0
-	github.com/roadrunner-server/config/v4 v4.9.1
+	github.com/roadrunner-server/config/v4 v4.9.2
 	github.com/roadrunner-server/endure/v2 v2.4.5
-	github.com/roadrunner-server/fileserver/v4 v4.3.3
+	github.com/roadrunner-server/fileserver/v4 v4.3.4
 	github.com/roadrunner-server/goridge/v3 v3.8.2
-	github.com/roadrunner-server/gzip/v4 v4.3.3
-	github.com/roadrunner-server/headers/v4 v4.4.3
+	github.com/roadrunner-server/gzip/v4 v4.3.4
+	github.com/roadrunner-server/headers/v4 v4.4.4
 	github.com/roadrunner-server/http/v4 v4.5.3
-	github.com/roadrunner-server/informer/v4 v4.5.3
-	github.com/roadrunner-server/logger/v4 v4.4.3
-	github.com/roadrunner-server/memory/v4 v4.8.3
-	github.com/roadrunner-server/otel/v4 v4.5.3
-	github.com/roadrunner-server/resetter/v4 v4.3.3
-	github.com/roadrunner-server/rpc/v4 v4.4.3
+	github.com/roadrunner-server/informer/v4 v4.5.4
+	github.com/roadrunner-server/logger/v4 v4.4.4
+	github.com/roadrunner-server/memory/v4 v4.8.4
+	github.com/roadrunner-server/otel/v4 v4.5.4
+	github.com/roadrunner-server/resetter/v4 v4.3.4
+	github.com/roadrunner-server/rpc/v4 v4.4.4
 	github.com/roadrunner-server/sdk/v4 v4.7.3
 	github.com/roadrunner-server/send/v4 v4.4.3
-	github.com/roadrunner-server/server/v4 v4.8.3
+	github.com/roadrunner-server/server/v4 v4.8.4
 	github.com/roadrunner-server/static/v4 v4.3.3
 	github.com/stretchr/testify v1.9.0
 	github.com/yookoala/gofast v0.8.0
@@ -64,7 +64,7 @@ require (
 	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/mholt/acmez v1.2.0 // indirect
 	github.com/mholt/acmez/v2 v2.0.1 // indirect
-	github.com/miekg/dns v1.1.59 // indirect
+	github.com/miekg/dns v1.1.61 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/onsi/ginkgo/v2 v2.19.0 // indirect
 	github.com/openzipkin/zipkin-go v0.4.3 // indirect
@@ -114,12 +114,12 @@ require (
 	go.opentelemetry.io/otel/trace v1.27.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.3.1 // indirect
 	go.temporal.io/api v1.34.0 // indirect
-	go.temporal.io/sdk v1.26.1 // indirect
-	go.temporal.io/sdk/contrib/opentelemetry v0.5.0 // indirect
+	go.temporal.io/sdk v1.27.0 // indirect
+	go.temporal.io/sdk/contrib/opentelemetry v0.6.0 // indirect
 	go.uber.org/mock v0.4.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.24.0 // indirect
-	golang.org/x/exp v0.0.0-20240604190554-fc45aab8b7f8 // indirect
+	golang.org/x/exp v0.0.0-20240613232115-7f521ea00fb8 // indirect
 	golang.org/x/mod v0.18.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
 	golang.org/x/sys v0.21.0 // indirect
