@@ -5,7 +5,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/roadrunner-server/sdk/v4/utils"
+	rrcontext "github.com/roadrunner-server/context"
 )
 
 type attrs map[string][]string
@@ -33,8 +33,8 @@ func (v attrs) del(key string) {
 // Init returns request with new context and attribute bag.
 func Init(r *http.Request) *http.Request {
 	// do not overwrite psr attributes
-	if val := r.Context().Value(utils.PsrContextKey); val == nil {
-		return r.WithContext(context.WithValue(r.Context(), utils.PsrContextKey, attrs{}))
+	if val := r.Context().Value(rrcontext.PsrContextKey); val == nil {
+		return r.WithContext(context.WithValue(r.Context(), rrcontext.PsrContextKey, attrs{}))
 	}
 
 	return r
@@ -42,7 +42,7 @@ func Init(r *http.Request) *http.Request {
 
 // All returns all context attributes.
 func All(r *http.Request) map[string][]string {
-	v := r.Context().Value(utils.PsrContextKey)
+	v := r.Context().Value(rrcontext.PsrContextKey)
 	if v == nil {
 		return nil
 	}
@@ -64,10 +64,10 @@ func All(r *http.Request) map[string][]string {
 	}
 }
 
-// Get gets the value from request context. It replaces any existing
+// Get gets the value from the request context. It replaces any existing
 // values.
 func Get(r *http.Request, key string) any {
-	v := r.Context().Value(utils.PsrContextKey)
+	v := r.Context().Value(rrcontext.PsrContextKey)
 	if v == nil {
 		return nil
 	}
@@ -76,9 +76,9 @@ func Get(r *http.Request, key string) any {
 }
 
 // Set sets the key to value. It replaces any existing
-// values. Context specific.
+// values. Context-specific.
 func Set(r *http.Request, key string, value string) error {
-	v := r.Context().Value(utils.PsrContextKey)
+	v := r.Context().Value(rrcontext.PsrContextKey)
 	if v == nil {
 		return errors.New("unable to find `psr:attributes` context key")
 	}
@@ -87,7 +87,7 @@ func Set(r *http.Request, key string, value string) error {
 	return nil
 }
 
-// Delete deletes values associated with attribute key.
+// Delete deletes values associated with an attribute key.
 func (v attrs) Delete(key string) {
 	if v == nil {
 		return

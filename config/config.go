@@ -5,12 +5,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/roadrunner-server/http/v4/servers/fcgi"
-	"github.com/roadrunner-server/http/v4/servers/http3"
-	"github.com/roadrunner-server/http/v4/servers/https"
+	"github.com/roadrunner-server/http/v5/servers/fcgi"
+	"github.com/roadrunner-server/http/v5/servers/http3"
+	"github.com/roadrunner-server/http/v5/servers/https"
 
 	"github.com/roadrunner-server/errors"
-	"github.com/roadrunner-server/sdk/v4/pool"
+	"github.com/roadrunner-server/pool/pool"
 )
 
 // Config configures RoadRunner HTTP server.

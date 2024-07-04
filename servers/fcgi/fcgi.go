@@ -7,11 +7,11 @@ import (
 	"net/http/fcgi"
 	"time"
 
-	"github.com/roadrunner-server/http/v4/common"
-	"github.com/roadrunner-server/http/v4/servers"
+	"github.com/roadrunner-server/http/v5/common"
+	"github.com/roadrunner-server/http/v5/servers"
+	"github.com/roadrunner-server/tcplisten"
 
 	"github.com/roadrunner-server/errors"
-	"github.com/roadrunner-server/sdk/v4/utils"
 	"go.uber.org/zap"
 )
 
@@ -40,7 +40,7 @@ func (s *Server) Serve(mdwr map[string]common.Middleware, order []string) error 
 		applyMiddleware(s.fcgi, mdwr, order, s.log)
 	}
 
-	l, err := utils.CreateListener(s.cfg.Address)
+	l, err := tcplisten.CreateListener(s.cfg.Address)
 	if err != nil {
 		return errors.E(op, err)
 	}

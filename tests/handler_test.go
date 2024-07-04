@@ -19,11 +19,11 @@ import (
 	"tests/testLog"
 
 	"github.com/goccy/go-json"
-	"github.com/roadrunner-server/http/v4/config"
-	"github.com/roadrunner-server/http/v4/handler"
-	"github.com/roadrunner-server/sdk/v4/ipc/pipe"
-	"github.com/roadrunner-server/sdk/v4/pool"
-	staticPool "github.com/roadrunner-server/sdk/v4/pool/static_pool"
+	"github.com/roadrunner-server/http/v5/config"
+	"github.com/roadrunner-server/http/v5/handler"
+	"github.com/roadrunner-server/pool/ipc/pipe"
+	"github.com/roadrunner-server/pool/pool"
+	staticPool "github.com/roadrunner-server/pool/pool/static_pool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

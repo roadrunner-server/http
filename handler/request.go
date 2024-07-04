@@ -11,7 +11,7 @@ import (
 
 	httpV1proto "github.com/roadrunner-server/api/v4/build/http/v1"
 	"github.com/roadrunner-server/errors"
-	"github.com/roadrunner-server/sdk/v4/payload"
+	"github.com/roadrunner-server/pool/payload"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/proto"
 )
