@@ -19,10 +19,10 @@ import (
 	mocklogger "tests/mock"
 
 	"github.com/goccy/go-json"
-	"github.com/roadrunner-server/config/v4"
+	"github.com/roadrunner-server/config/v5"
 	"github.com/roadrunner-server/endure/v2"
 	"github.com/roadrunner-server/fileserver/v4"
-	"github.com/roadrunner-server/gzip/v4"
+	"github.com/roadrunner-server/gzip/v5"
 	httpPlugin "github.com/roadrunner-server/http/v5"
 	"github.com/roadrunner-server/logger/v4"
 	"github.com/roadrunner-server/memory/v4"
@@ -40,7 +40,6 @@ func TestHTTPPost(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-post-test.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -157,7 +156,6 @@ func TestSSLNoHTTP(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-ssl-no-http.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -259,7 +257,6 @@ func TestFileServer(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-http-static-new.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -353,7 +350,6 @@ func TestHTTPBigResp(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-init-big-resp.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -451,7 +447,6 @@ func TestHTTPExecTTL(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-http-exec_ttl.yaml",
-		Prefix:  "rr",
 	}
 
 	l, oLogger := mocklogger.ZapTestLogger(zap.DebugLevel)
@@ -535,7 +530,6 @@ func TestHTTPBigRespMaxReqSize(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-init-big-resp-max-req-size.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(

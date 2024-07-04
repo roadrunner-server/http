@@ -12,11 +12,12 @@ import (
 	"sync"
 	"syscall"
 	"testing"
-	mocklogger "tests/mock"
 	"time"
 
+	mocklogger "tests/mock"
+
 	"github.com/quic-go/quic-go/http3"
-	"github.com/roadrunner-server/config/v4"
+	"github.com/roadrunner-server/config/v5"
 	"github.com/roadrunner-server/endure/v2"
 	httpPlugin "github.com/roadrunner-server/http/v5"
 	"github.com/roadrunner-server/logger/v4"
@@ -34,7 +35,6 @@ func TestHttp3(t *testing.T) {
 		Version:              "2023.3.0",
 		ExperimentalFeatures: true,
 		Path:                 "configs/.rr-http3.yaml",
-		Prefix:               "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -103,7 +103,6 @@ func TestBug1843(t *testing.T) {
 		Version:              "2023.3.0",
 		ExperimentalFeatures: true,
 		Path:                 "configs/.rr-bug1843.yaml",
-		Prefix:               "rr",
 	}
 
 	l, oLogger := mocklogger.ZapTestLogger(zap.DebugLevel)

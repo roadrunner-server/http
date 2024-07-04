@@ -14,9 +14,9 @@ import (
 
 	mocklogger "tests/mock"
 
-	"github.com/roadrunner-server/config/v4"
+	"github.com/roadrunner-server/config/v5"
 	"github.com/roadrunner-server/endure/v2"
-	"github.com/roadrunner-server/gzip/v4"
+	"github.com/roadrunner-server/gzip/v5"
 	httpPlugin "github.com/roadrunner-server/http/v5"
 	"github.com/roadrunner-server/logger/v4"
 	"github.com/roadrunner-server/otel/v4"
@@ -37,7 +37,6 @@ func TestHTTPOTLP_Init(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-http-otel.yaml",
-		Prefix:  "rr",
 	}
 
 	err = cont.RegisterAll(
@@ -134,7 +133,6 @@ func TestHTTPOTLP_WithPHP(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-http-otel2.yaml",
-		Prefix:  "rr",
 	}
 
 	l, oLogger := mocklogger.ZapTestLogger(zap.DebugLevel)
@@ -225,14 +223,13 @@ func TestHTTPOTLP_WithPHP(t *testing.T) {
 	assert.Equal(t, 1, oLogger.FilterMessageSnippet("trace_state").Len())
 }
 
-// should not be error on connect
+// should not be error on connecting
 func TestHTTPOTLP_JaegerAgent(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
 		Version: "2023.3.0",
 		Path:    "configs/.rr-http-jaeger-agent.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(

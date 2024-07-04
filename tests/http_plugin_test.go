@@ -24,11 +24,11 @@ import (
 	mocklogger "tests/mock"
 	http3 "tests/test_plugins"
 
-	"github.com/roadrunner-server/config/v4"
+	"github.com/roadrunner-server/config/v5"
 	"github.com/roadrunner-server/endure/v2"
 	goridgeRpc "github.com/roadrunner-server/goridge/v3/pkg/rpc"
-	"github.com/roadrunner-server/gzip/v4"
-	"github.com/roadrunner-server/headers/v4"
+	"github.com/roadrunner-server/gzip/v5"
+	"github.com/roadrunner-server/headers/v5"
 	httpPlugin "github.com/roadrunner-server/http/v5"
 	"github.com/roadrunner-server/informer/v4"
 	"github.com/roadrunner-server/logger/v4"
@@ -51,7 +51,6 @@ func TestHTTPInit(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-http-init.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -116,7 +115,6 @@ func TestHTTPAccessLogs(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-http-access-logs.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -200,7 +198,6 @@ func TestHTTPXSendFile(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-http-sendfile.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -291,7 +288,6 @@ func TestHTTPNoConfigSection(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-no-http.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -355,7 +351,6 @@ func TestHTTPInformerReset(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-resetter.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -430,7 +425,6 @@ func TestSSL(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-ssl.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -591,7 +585,6 @@ func TestSSLRedirect(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-ssl-redirect.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -693,7 +686,6 @@ func TestSSLPushPipes(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-ssl-push.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -796,7 +788,6 @@ func TestFastCGI_Echo(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-fcgi.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -882,7 +873,6 @@ func TestFastCGI_EchoUnix(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-fcgi-unix.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -972,7 +962,6 @@ func TestFastCGI_RequestUri(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-fcgi-reqUri.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -1058,7 +1047,6 @@ func TestHTTP2Req(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-h2-ssl.yaml",
-		Prefix:  "rr",
 	}
 
 	l, oLogger := mocklogger.ZapTestLogger(zap.DebugLevel)
@@ -1158,7 +1146,6 @@ func TestH2CUpgrade(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-h2c.yaml",
-		Prefix:  "rr",
 	}
 
 	l, oLogger := mocklogger.ZapTestLogger(zap.DebugLevel)
@@ -1254,7 +1241,6 @@ func TestH2C(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-h2c.yaml",
-		Prefix:  "rr",
 	}
 
 	l, oLogger := mocklogger.ZapTestLogger(zap.DebugLevel)
@@ -1350,7 +1336,6 @@ func TestHttpMiddleware(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-http.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -1567,7 +1552,6 @@ func TestHttpBrokenPipes(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-broken-pipes.yaml",
-		Prefix:  "rr",
 		Type:    "yaml",
 	}
 
@@ -1595,7 +1579,6 @@ func TestHTTPSupervisedPool(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-http-supervised-pool.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -1728,7 +1711,6 @@ func TestHTTPBigRequestSize(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-big-req-size.yaml",
-		Prefix:  "rr",
 		Type:    "yaml",
 	}
 
@@ -1815,7 +1797,6 @@ func TestStaticEtagPlugin(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-http-static.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -1926,7 +1907,6 @@ func TestStaticPluginSecurity(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-http-static-security.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -2075,7 +2055,6 @@ func TestStaticBigFilePlugin(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.1.5",
 		Path:    "configs/.rr-http-static-big-file.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -2148,7 +2127,6 @@ func TestStaticPlugin(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-http-static.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -2268,7 +2246,6 @@ func TestStaticDisabled_Error(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-http-static-disabled.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -2289,7 +2266,6 @@ func TestStaticFilesDisabled(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-http-static-files-disable.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -2367,7 +2343,6 @@ func TestStaticFilesForbid(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-http-static-files.yaml",
-		Prefix:  "rr",
 	}
 
 	l, oLogger := mocklogger.ZapTestLogger(zap.DebugLevel)
@@ -2468,7 +2443,6 @@ func TestHTTPIssue659(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-issue659.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -2537,7 +2511,6 @@ func TestHTTPIPv6Long(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-http-ipv6.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -2606,7 +2579,6 @@ func TestHTTPIPv6Short(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-http-ipv6-2.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(

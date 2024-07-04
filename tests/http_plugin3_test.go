@@ -23,10 +23,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/roadrunner-server/config/v4"
+	"github.com/roadrunner-server/config/v5"
 	"github.com/roadrunner-server/endure/v2"
 	goridgeRpc "github.com/roadrunner-server/goridge/v3/pkg/rpc"
-	"github.com/roadrunner-server/gzip/v4"
+	"github.com/roadrunner-server/gzip/v5"
 	httpPlugin "github.com/roadrunner-server/http/v5"
 	"github.com/roadrunner-server/informer/v4"
 	"github.com/roadrunner-server/logger/v4"
@@ -44,7 +44,6 @@ func TestDebugModeResponse(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.0",
 		Path:    "configs/.rr-debugmode-fail.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -129,7 +128,6 @@ func TestStreamFail(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.0",
 		Path:    "configs/.rr-stream-fail.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -223,7 +221,6 @@ func TestStreamResponse(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.0",
 		Path:    "configs/.rr-stream-worker.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -317,7 +314,6 @@ func TestStream103(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.0",
 		Path:    "configs/.rr-stream-103.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -424,7 +420,6 @@ func TestHTTPNonExistingHTTPCode(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-http-code.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -505,7 +500,6 @@ func TestHTTPMultipartFormTmpFiles(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.1",
 		Path:    "configs/.rr-http-multipart.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -630,7 +624,6 @@ func TestMTLS1(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-mtls1.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -727,7 +720,6 @@ func TestMTLS2(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-mtls2.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -820,7 +812,6 @@ func TestMTLS3(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-mtls3.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -913,7 +904,6 @@ func TestMTLS4(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-mtls4.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -1006,7 +996,6 @@ func TestMTLS5(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-mtls1.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -1087,7 +1076,6 @@ func TestHTTPBigURLEncoded(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-http-urlencoded1.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -1177,7 +1165,6 @@ func TestHTTPBigURLEncoded2(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-http-urlencoded2.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -1268,7 +1255,6 @@ func TestHTTPBigURLEncoded3(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-http-urlencoded3.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -1359,7 +1345,6 @@ func TestHTTPAddWorkers(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.0",
 		Path:    "configs/.rr-http-workers1.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -1475,7 +1460,6 @@ func TestHTTPResetNoWorkers(t *testing.T) {
 	cfg := &config.Plugin{
 		Version: "2023.3.0",
 		Path:    "configs/.rr-http-workers2.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
