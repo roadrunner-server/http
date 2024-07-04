@@ -6,12 +6,12 @@ import (
 	"github.com/quic-go/quic-go"
 	"github.com/quic-go/quic-go/http3"
 	"github.com/roadrunner-server/errors"
-	"github.com/roadrunner-server/http/v4/acme"
-	"github.com/roadrunner-server/http/v4/tlsconf"
+	"github.com/roadrunner-server/http/v5/acme"
+	"github.com/roadrunner-server/http/v5/tlsconf"
 	"go.uber.org/zap"
 
-	"github.com/roadrunner-server/http/v4/common"
-	"github.com/roadrunner-server/http/v4/servers"
+	"github.com/roadrunner-server/http/v5/common"
+	"github.com/roadrunner-server/http/v5/servers"
 )
 
 const ACMETLS1Protocol string = "acme-tls/1"

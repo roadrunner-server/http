@@ -7,15 +7,14 @@ import (
 	"sync"
 
 	"github.com/roadrunner-server/endure/v2/dep"
-	"github.com/roadrunner-server/http/v4/common"
-	"github.com/roadrunner-server/http/v4/servers"
+	"github.com/roadrunner-server/http/v5/common"
+	"github.com/roadrunner-server/http/v5/servers"
 
+	rrcontext "github.com/roadrunner-server/context"
 	"github.com/roadrunner-server/errors"
-	"github.com/roadrunner-server/http/v4/config"
-	"github.com/roadrunner-server/http/v4/handler"
-	"github.com/roadrunner-server/sdk/v4/metrics"
-	"github.com/roadrunner-server/sdk/v4/state/process"
-	"github.com/roadrunner-server/sdk/v4/utils"
+	"github.com/roadrunner-server/http/v5/config"
+	"github.com/roadrunner-server/http/v5/handler"
+	"github.com/roadrunner-server/pool/state/process"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	jprop "go.opentelemetry.io/contrib/propagators/jaeger"
 	"go.opentelemetry.io/otel/propagation"
@@ -64,7 +63,7 @@ type Plugin struct {
 	// servers RR handler
 	handler *handler.Handler
 	// metrics
-	statsExporter *metrics.StatsExporter
+	statsExporter *StatsExporter
 	// servers
 	servers []servers.InternalServer[any]
 }
@@ -188,7 +187,7 @@ func (p *Plugin) Stop(ctx context.Context) error {
 
 // ServeHTTP handles connection using set of middleware and pool PSR-7 server.
 func (p *Plugin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if val, ok := r.Context().Value(utils.OtelTracerNameKey).(string); ok {
+	if val, ok := r.Context().Value(rrcontext.OtelTracerNameKey).(string); ok {
 		tp := trace.SpanFromContext(r.Context()).TracerProvider()
 		ctx, span := tp.Tracer(val, trace.WithSchemaURL(semconv.SchemaURL),
 			trace.WithInstrumentationVersion(otelhttp.Version())).

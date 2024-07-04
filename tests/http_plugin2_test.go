@@ -23,7 +23,7 @@ import (
 	"github.com/roadrunner-server/endure/v2"
 	"github.com/roadrunner-server/fileserver/v4"
 	"github.com/roadrunner-server/gzip/v4"
-	httpPlugin "github.com/roadrunner-server/http/v4"
+	httpPlugin "github.com/roadrunner-server/http/v5"
 	"github.com/roadrunner-server/logger/v4"
 	"github.com/roadrunner-server/memory/v4"
 	rpcPlugin "github.com/roadrunner-server/rpc/v4"

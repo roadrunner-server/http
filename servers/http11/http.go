@@ -6,13 +6,14 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/roadrunner-server/http/v4/common"
-	"github.com/roadrunner-server/http/v4/servers"
+	"github.com/roadrunner-server/tcplisten"
+
+	"github.com/roadrunner-server/http/v5/common"
+	"github.com/roadrunner-server/http/v5/servers"
 
 	"github.com/roadrunner-server/errors"
-	"github.com/roadrunner-server/http/v4/config"
-	"github.com/roadrunner-server/http/v4/middleware"
-	"github.com/roadrunner-server/sdk/v4/utils"
+	"github.com/roadrunner-server/http/v5/config"
+	"github.com/roadrunner-server/http/v5/middleware"
 	"go.uber.org/zap"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
@@ -83,7 +84,7 @@ func (s *Server) Serve(mdwr map[string]common.Middleware, order []string) error 
 		s.http.Handler = middleware.Redirect(s.http.Handler, s.redirectPort)
 	}
 
-	l, err := utils.CreateListener(s.address)
+	l, err := tcplisten.CreateListener(s.address)
 	if err != nil {
 		return errors.E(op, err)
 	}
