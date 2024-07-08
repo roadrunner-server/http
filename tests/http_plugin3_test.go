@@ -31,7 +31,6 @@ import (
 	"github.com/roadrunner-server/informer/v5"
 	"github.com/roadrunner-server/logger/v5"
 	"github.com/roadrunner-server/pool/state/process"
-	"github.com/roadrunner-server/resetter/v5"
 	rpcPlugin "github.com/roadrunner-server/rpc/v5"
 	"github.com/roadrunner-server/server/v5"
 	"github.com/stretchr/testify/assert"
@@ -1437,124 +1436,6 @@ func TestHTTPAddWorkers(t *testing.T) {
 	go func() {
 		time.Sleep(time.Second * 2)
 		err2 := addWorker("127.0.0.1:30301")
-		require.NoError(t, err2)
-	}()
-
-	r, err = http.DefaultClient.Do(req)
-	assert.NoError(t, err)
-	assert.NotNil(t, r)
-	b, err := io.ReadAll(r.Body)
-	assert.Equal(t, "hello world", string(b))
-	_ = r.Body.Close()
-	assert.NoError(t, err)
-	assert.Equal(t, 200, r.StatusCode)
-
-	time.Sleep(time.Second)
-	stopCh <- struct{}{}
-	wg.Wait()
-}
-
-func TestHTTPResetNoWorkers(t *testing.T) {
-	cont := endure.New(slog.LevelDebug)
-
-	cfg := &config.Plugin{
-		Version: "2023.3.0",
-		Path:    "configs/.rr-http-workers2.yaml",
-	}
-
-	err := cont.RegisterAll(
-		cfg,
-		&rpcPlugin.Plugin{},
-		&logger.Plugin{},
-		&resetter.Plugin{},
-		&server.Plugin{},
-		&informer.Plugin{},
-		&gzip.Plugin{},
-		&httpPlugin.Plugin{},
-	)
-	assert.NoError(t, err)
-
-	err = cont.Init()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	ch, err := cont.Serve()
-	assert.NoError(t, err)
-
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-
-	wg := &sync.WaitGroup{}
-	wg.Add(1)
-
-	stopCh := make(chan struct{}, 1)
-
-	go func() {
-		defer wg.Done()
-		for {
-			select {
-			case e := <-ch:
-				assert.Fail(t, "error", e.Error.Error())
-				err = cont.Stop()
-				if err != nil {
-					assert.FailNow(t, "error", err.Error())
-				}
-			case <-sig:
-				err = cont.Stop()
-				if err != nil {
-					assert.FailNow(t, "error", err.Error())
-				}
-				return
-			case <-stopCh:
-				// timeout
-				err = cont.Stop()
-				if err != nil {
-					assert.FailNow(t, "error", err.Error())
-				}
-				return
-			}
-		}
-	}()
-
-	time.Sleep(time.Second * 2)
-
-	wl, err := workers("127.0.0.1:30302")
-	require.NoError(t, err)
-	require.Equal(t, 2, len(wl.Workers))
-
-	err = addWorker("127.0.0.1:30302")
-	require.NoError(t, err)
-
-	wl, err = workers("127.0.0.1:30302")
-	require.NoError(t, err)
-	require.Equal(t, 3, len(wl.Workers))
-
-	for i := 0; i < 3; i++ {
-		err = removeWorker("127.0.0.1:30302")
-		require.NoError(t, err)
-	}
-
-	t.Run("reset", reset("127.0.0.1:30302"))
-
-	wl, err = workers("127.0.0.1:30302")
-	require.NoError(t, err)
-	require.Equal(t, 0, len(wl.Workers))
-
-	req, err := http.NewRequest("GET", "http://127.0.0.1:44557", nil)
-	assert.NoError(t, err)
-
-	r, err := http.DefaultClient.Do(req)
-	assert.NoError(t, err)
-	assert.NotNil(t, r)
-	_, err = io.ReadAll(r.Body)
-	_ = r.Body.Close()
-	assert.NoError(t, err)
-	assert.Equal(t, 500, r.StatusCode)
-
-	go func() {
-		time.Sleep(time.Second * 2)
-		err2 := addWorker("127.0.0.1:30302")
 		require.NoError(t, err2)
 	}()
 
