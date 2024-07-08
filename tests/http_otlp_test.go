@@ -93,7 +93,7 @@ func TestHTTPOTLP_Init(t *testing.T) {
 
 	time.Sleep(time.Second * 2)
 
-	req, err := http.NewRequest("GET", "http://127.0.0.1:43239", nil)
+	req, err := http.NewRequest(http.MethodGet, "http://127.0.0.1:43239", nil) //nolint:noctx
 	assert.NoError(t, err)
 
 	r, err := http.DefaultClient.Do(req)
@@ -190,7 +190,7 @@ func TestHTTPOTLP_WithPHP(t *testing.T) {
 
 	time.Sleep(time.Second * 2)
 
-	req, err := http.NewRequest("GET", "http://127.0.0.1:43239", nil)
+	req, err := http.NewRequest(http.MethodGet, "http://127.0.0.1:43239", nil) //nolint:noctx
 	assert.NoError(t, err)
 
 	r, err := http.DefaultClient.Do(req)

@@ -30,7 +30,7 @@ import (
 
 func TestHandler_Echo(t *testing.T) {
 	p, err := staticPool.NewPool(context.Background(),
-		func(cmd []string) *exec.Cmd {
+		func(_ []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/http/client.php", "echo", "pipes")
 		},
 		pipe.NewPipeFactory(testLog.ZapLogger()),
@@ -86,7 +86,7 @@ func TestHandler_Echo(t *testing.T) {
 
 func TestHandler_Headers(t *testing.T) {
 	p, err := staticPool.NewPool(context.Background(),
-		func(cmd []string) *exec.Cmd {
+		func(_ []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/http/client.php", "header", "pipes")
 		},
 		pipe.NewPipeFactory(testLog.ZapLogger()),
@@ -136,7 +136,7 @@ func TestHandler_Headers(t *testing.T) {
 	}()
 	time.Sleep(time.Millisecond * 100)
 
-	req, err := http.NewRequest("GET", "http://127.0.0.1:8078?hello=world", nil)
+	req, err := http.NewRequest(http.MethodGet, "http://127.0.0.1:8078?hello=world", nil) //nolint:noctx
 	assert.NoError(t, err)
 
 	req.Header.Add("input", "sample")
@@ -235,7 +235,7 @@ func TestHandler_Empty_User_Agent(t *testing.T) {
 
 func TestHandler_User_Agent(t *testing.T) {
 	p, err := staticPool.NewPool(context.Background(),
-		func(cmd []string) *exec.Cmd {
+		func(_ []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/http/client.php", "user-agent", "pipes")
 		},
 		pipe.NewPipeFactory(testLog.ZapLogger()),
@@ -285,7 +285,7 @@ func TestHandler_User_Agent(t *testing.T) {
 	}()
 	time.Sleep(time.Millisecond * 10)
 
-	req, err := http.NewRequest("GET", "http://127.0.0.1:25688?hello=world", nil)
+	req, err := http.NewRequest(http.MethodGet, "http://127.0.0.1:25688?hello=world", nil) //nolint:noctx
 	assert.NoError(t, err)
 
 	req.Header.Add("User-Agent", "go-agent")
@@ -309,7 +309,7 @@ func TestHandler_User_Agent(t *testing.T) {
 
 func TestHandler_Cookies(t *testing.T) {
 	p, err := staticPool.NewPool(context.Background(),
-		func(cmd []string) *exec.Cmd {
+		func(_ []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/http/client.php", "cookie", "pipes")
 		},
 		pipe.NewPipeFactory(testLog.ZapLogger()),
@@ -356,7 +356,7 @@ func TestHandler_Cookies(t *testing.T) {
 	time.Sleep(time.Millisecond * 10)
 
 	client := &http.Client{}
-	req, err := http.NewRequest(http.MethodGet, "http://127.0.0.1:8079", nil)
+	req, err := http.NewRequest(http.MethodGet, "http://127.0.0.1:8079", nil) //nolint:noctx
 	assert.NoError(t, err)
 	req.AddCookie(&http.Cookie{Name: "input", Value: "input-value"})
 
@@ -385,7 +385,7 @@ func TestHandler_Cookies(t *testing.T) {
 
 func TestHandler_JsonPayload_POST(t *testing.T) {
 	p, err := staticPool.NewPool(context.Background(),
-		func(cmd []string) *exec.Cmd {
+		func(_ []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/http/client.php", "payload", "pipes")
 		},
 		pipe.NewPipeFactory(testLog.ZapLogger()),
@@ -432,8 +432,8 @@ func TestHandler_JsonPayload_POST(t *testing.T) {
 	time.Sleep(time.Millisecond * 10)
 
 	req, err := http.NewRequest(
-		"POST",
-		"http://127.0.0.1"+hs.Addr, //nolint:goconst
+		http.MethodPost,
+		"http://127.0.0.1"+hs.Addr,
 		bytes.NewBufferString(`{"key":"value"}`),
 	)
 	assert.NoError(t, err)
@@ -459,7 +459,7 @@ func TestHandler_JsonPayload_POST(t *testing.T) {
 
 func TestHandler_JsonPayload_PUT(t *testing.T) {
 	p, err := staticPool.NewPool(context.Background(),
-		func(cmd []string) *exec.Cmd {
+		func(_ []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/http/client.php", "payload", "pipes")
 		},
 		pipe.NewPipeFactory(testLog.ZapLogger()),
@@ -505,7 +505,7 @@ func TestHandler_JsonPayload_PUT(t *testing.T) {
 	}()
 	time.Sleep(time.Millisecond * 10)
 
-	req, err := http.NewRequest("PUT", "http://127.0.0.1"+hs.Addr, bytes.NewBufferString(`{"key":"value"}`))
+	req, err := http.NewRequest(http.MethodPut, "http://127.0.0.1"+hs.Addr, bytes.NewBufferString(`{"key":"value"}`))
 	assert.NoError(t, err)
 
 	req.Header.Add("Content-Type", "application/json")
@@ -529,7 +529,7 @@ func TestHandler_JsonPayload_PUT(t *testing.T) {
 
 func TestHandler_JsonPayload_PATCH(t *testing.T) {
 	p, err := staticPool.NewPool(context.Background(),
-		func(cmd []string) *exec.Cmd {
+		func(_ []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/http/client.php", "payload", "pipes")
 		},
 		pipe.NewPipeFactory(testLog.ZapLogger()),
@@ -575,7 +575,7 @@ func TestHandler_JsonPayload_PATCH(t *testing.T) {
 	}()
 	time.Sleep(time.Millisecond * 10)
 
-	req, err := http.NewRequest("PATCH", "http://127.0.0.1"+hs.Addr, bytes.NewBufferString(`{"key":"value"}`))
+	req, err := http.NewRequest(http.MethodPatch, "http://127.0.0.1"+hs.Addr, bytes.NewBufferString(`{"key":"value"}`)) //nolint:noctx
 	assert.NoError(t, err)
 
 	req.Header.Add("Content-Type", "application/json")
@@ -599,7 +599,7 @@ func TestHandler_JsonPayload_PATCH(t *testing.T) {
 
 func TestHandler_UrlEncoded_POST_DELETE(t *testing.T) {
 	p, err := staticPool.NewPool(context.Background(),
-		func(cmd []string) *exec.Cmd {
+		func(_ []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/psr-worker-echo.php")
 		},
 		pipe.NewPipeFactory(testLog.ZapLogger()),
@@ -646,7 +646,7 @@ func TestHandler_UrlEncoded_POST_DELETE(t *testing.T) {
 	}()
 	time.Sleep(time.Millisecond * 500)
 
-	req, err := http.NewRequest(http.MethodPost, "http://127.0.0.1"+hs.Addr, strings.NewReader("arr[x][y][e]=f&arr[c]p=l&arr[c]z=&key=value&name[]=name1&name[]=name2&name[]=name3&arr[x][y][z]=y"))
+	req, err := http.NewRequest(http.MethodPost, "http://127.0.0.1"+hs.Addr, strings.NewReader("arr[x][y][e]=f&arr[c]p=l&arr[c]z=&key=value&name[]=name1&name[]=name2&name[]=name3&arr[x][y][z]=y")) //nolint:noctx
 	assert.NoError(t, err)
 
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
@@ -667,7 +667,7 @@ func TestHandler_UrlEncoded_POST_DELETE(t *testing.T) {
 	assert.Equal(t, 200, r.StatusCode)
 	assert.Equal(t, "arr[x][y][e]=f&arr[c]p=l&arr[c]z=&key=value&name[]=name1&name[]=name2&name[]=name3&arr[x][y][z]=y", string(b))
 
-	req, err = http.NewRequest(http.MethodDelete, "http://127.0.0.1"+hs.Addr, strings.NewReader("arr[x][y][e]=f&arr[c]p=l&arr[c]z=&key=value&name[]=name1&name[]=name2&name[]=name3&arr[x][y][z]=y"))
+	req, err = http.NewRequest(http.MethodDelete, "http://127.0.0.1"+hs.Addr, strings.NewReader("arr[x][y][e]=f&arr[c]p=l&arr[c]z=&key=value&name[]=name1&name[]=name2&name[]=name3&arr[x][y][z]=y")) //nolint:noctx
 	assert.NoError(t, err)
 
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
@@ -842,7 +842,7 @@ func TestHandler_FormData_POST_Overwrite(t *testing.T) {
 	form.Add("arr[c]p", "l")
 	form.Add("arr[c]z", "")
 
-	req, err := http.NewRequest("POST", "http://127.0.0.1"+hs.Addr, strings.NewReader(form.Encode()))
+	req, err := http.NewRequest(http.MethodPost, "http://127.0.0.1"+hs.Addr, strings.NewReader(form.Encode())) //nolint:noctx
 	assert.NoError(t, err)
 
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
@@ -1395,7 +1395,7 @@ func TestHandler_Multipart_PUT(t *testing.T) {
 		t.Errorf("error closing the writer: error %v", err)
 	}
 
-	req, err := http.NewRequest("PUT", "http://127.0.0.1"+hs.Addr, &mb)
+	req, err := http.NewRequest(http.MethodPut, "http://127.0.0.1"+hs.Addr, &mb) //nolint:noctx
 	assert.NoError(t, err)
 
 	req.Header.Set("Content-Type", w.FormDataContentType())

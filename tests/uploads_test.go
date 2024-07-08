@@ -30,7 +30,7 @@ const testFile = "uploads_test.go"
 
 func TestHandler_Upload_File(t *testing.T) {
 	pl, err := staticPool.NewPool(context.Background(),
-		func(cmd []string) *exec.Cmd {
+		func(_ []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/http/client.php", "upload", "pipes")
 		},
 		pipe.NewPipeFactory(testLog.ZapLogger()),
@@ -96,7 +96,7 @@ func TestHandler_Upload_File(t *testing.T) {
 		t.Errorf("error closing the file: error %v", err)
 	}
 
-	req, err := http.NewRequest("POST", "http://127.0.0.1"+hs.Addr, &mb)
+	req, err := http.NewRequest(http.MethodPost, "http://127.0.0.1"+hs.Addr, &mb) //nolint:noctx
 	assert.NoError(t, err)
 
 	req.Header.Set("Content-Type", w.FormDataContentType())
@@ -123,7 +123,7 @@ func TestHandler_Upload_File(t *testing.T) {
 
 func TestHandler_Upload_NestedFile(t *testing.T) {
 	pl, err := staticPool.NewPool(context.Background(),
-		func(cmd []string) *exec.Cmd {
+		func(_ []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/http/client.php", "upload", "pipes")
 		},
 		pipe.NewPipeFactory(testLog.ZapLogger()),
@@ -190,7 +190,7 @@ func TestHandler_Upload_NestedFile(t *testing.T) {
 		t.Errorf("error closing the file: error %v", err)
 	}
 
-	req, err := http.NewRequest("POST", "http://127.0.0.1"+hs.Addr, &mb)
+	req, err := http.NewRequest(http.MethodPost, "http://127.0.0.1"+hs.Addr, &mb) //nolint:noctx
 	assert.NoError(t, err)
 
 	req.Header.Set("Content-Type", w.FormDataContentType())
@@ -217,7 +217,7 @@ func TestHandler_Upload_NestedFile(t *testing.T) {
 
 func TestHandler_Upload_File_NoTmpDir(t *testing.T) {
 	pl, err := staticPool.NewPool(context.Background(),
-		func(cmd []string) *exec.Cmd {
+		func(_ []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/http/client.php", "upload", "pipes")
 		},
 		pipe.NewPipeFactory(testLog.ZapLogger()),
@@ -283,7 +283,7 @@ func TestHandler_Upload_File_NoTmpDir(t *testing.T) {
 		t.Errorf("error closing the file: error %v", err)
 	}
 
-	req, err := http.NewRequest("POST", "http://127.0.0.1"+hs.Addr, &mb)
+	req, err := http.NewRequest(http.MethodPost, "http://127.0.0.1"+hs.Addr, &mb) //nolint:noctx
 	assert.NoError(t, err)
 
 	req.Header.Set("Content-Type", w.FormDataContentType())
@@ -310,7 +310,7 @@ func TestHandler_Upload_File_NoTmpDir(t *testing.T) {
 
 func TestHandler_Upload_File_Forbids(t *testing.T) {
 	pl, err := staticPool.NewPool(context.Background(),
-		func(cmd []string) *exec.Cmd {
+		func(_ []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/http/client.php", "upload", "pipes")
 		},
 		pipe.NewPipeFactory(testLog.ZapLogger()),
@@ -403,7 +403,7 @@ func TestHandler_Upload_File_Forbids(t *testing.T) {
 
 func TestHandler_Upload_File_NotAllowed(t *testing.T) {
 	pl, err := staticPool.NewPool(context.Background(),
-		func(cmd []string) *exec.Cmd {
+		func(_ []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/http/client.php", "upload", "pipes")
 		},
 		pipe.NewPipeFactory(testLog.ZapLogger()),
@@ -469,7 +469,7 @@ func TestHandler_Upload_File_NotAllowed(t *testing.T) {
 		t.Errorf("error closing the file: error %v", err)
 	}
 
-	req, err := http.NewRequest("POST", "http://127.0.0.1"+hs.Addr, &mb)
+	req, err := http.NewRequest(http.MethodPost, "http://127.0.0.1"+hs.Addr, &mb) //nolint:noctx
 	assert.NoError(t, err)
 
 	req.Header.Set("Content-Type", w.FormDataContentType())
@@ -494,7 +494,7 @@ func TestHandler_Upload_File_NotAllowed(t *testing.T) {
 	assert.Equal(t, `{"upload":`+fs+`}`, string(b))
 }
 
-func mustOpen(f string) *os.File {
+func mustOpen(f string) *os.File { //nolint:unparam
 	r, err := os.Open(f)
 	if err != nil {
 		panic(err)
@@ -510,7 +510,7 @@ type fInfo struct {
 	Sha512 string `json:"sha512,omitempty"`
 }
 
-func fileString(f string, errNo int, mime string) string {
+func fileString(f string, errNo int, mime string) string { //nolint:unparam
 	s, err := os.Stat(f)
 	if err != nil {
 		fmt.Println(fmt.Errorf("error stat the file, error: %w", err))

@@ -422,7 +422,7 @@ func TestHTTPBigResp(t *testing.T) {
 
 	go func() {
 		defer wg2.Done()
-		req, err2 := http.NewRequest(http.MethodGet, "http://127.0.0.1:15399", nil)
+		req, err2 := http.NewRequest(http.MethodGet, "http://127.0.0.1:15399", nil) //nolint:noctx
 		require.NoError(t, err2)
 
 		r, err2 := http.DefaultClient.Do(req)
@@ -592,7 +592,7 @@ func TestHTTPBigRespMaxReqSize(t *testing.T) {
 		b2.Write([]byte("  "))
 	}
 
-	req, err := http.NewRequest("POST", "http://127.0.0.1:16766", b2)
+	req, err := http.NewRequest(http.MethodPost, "http://127.0.0.1:16766", b2) //nolint:noctx
 	assert.NoError(t, err)
 
 	r, err := http.DefaultClient.Do(req)

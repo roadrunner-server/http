@@ -536,7 +536,7 @@ func sslEcho(t *testing.T) {
 		},
 	}
 
-	req, err := http.NewRequest("GET", "https://127.0.0.1:8893?hello=world", nil)
+	req, err := http.NewRequest(http.MethodGet, "https://127.0.0.1:8893?hello=world", nil) //nolint:noctx
 	assert.NoError(t, err)
 
 	r, err := client.Do(req)
@@ -1121,7 +1121,7 @@ func TestHTTP2Req(t *testing.T) {
 		Timeout:       0,
 	}
 
-	req, err := http.NewRequest(http.MethodGet, "https://127.0.0.1:23452?hello=world", nil)
+	req, err := http.NewRequest(http.MethodGet, "https://127.0.0.1:23452?hello=world", nil) //nolint:noctx
 	require.NoError(t, err)
 
 	r, err := client.Do(req)
@@ -1309,7 +1309,7 @@ func TestH2C(t *testing.T) {
 		Transport: tr,
 	}
 
-	req, err := http.NewRequest(http.MethodGet, "http://127.0.0.1:8083?hello=world", nil)
+	req, err := http.NewRequest(http.MethodGet, "http://127.0.0.1:8083?hello=world", nil) //nolint:noctx
 	require.NoError(t, err)
 
 	r, err := client.Do(req)
@@ -1400,7 +1400,7 @@ func TestHttpMiddleware(t *testing.T) {
 }
 
 func middleware(t *testing.T) {
-	req, err := http.NewRequest("GET", "http://127.0.0.1:18903?hello=world", nil)
+	req, err := http.NewRequest(http.MethodGet, "http://127.0.0.1:18903?hello=world", nil)
 	assert.NoError(t, err)
 
 	r, err := http.DefaultClient.Do(req)
@@ -1415,7 +1415,7 @@ func middleware(t *testing.T) {
 	err = r.Body.Close()
 	assert.NoError(t, err)
 
-	req, err = http.NewRequest("GET", "http://127.0.0.1:18903/halt", nil)
+	req, err = http.NewRequest(http.MethodGet, "http://127.0.0.1:18903/halt", nil) //nolint:noctx
 	assert.NoError(t, err)
 
 	r, err = http.DefaultClient.Do(req)
@@ -1774,7 +1774,7 @@ func TestHTTPBigRequestSize(t *testing.T) {
 
 	bt := bytes.NewBuffer(buf)
 
-	req, err := http.NewRequest("GET", "http://127.0.0.1:10085?hello=world", bt)
+	req, err := http.NewRequest(http.MethodGet, "http://127.0.0.1:10085?hello=world", bt) //nolint:noctx
 	assert.NoError(t, err)
 
 	r, err := http.DefaultClient.Do(req)

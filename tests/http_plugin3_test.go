@@ -691,7 +691,7 @@ func TestMTLS1(t *testing.T) {
 		},
 	}
 
-	req, err := http.NewRequest("GET", "https://127.0.0.1:8895?hello=world", nil)
+	req, err := http.NewRequest(http.MethodGet, "https://127.0.0.1:8895?hello=world", nil) //nolint:noctx
 	assert.NoError(t, err)
 
 	r, err := client.Do(req)
@@ -959,7 +959,7 @@ func TestMTLS4(t *testing.T) {
 
 	time.Sleep(time.Second * 1)
 
-	req, err := http.NewRequest(http.MethodGet, "https://127.0.0.1:8898?hello=world", nil)
+	req, err := http.NewRequest(http.MethodGet, "https://127.0.0.1:8898?hello=world", nil) //nolint:noctx
 	assert.NoError(t, err)
 
 	cert, err := tls.LoadX509KeyPair("test-certs/localhost+2-client.pem", "test-certs/localhost+2-client-key.pem")
@@ -1051,7 +1051,7 @@ func TestMTLS5(t *testing.T) {
 
 	time.Sleep(time.Second * 1)
 
-	req, err := http.NewRequest("GET", "https://127.0.0.1:8895?hello=world", nil)
+	req, err := http.NewRequest(http.MethodGet, "https://127.0.0.1:8895?hello=world", nil) //nolint:noctx
 	require.NoError(t, err)
 
 	client := &http.Client{
@@ -1422,7 +1422,7 @@ func TestHTTPAddWorkers(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(wl.Workers))
 
-	req, err := http.NewRequest("GET", "http://127.0.0.1:44556", nil)
+	req, err := http.NewRequest(http.MethodGet, "http://127.0.0.1:44556", nil) //nolint:noctx
 	assert.NoError(t, err)
 
 	r, err := http.DefaultClient.Do(req)
@@ -1504,17 +1504,4 @@ func removeWorker(address string) error {
 	}
 
 	return nil
-}
-
-func reset(address string) func(t *testing.T) {
-	return func(t *testing.T) {
-		conn, err := net.Dial("tcp", address)
-		assert.NoError(t, err)
-		client := rpc.NewClientWithCodec(goridgeRpc.NewClientCodec(conn))
-
-		var ret bool
-		err = client.Call("resetter.Reset", "http", &ret)
-		assert.NoError(t, err)
-		assert.True(t, ret)
-	}
 }
