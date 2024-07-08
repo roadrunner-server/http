@@ -1421,7 +1421,7 @@ func TestHTTPAddWorkers(t *testing.T) {
 
 	wl, err = workers("127.0.0.1:30301")
 	require.NoError(t, err)
-	require.Equal(t, 0, len(wl.Workers))
+	require.Equal(t, 1, len(wl.Workers))
 
 	req, err := http.NewRequest("GET", "http://127.0.0.1:44556", nil)
 	assert.NoError(t, err)
