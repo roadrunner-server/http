@@ -80,7 +80,7 @@ require (
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/roadrunner-server/api/v4 v4.16.0 // indirect
 	github.com/roadrunner-server/context v1.0.1 // indirect
-	github.com/roadrunner-server/errors v1.4.0 // indirect
+	github.com/roadrunner-server/errors v1.4.1 // indirect
 	github.com/roadrunner-server/events v1.0.1 // indirect
 	github.com/roadrunner-server/tcplisten v1.5.1 // indirect
 	github.com/robfig/cron v1.2.0 // indirect
