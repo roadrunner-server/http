@@ -85,7 +85,7 @@ jobs:
           cp -r localhost+2-client-key.pem localhost+2-client.pem localhost+2-key.pem localhost+2.pem test-certs/
           cp -r $(mkcert -CAROOT)/rootCA.pem test-certs/
 
-          docker-compose -f env/docker-compose-otel.yaml up -d
+          docker compose -f env/docker-compose-otel.yaml up -d
           sleep 30
           go test -timeout 20m -v -race -cover -tags=debug -failfast -coverpkg=$(cat pkgs.txt) -coverprofile=./coverage-ci/http.out -covermode=atomic attributes_test.go handler_test.go http_otlp_test.go http_plugin2_test.go http_plugin3_test.go http_plugin4_test.go http_plugin_test.go uploads_test.go
 
