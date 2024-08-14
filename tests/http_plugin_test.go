@@ -1792,72 +1792,80 @@ func TestHTTPBigRequestSize(t *testing.T) {
 }
 
 func TestStaticEtagPlugin(t *testing.T) {
-	cont := endure.New(slog.LevelDebug)
+	t.Run("Static Etag, immutable", staticEtagPlugin(true))
+	t.Run("Static Etag, mutable", staticEtagPlugin(false))
+}
 
-	cfg := &config.Plugin{
-		Version: "2023.3.5",
-		Path:    "configs/.rr-http-static.yaml",
-	}
+func staticEtagPlugin(immutable bool) func(t *testing.T) {
+	return func(t *testing.T) {
+		cont := endure.New(slog.LevelDebug)
 
-	err := cont.RegisterAll(
-		cfg,
-		&logger.Plugin{},
-		&server.Plugin{},
-		&httpPlugin.Plugin{},
-		&gzip.Plugin{},
-		&static.Plugin{},
-	)
-	assert.NoError(t, err)
-
-	err = cont.Init()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	ch, err := cont.Serve()
-	assert.NoError(t, err)
-
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-
-	wg := &sync.WaitGroup{}
-	wg.Add(1)
-
-	stopCh := make(chan struct{}, 1)
-
-	go func() {
-		defer wg.Done()
-		for {
-			select {
-			case e := <-ch:
-				assert.Fail(t, "error", e.Error.Error())
-				err = cont.Stop()
-				if err != nil {
-					assert.FailNow(t, "error", err.Error())
-				}
-			case <-sig:
-				err = cont.Stop()
-				if err != nil {
-					assert.FailNow(t, "error", err.Error())
-				}
-				return
-			case <-stopCh:
-				// timeout
-				err = cont.Stop()
-				if err != nil {
-					assert.FailNow(t, "error", err.Error())
-				}
-				return
-			}
+		cfg := &config.Plugin{
+			Version: "2023.3.5",
+			Path:    "configs/.rr-http-static.yaml",
+			Flags:   []string{fmt.Sprintf("http.static.immutable = %t", immutable)},
 		}
-	}()
 
-	time.Sleep(time.Second)
-	t.Run("ServeSampleEtag", serveStaticSampleEtag)
-	t.Run("NoStaticHeaders", noStaticHeaders)
+		err := cont.RegisterAll(
+			cfg,
+			&logger.Plugin{},
+			&server.Plugin{},
+			&httpPlugin.Plugin{},
+			&gzip.Plugin{},
+			&static.Plugin{},
+		)
+		assert.NoError(t, err)
 
-	stopCh <- struct{}{}
-	wg.Wait()
+		err = cont.Init()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		ch, err := cont.Serve()
+		assert.NoError(t, err)
+
+		sig := make(chan os.Signal, 1)
+		signal.Notify(sig, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+
+		wg := &sync.WaitGroup{}
+		wg.Add(1)
+
+		stopCh := make(chan struct{}, 1)
+
+		go func() {
+			defer wg.Done()
+			for {
+				select {
+				case e := <-ch:
+					assert.Fail(t, "error", e.Error.Error())
+					err = cont.Stop()
+					if err != nil {
+						assert.FailNow(t, "error", err.Error())
+					}
+				case <-sig:
+					err = cont.Stop()
+					if err != nil {
+						assert.FailNow(t, "error", err.Error())
+					}
+					return
+				case <-stopCh:
+					// timeout
+					err = cont.Stop()
+					if err != nil {
+						assert.FailNow(t, "error", err.Error())
+					}
+					return
+				}
+			}
+		}()
+
+		time.Sleep(time.Second)
+		t.Run("ServeSampleEtag", serveStaticSampleEtag)
+		t.Run("NoStaticHeaders", noStaticHeaders)
+
+		stopCh <- struct{}{}
+		wg.Wait()
+	}
 }
 
 func serveStaticSampleEtag(t *testing.T) {
@@ -1902,71 +1910,79 @@ func noStaticHeaders(t *testing.T) {
 }
 
 func TestStaticPluginSecurity(t *testing.T) {
-	cont := endure.New(slog.LevelDebug)
+	t.Run("Static Plugin Security, immutable", staticPluginSecurity(true))
+	t.Run("Static Plugin Security, mutable", staticPluginSecurity(false))
+}
 
-	cfg := &config.Plugin{
-		Version: "2023.3.5",
-		Path:    "configs/.rr-http-static-security.yaml",
-	}
+func staticPluginSecurity(immutable bool) func(t *testing.T) {
+	return func(t *testing.T) {
+		cont := endure.New(slog.LevelDebug)
 
-	err := cont.RegisterAll(
-		cfg,
-		&logger.Plugin{},
-		&server.Plugin{},
-		&httpPlugin.Plugin{},
-		&gzip.Plugin{},
-		&static.Plugin{},
-	)
-	assert.NoError(t, err)
-
-	err = cont.Init()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	ch, err := cont.Serve()
-	assert.NoError(t, err)
-
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-
-	wg := &sync.WaitGroup{}
-	wg.Add(1)
-
-	stopCh := make(chan struct{}, 1)
-
-	go func() {
-		defer wg.Done()
-		for {
-			select {
-			case e := <-ch:
-				assert.Fail(t, "error", e.Error.Error())
-				err = cont.Stop()
-				if err != nil {
-					assert.FailNow(t, "error", err.Error())
-				}
-			case <-sig:
-				err = cont.Stop()
-				if err != nil {
-					assert.FailNow(t, "error", err.Error())
-				}
-				return
-			case <-stopCh:
-				// timeout
-				err = cont.Stop()
-				if err != nil {
-					assert.FailNow(t, "error", err.Error())
-				}
-				return
-			}
+		cfg := &config.Plugin{
+			Version: "2023.3.5",
+			Path:    "configs/.rr-http-static-security.yaml",
+			Flags:   []string{fmt.Sprintf("http.static.immutable = %t", immutable)},
 		}
-	}()
 
-	time.Sleep(time.Second)
-	t.Run("ServeSampleNotAllowedPath", serveStaticSampleNotAllowedPath)
+		err := cont.RegisterAll(
+			cfg,
+			&logger.Plugin{},
+			&server.Plugin{},
+			&httpPlugin.Plugin{},
+			&gzip.Plugin{},
+			&static.Plugin{},
+		)
+		assert.NoError(t, err)
 
-	stopCh <- struct{}{}
-	wg.Wait()
+		err = cont.Init()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		ch, err := cont.Serve()
+		assert.NoError(t, err)
+
+		sig := make(chan os.Signal, 1)
+		signal.Notify(sig, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+
+		wg := &sync.WaitGroup{}
+		wg.Add(1)
+
+		stopCh := make(chan struct{}, 1)
+
+		go func() {
+			defer wg.Done()
+			for {
+				select {
+				case e := <-ch:
+					assert.Fail(t, "error", e.Error.Error())
+					err = cont.Stop()
+					if err != nil {
+						assert.FailNow(t, "error", err.Error())
+					}
+				case <-sig:
+					err = cont.Stop()
+					if err != nil {
+						assert.FailNow(t, "error", err.Error())
+					}
+					return
+				case <-stopCh:
+					// timeout
+					err = cont.Stop()
+					if err != nil {
+						assert.FailNow(t, "error", err.Error())
+					}
+					return
+				}
+			}
+		}()
+
+		time.Sleep(time.Second)
+		t.Run("ServeSampleNotAllowedPath", serveStaticSampleNotAllowedPath)
+
+		stopCh <- struct{}{}
+		wg.Wait()
+	}
 }
 
 func serveStaticSampleNotAllowedPath(t *testing.T) {
@@ -2122,73 +2138,81 @@ func TestStaticBigFilePlugin(t *testing.T) {
 }
 
 func TestStaticPlugin(t *testing.T) {
-	cont := endure.New(slog.LevelDebug)
+	t.Run("Static Plugin, immutable", staticPlugin(true))
+	t.Run("Static Plugin, mutable", staticPlugin(false))
+}
 
-	cfg := &config.Plugin{
-		Version: "2023.3.5",
-		Path:    "configs/.rr-http-static.yaml",
-	}
+func staticPlugin(immutable bool) func(t *testing.T) {
+	return func(t *testing.T) {
+		cont := endure.New(slog.LevelDebug)
 
-	err := cont.RegisterAll(
-		cfg,
-		&logger.Plugin{},
-		&server.Plugin{},
-		&httpPlugin.Plugin{},
-		&gzip.Plugin{},
-		&static.Plugin{},
-	)
-	assert.NoError(t, err)
-
-	err = cont.Init()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	ch, err := cont.Serve()
-	assert.NoError(t, err)
-
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-
-	wg := &sync.WaitGroup{}
-	wg.Add(1)
-
-	stopCh := make(chan struct{}, 1)
-
-	go func() {
-		defer wg.Done()
-		for {
-			select {
-			case e := <-ch:
-				assert.Fail(t, "error", e.Error.Error())
-				err = cont.Stop()
-				if err != nil {
-					assert.FailNow(t, "error", err.Error())
-				}
-			case <-sig:
-				err = cont.Stop()
-				if err != nil {
-					assert.FailNow(t, "error", err.Error())
-				}
-				return
-			case <-stopCh:
-				// timeout
-				err = cont.Stop()
-				if err != nil {
-					assert.FailNow(t, "error", err.Error())
-				}
-				return
-			}
+		cfg := &config.Plugin{
+			Version: "2023.3.5",
+			Path:    "configs/.rr-http-static.yaml",
+			Flags:   []string{fmt.Sprintf("http.static.immutable = %t", immutable)},
 		}
-	}()
 
-	time.Sleep(time.Second)
-	t.Run("ServeSample", serveStaticSample(21603, "sample.txt"))
-	t.Run("StaticNotForbid", staticNotForbid(21603))
-	t.Run("StaticHeaders", staticHeaders(21603))
+		err := cont.RegisterAll(
+			cfg,
+			&logger.Plugin{},
+			&server.Plugin{},
+			&httpPlugin.Plugin{},
+			&gzip.Plugin{},
+			&static.Plugin{},
+		)
+		assert.NoError(t, err)
 
-	stopCh <- struct{}{}
-	wg.Wait()
+		err = cont.Init()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		ch, err := cont.Serve()
+		assert.NoError(t, err)
+
+		sig := make(chan os.Signal, 1)
+		signal.Notify(sig, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+
+		wg := &sync.WaitGroup{}
+		wg.Add(1)
+
+		stopCh := make(chan struct{}, 1)
+
+		go func() {
+			defer wg.Done()
+			for {
+				select {
+				case e := <-ch:
+					assert.Fail(t, "error", e.Error.Error())
+					err = cont.Stop()
+					if err != nil {
+						assert.FailNow(t, "error", err.Error())
+					}
+				case <-sig:
+					err = cont.Stop()
+					if err != nil {
+						assert.FailNow(t, "error", err.Error())
+					}
+					return
+				case <-stopCh:
+					// timeout
+					err = cont.Stop()
+					if err != nil {
+						assert.FailNow(t, "error", err.Error())
+					}
+					return
+				}
+			}
+		}()
+
+		time.Sleep(time.Second)
+		t.Run("ServeSample", serveStaticSample(21603, "sample.txt"))
+		t.Run("StaticNotForbid", staticNotForbid(21603))
+		t.Run("StaticHeaders", staticHeaders(21603))
+
+		stopCh <- struct{}{}
+		wg.Wait()
+	}
 }
 
 func staticHeaders(port int) func(t *testing.T) {
@@ -2338,82 +2362,90 @@ func staticFilesDisabled(t *testing.T) {
 }
 
 func TestStaticFilesForbid(t *testing.T) {
-	cont := endure.New(slog.LevelDebug)
+	t.Run("Static files forbid, immutable", staticFilesForbidWrapper(true))
+	t.Run("Static files forbid, mutable", staticFilesForbidWrapper(false))
+}
 
-	cfg := &config.Plugin{
-		Version: "2023.3.5",
-		Path:    "configs/.rr-http-static-files.yaml",
-	}
+func staticFilesForbidWrapper(immutable bool) func(t *testing.T) {
+	return func(t *testing.T) {
+		cont := endure.New(slog.LevelDebug)
 
-	l, oLogger := mocklogger.ZapTestLogger(zap.DebugLevel)
-	err := cont.RegisterAll(
-		cfg,
-		l,
-		&server.Plugin{},
-		&httpPlugin.Plugin{},
-		&gzip.Plugin{},
-		&static.Plugin{},
-	)
-	assert.NoError(t, err)
-
-	err = cont.Init()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	ch, err := cont.Serve()
-	assert.NoError(t, err)
-
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-
-	wg := &sync.WaitGroup{}
-	wg.Add(1)
-
-	stopCh := make(chan struct{}, 1)
-
-	go func() {
-		defer wg.Done()
-		for {
-			select {
-			case e := <-ch:
-				assert.Fail(t, "error", e.Error.Error())
-				err = cont.Stop()
-				if err != nil {
-					assert.FailNow(t, "error", err.Error())
-				}
-			case <-sig:
-				err = cont.Stop()
-				if err != nil {
-					assert.FailNow(t, "error", err.Error())
-				}
-				return
-			case <-stopCh:
-				// timeout
-				err = cont.Stop()
-				if err != nil {
-					assert.FailNow(t, "error", err.Error())
-				}
-				return
-			}
+		cfg := &config.Plugin{
+			Version: "2023.3.5",
+			Path:    "configs/.rr-http-static-files.yaml",
+			Flags:   []string{fmt.Sprintf("http.static.immutable = %t", immutable)},
 		}
-	}()
 
-	time.Sleep(time.Second)
-	t.Run("StaticTestFilesDir", staticTestFilesDir)
-	t.Run("StaticNotFound", staticNotFound)
-	t.Run("StaticFilesForbid", staticFilesForbid)
+		l, oLogger := mocklogger.ZapTestLogger(zap.DebugLevel)
+		err := cont.RegisterAll(
+			cfg,
+			l,
+			&server.Plugin{},
+			&httpPlugin.Plugin{},
+			&gzip.Plugin{},
+			&static.Plugin{},
+		)
+		assert.NoError(t, err)
 
-	stopCh <- struct{}{}
-	wg.Wait()
-	time.Sleep(time.Second)
+		err = cont.Init()
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	o1 := oLogger.FilterMessageSnippet("http server was started")
-	o3 := oLogger.FilterMessageSnippet("http log")
+		ch, err := cont.Serve()
+		assert.NoError(t, err)
 
-	require.Equal(t, 1, o1.Len())
-	require.Equal(t, 3, o3.Len())
-	require.Equal(t, 1, oLogger.FilterMessageSnippet("file extension is forbidden").Len())
+		sig := make(chan os.Signal, 1)
+		signal.Notify(sig, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+
+		wg := &sync.WaitGroup{}
+		wg.Add(1)
+
+		stopCh := make(chan struct{}, 1)
+
+		go func() {
+			defer wg.Done()
+			for {
+				select {
+				case e := <-ch:
+					assert.Fail(t, "error", e.Error.Error())
+					err = cont.Stop()
+					if err != nil {
+						assert.FailNow(t, "error", err.Error())
+					}
+				case <-sig:
+					err = cont.Stop()
+					if err != nil {
+						assert.FailNow(t, "error", err.Error())
+					}
+					return
+				case <-stopCh:
+					// timeout
+					err = cont.Stop()
+					if err != nil {
+						assert.FailNow(t, "error", err.Error())
+					}
+					return
+				}
+			}
+		}()
+
+		time.Sleep(time.Second)
+		t.Run("StaticTestFilesDir", staticTestFilesDir)
+		t.Run("StaticNotFound", staticNotFound)
+		t.Run("StaticFilesForbid", staticFilesForbid)
+
+		stopCh <- struct{}{}
+		wg.Wait()
+		time.Sleep(time.Second)
+
+		o1 := oLogger.FilterMessageSnippet("http server was started")
+		o3 := oLogger.FilterMessageSnippet("http log")
+
+		require.Equal(t, 1, o1.Len())
+		require.Equal(t, 3, o3.Len())
+		require.Equal(t, 1, oLogger.FilterMessageSnippet("file extension is forbidden").Len())
+	}
 }
 
 func staticTestFilesDir(t *testing.T) {
