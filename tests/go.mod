@@ -6,7 +6,7 @@ require (
 	github.com/goccy/go-json v0.10.3
 	github.com/quic-go/quic-go v0.46.0
 	github.com/roadrunner-server/config/v5 v5.0.2
-	github.com/roadrunner-server/endure/v2 v2.4.6
+	github.com/roadrunner-server/endure/v2 v2.5.0
 	github.com/roadrunner-server/fileserver/v5 v5.0.1
 	github.com/roadrunner-server/goridge/v3 v3.8.3
 	github.com/roadrunner-server/gzip/v5 v5.0.2
