@@ -55,7 +55,7 @@ type Handler struct {
 	stopChPool    sync.Pool
 }
 
-// NewHandler return handle interface implementation
+// NewHandler return 'handler' interface implementation
 func NewHandler(cfg *config.Config, pool common.Pool, log *zap.Logger) (*Handler, error) {
 	return &Handler{
 		uploads: &uploads{
@@ -113,7 +113,7 @@ func NewHandler(cfg *config.Config, pool common.Pool, log *zap.Logger) (*Handler
 	}, nil
 }
 
-// ServeHTTP transform original request to the PSR-7 passed then to the underlying application. Attempts to serve static files first if enabled.
+// ServeHTTP transform the original request to the PSR-7 passed then to the underlying application. Attempts to serve static files first if enabled.
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	const op = errors.Op("serve_http")
 	start := time.Now()
@@ -187,7 +187,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			req.Close(h.log, r)
 			h.putReq(req)
 			h.putCh(stopCh)
-			w.WriteHeader(int(h.internalHTTPCode))
+			w.WriteHeader(int(h.internalHTTPCode)) //nolint:gosec
 			h.log.Error("read stream",
 				zap.Time("start", start),
 				zap.Int64("elapsed", time.Since(start).Milliseconds()),
@@ -219,7 +219,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // handleError will handle internal RR errors and return 500
 func (h *Handler) handleError(w http.ResponseWriter, err error) {
 	// write an internal server error
-	w.WriteHeader(int(h.internalHTTPCode))
+	w.WriteHeader(int(h.internalHTTPCode)) //nolint:gosec
 
 	// if there are no free workers -> write a special header
 	if errors.Is(errors.NoFreeWorkers, err) {

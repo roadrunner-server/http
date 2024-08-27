@@ -9,7 +9,7 @@ func MaxRequestSize(next http.Handler, maxReqSize uint64) http.Handler {
 		// validating request size
 
 		r2 := r.Clone(r.Context())
-		r2.Body = http.MaxBytesReader(w, r2.Body, int64(maxReqSize))
+		r2.Body = http.MaxBytesReader(w, r2.Body, int64(maxReqSize)) //nolint:gosec
 
 		// use max_request_size limit in megabytes
 		next.ServeHTTP(w, r2)
