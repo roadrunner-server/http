@@ -197,7 +197,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		err = h.Write(recv.Payload(), w)
 		if err != nil {
-			// send stop signal to the worker pool
+			// send a stop signal to the worker pool
 			select {
 			case stopCh <- struct{}{}:
 			default:

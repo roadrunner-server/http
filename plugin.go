@@ -174,6 +174,11 @@ func (p *Plugin) Stop(ctx context.Context) error {
 				p.servers[i].Stop()
 			}
 		}
+
+		if p.pool != nil {
+			p.pool.Destroy(ctx)
+		}
+
 		doneCh <- struct{}{}
 	}()
 
@@ -199,7 +204,7 @@ func (p *Plugin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		r = r.WithContext(ctx)
 	}
 
-	// protect the case, when user sends Reset, and we are replacing handler with pool
+	// protect the case when the user sends Reset, and we are replacing handler with pool
 	p.mu.RLock()
 	p.handler.ServeHTTP(w, r)
 	p.mu.RUnlock()
