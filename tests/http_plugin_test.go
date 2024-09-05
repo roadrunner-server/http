@@ -541,6 +541,7 @@ func sslEcho(t *testing.T) {
 
 	r, err := client.Do(req)
 	assert.NoError(t, err)
+	require.NotNil(t, r)
 
 	b, err := io.ReadAll(r.Body)
 	assert.NoError(t, err)
@@ -665,7 +666,8 @@ func sslRedirect(t *testing.T) {
 
 	r, err := client.Do(req)
 	assert.NoError(t, err)
-	assert.NotNil(t, r.TLS)
+	require.NotNil(t, r)
+	require.NotNil(t, r.TLS)
 
 	b, err := io.ReadAll(r.Body)
 	assert.NoError(t, err)
@@ -764,6 +766,7 @@ func sslPush(t *testing.T) {
 
 	r, err := client.Do(req)
 	assert.NoError(t, err)
+	require.NotNil(t, r)
 
 	assert.NotNil(t, r.TLS)
 

@@ -213,6 +213,7 @@ func http3ResponseMatcher(t *testing.T) {
 
 	r, err := client.Do(req)
 	assert.NoError(t, err)
+	require.NotNil(t, r)
 
 	b, err := io.ReadAll(r.Body)
 	assert.NoError(t, err)
