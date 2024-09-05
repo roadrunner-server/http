@@ -1339,7 +1339,7 @@ func TestHTTPBigURLEncoded3(t *testing.T) {
 }
 
 func TestHTTPAddWorkers(t *testing.T) {
-	cont := endure.New(slog.LevelDebug)
+	cont := endure.New(slog.LevelError)
 
 	cfg := &config.Plugin{
 		Version: "2023.3.0",
@@ -1358,9 +1358,7 @@ func TestHTTPAddWorkers(t *testing.T) {
 	assert.NoError(t, err)
 
 	err = cont.Init()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	ch, err := cont.Serve()
 	assert.NoError(t, err)
@@ -1422,6 +1420,10 @@ func TestHTTPAddWorkers(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(wl.Workers))
 
+	time.Sleep(time.Second)
+	err = addWorker("127.0.0.1:30301")
+	require.NoError(t, err)
+
 	req, err := http.NewRequest(http.MethodGet, "http://127.0.0.1:44556", nil) //nolint:noctx
 	assert.NoError(t, err)
 
@@ -1431,12 +1433,16 @@ func TestHTTPAddWorkers(t *testing.T) {
 	_, err = io.ReadAll(r.Body)
 	_ = r.Body.Close()
 	assert.NoError(t, err)
-	assert.Equal(t, 500, r.StatusCode)
+	assert.Equal(t, 200, r.StatusCode)
 
 	go func() {
 		time.Sleep(time.Second * 2)
 		err2 := addWorker("127.0.0.1:30301")
 		require.NoError(t, err2)
+
+		wl2, err2 := workers("127.0.0.1:30301")
+		require.NoError(t, err2)
+		require.Equal(t, 3, len(wl2.Workers))
 	}()
 
 	r, err = http.DefaultClient.Do(req)
@@ -1448,13 +1454,12 @@ func TestHTTPAddWorkers(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 200, r.StatusCode)
 
-	time.Sleep(time.Second)
+	time.Sleep(time.Second * 5)
 	stopCh <- struct{}{}
 	wg.Wait()
 }
 
 type workersList struct {
-	// Workers is list of workers.
 	Workers []process.State `json:"workers"`
 }
 
