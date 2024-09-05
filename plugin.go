@@ -183,7 +183,6 @@ func (p *Plugin) Stop(ctx context.Context) error {
 				}
 			default:
 				// pool is nil, nothing to do
-				doneCh <- struct{}{}
 			}
 		}
 
