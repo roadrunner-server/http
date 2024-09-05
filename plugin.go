@@ -6,14 +6,14 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/roadrunner-server/endure/v2/dep"
-	"github.com/roadrunner-server/http/v5/common"
-	"github.com/roadrunner-server/http/v5/servers"
-
 	rrcontext "github.com/roadrunner-server/context"
+	"github.com/roadrunner-server/endure/v2/dep"
 	"github.com/roadrunner-server/errors"
+	"github.com/roadrunner-server/http/v5/common"
 	"github.com/roadrunner-server/http/v5/config"
 	"github.com/roadrunner-server/http/v5/handler"
+	"github.com/roadrunner-server/http/v5/servers"
+	"github.com/roadrunner-server/pool/pool/static_pool"
 	"github.com/roadrunner-server/pool/state/process"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	jprop "go.opentelemetry.io/contrib/propagators/jaeger"
@@ -176,7 +176,15 @@ func (p *Plugin) Stop(ctx context.Context) error {
 		}
 
 		if p.pool != nil {
-			p.pool.Destroy(ctx)
+			switch pp := p.pool.(type) {
+			case *static_pool.Pool:
+				if pp != nil {
+					pp.Destroy(ctx)
+				}
+			default:
+				// pool is nil, nothing to do
+				doneCh <- struct{}{}
+			}
 		}
 
 		doneCh <- struct{}{}
