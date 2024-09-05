@@ -1,8 +1,6 @@
 module tests
 
-go 1.23
-
-toolchain go1.23.0
+go 1.23.0
 
 require (
 	github.com/goccy/go-json v0.10.3
@@ -19,7 +17,7 @@ require (
 	github.com/roadrunner-server/memory/v5 v5.0.2
 	github.com/roadrunner-server/otel/v5 v5.0.1
 	github.com/roadrunner-server/pool v1.0.2
-	github.com/roadrunner-server/resetter/v5 v5.0.2
+	github.com/roadrunner-server/resetter/v5 v5.0.3
 	github.com/roadrunner-server/rpc/v5 v5.0.2
 	github.com/roadrunner-server/send/v5 v5.0.1
 	github.com/roadrunner-server/server/v5 v5.1.0
@@ -77,7 +75,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/client_golang v1.20.3 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
-	github.com/prometheus/common v0.59.0 // indirect
+	github.com/prometheus/common v0.59.1 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/quic-go/qpack v0.5.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
