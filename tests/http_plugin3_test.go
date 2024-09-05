@@ -696,6 +696,7 @@ func TestMTLS1(t *testing.T) {
 
 	r, err := client.Do(req)
 	assert.NoError(t, err)
+	require.NotNil(t, r)
 
 	b, err := io.ReadAll(r.Body)
 	assert.NoError(t, err)
@@ -792,6 +793,7 @@ func TestMTLS2(t *testing.T) {
 
 	r, err := client.Do(req)
 	assert.NoError(t, err)
+	require.NotNil(t, r)
 
 	b, err := io.ReadAll(r.Body)
 	assert.NoError(t, err)
@@ -884,6 +886,7 @@ func TestMTLS3(t *testing.T) {
 
 	r, err := client.Do(req)
 	assert.NoError(t, err)
+	require.NotNil(t, r)
 
 	b, err := io.ReadAll(r.Body)
 	assert.NoError(t, err)
@@ -976,6 +979,7 @@ func TestMTLS4(t *testing.T) {
 
 	r, err := client.Do(req)
 	assert.NoError(t, err)
+	require.NotNil(t, r)
 
 	b, err := io.ReadAll(r.Body)
 	assert.NoError(t, err)
