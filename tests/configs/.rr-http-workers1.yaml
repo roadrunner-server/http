@@ -15,7 +15,7 @@ http:
   pool:
     num_workers: 2
     allocate_timeout: 5s
-    destroy_timeout: 1s
+    destroy_timeout: 60s
 
 logs:
   mode: development
