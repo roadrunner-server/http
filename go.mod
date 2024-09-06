@@ -2,7 +2,7 @@ module github.com/roadrunner-server/http/v5
 
 go 1.23
 
-toolchain go1.23.0
+toolchain go1.23.1
 
 require (
 	github.com/caddyserver/certmagic v0.21.3
