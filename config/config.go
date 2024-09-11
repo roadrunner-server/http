@@ -79,7 +79,7 @@ func (c *Config) InitDefaults() error {
 		// default pool
 		c.Pool = &pool.Config{
 			Debug:           false,
-			NumWorkers:      uint64(runtime.NumCPU()),
+			NumWorkers:      uint64(runtime.NumCPU()), //nolint:gosec
 			MaxJobs:         0,
 			AllocateTimeout: time.Second * 60,
 			DestroyTimeout:  time.Second * 60,
