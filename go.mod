@@ -19,8 +19,8 @@ require (
 	github.com/roadrunner-server/pool v1.0.2
 	github.com/roadrunner-server/tcplisten v1.5.1
 	github.com/stretchr/testify v1.9.0
-	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.54.0
-	go.opentelemetry.io/contrib/propagators/jaeger v1.29.0
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.55.0
+	go.opentelemetry.io/contrib/propagators/jaeger v1.30.0
 	go.opentelemetry.io/otel v1.30.0
 	go.opentelemetry.io/otel/trace v1.30.0
 	go.uber.org/zap v1.27.0
