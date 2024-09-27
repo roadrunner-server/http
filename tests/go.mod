@@ -7,23 +7,23 @@ toolchain go1.23.1
 require (
 	github.com/goccy/go-json v0.10.3
 	github.com/quic-go/quic-go v0.47.0
-	github.com/roadrunner-server/config/v5 v5.0.3
+	github.com/roadrunner-server/config/v5 v5.0.4
 	github.com/roadrunner-server/endure/v2 v2.6.1
-	github.com/roadrunner-server/fileserver/v5 v5.0.2
+	github.com/roadrunner-server/fileserver/v5 v5.0.3
 	github.com/roadrunner-server/goridge/v3 v3.8.3
-	github.com/roadrunner-server/gzip/v5 v5.0.3
-	github.com/roadrunner-server/headers/v5 v5.0.3
+	github.com/roadrunner-server/gzip/v5 v5.0.4
+	github.com/roadrunner-server/headers/v5 v5.0.4
 	github.com/roadrunner-server/http/v5 v5.0.0
-	github.com/roadrunner-server/informer/v5 v5.0.3
-	github.com/roadrunner-server/logger/v5 v5.0.3
-	github.com/roadrunner-server/memory/v5 v5.0.3
-	github.com/roadrunner-server/otel/v5 v5.0.2
+	github.com/roadrunner-server/informer/v5 v5.0.4
+	github.com/roadrunner-server/logger/v5 v5.0.4
+	github.com/roadrunner-server/memory/v5 v5.0.4
+	github.com/roadrunner-server/otel/v5 v5.0.3
 	github.com/roadrunner-server/pool v1.0.2
-	github.com/roadrunner-server/resetter/v5 v5.0.4
-	github.com/roadrunner-server/rpc/v5 v5.0.3
-	github.com/roadrunner-server/send/v5 v5.0.2
-	github.com/roadrunner-server/server/v5 v5.1.1
-	github.com/roadrunner-server/static/v5 v5.0.2
+	github.com/roadrunner-server/resetter/v5 v5.0.5
+	github.com/roadrunner-server/rpc/v5 v5.0.4
+	github.com/roadrunner-server/send/v5 v5.0.3
+	github.com/roadrunner-server/server/v5 v5.1.2
+	github.com/roadrunner-server/static/v5 v5.0.3
 	github.com/stretchr/testify v1.9.0
 	github.com/yookoala/gofast v0.8.0
 	go.uber.org/zap v1.27.0
@@ -51,13 +51,13 @@ require (
 	github.com/gofiber/fiber/v2 v2.52.5 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/mock v1.7.0-rc.1 // indirect
-	github.com/google/pprof v0.0.0-20240910150728-a0b0bb1d4134 // indirect
+	github.com/google/pprof v0.0.0-20240925223930-fa3061bff0bc // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.22.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
-	github.com/klauspost/compress v1.17.9 // indirect
+	github.com/klauspost/compress v1.17.10 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.8 // indirect
 	github.com/libdns/libdns v0.2.2 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
@@ -75,7 +75,7 @@ require (
 	github.com/pborman/uuid v1.2.1 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.3 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
-	github.com/prometheus/client_golang v1.20.3 // indirect
+	github.com/prometheus/client_golang v1.20.4 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.59.1 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
@@ -101,7 +101,7 @@ require (
 	github.com/tklauser/go-sysconf v0.3.14 // indirect
 	github.com/tklauser/numcpus v0.8.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/valyala/fasthttp v1.55.0 // indirect
+	github.com/valyala/fasthttp v1.56.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
@@ -132,9 +132,9 @@ require (
 	golang.org/x/text v0.18.0 // indirect
 	golang.org/x/time v0.6.0 // indirect
 	golang.org/x/tools v0.25.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20240903143218-8af14fe29dc1 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240903143218-8af14fe29dc1 // indirect
-	google.golang.org/grpc v1.66.2 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20240924160255-9d4c2d233b61 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240924160255-9d4c2d233b61 // indirect
+	google.golang.org/grpc v1.67.0 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
