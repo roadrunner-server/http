@@ -2,10 +2,10 @@ module github.com/roadrunner-server/http/v5
 
 go 1.23
 
-toolchain go1.23.1
+toolchain go1.23.2
 
 require (
-	github.com/caddyserver/certmagic v0.21.3
+	github.com/caddyserver/certmagic v0.21.4
 	github.com/goccy/go-json v0.10.3
 	github.com/google/go-cmp v0.6.0
 	github.com/mholt/acmez v1.2.0
@@ -39,18 +39,18 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
-	github.com/google/pprof v0.0.0-20240925223930-fa3061bff0bc // indirect
+	github.com/google/pprof v0.0.0-20241001023024-f4c0cfd0cf1d // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/klauspost/compress v1.17.10 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.8 // indirect
 	github.com/libdns/libdns v0.2.2 // indirect
-	github.com/mholt/acmez/v2 v2.0.2 // indirect
+	github.com/mholt/acmez/v2 v2.0.3 // indirect
 	github.com/miekg/dns v1.1.62 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/onsi/ginkgo/v2 v2.20.2 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
-	github.com/prometheus/common v0.59.1 // indirect
+	github.com/prometheus/common v0.60.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/quic-go/qpack v0.5.1 // indirect
 	github.com/roadrunner-server/events v1.0.1 // indirect
