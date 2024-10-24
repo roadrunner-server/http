@@ -1,9 +1,7 @@
 package config
 
 import (
-	"runtime"
 	"strings"
-	"time"
 
 	"github.com/roadrunner-server/http/v5/servers/fcgi"
 	"github.com/roadrunner-server/http/v5/servers/http3"
@@ -27,7 +25,7 @@ type Config struct {
 	Pool *pool.Config `mapstructure:"pool"`
 	// InternalErrorCode used to override default 500 (InternalServerError) http code
 	InternalErrorCode uint64 `mapstructure:"internal_error_code"`
-	// MaxRequestSize specified max size for payload body in megabytes, set 0 to unlimited.
+	// MaxRequestSize specified max size for payload body in megabytes. 0 = 1GB.
 	MaxRequestSize uint64 `mapstructure:"max_request_size"`
 	// SSLConfig defines https server options.
 	SSLConfig *https.SSL `mapstructure:"ssl"`
@@ -62,7 +60,7 @@ func (c *Config) EnableTLS() bool {
 	if c.SSLConfig.Acme != nil {
 		return true
 	}
-	return c.SSLConfig.Key != "" || c.SSLConfig.Cert != ""
+	return c.SSLConfig.Key != "" && c.SSLConfig.Cert != ""
 }
 
 // EnableFCGI is true when FastCGI server must be enabled.
@@ -76,16 +74,9 @@ func (c *Config) EnableFCGI() bool {
 // InitDefaults must populate HTTP values using given HTTP source. Must return error if HTTP is not valid.
 func (c *Config) InitDefaults() error {
 	if c.Pool == nil {
-		// default pool
-		c.Pool = &pool.Config{
-			Debug:           false,
-			NumWorkers:      uint64(runtime.NumCPU()), //nolint:gosec
-			MaxJobs:         0,
-			AllocateTimeout: time.Second * 60,
-			DestroyTimeout:  time.Second * 60,
-			Supervisor:      nil,
-		}
+		c.Pool = &pool.Config{}
 	}
+	c.Pool.InitDefaults()
 
 	if c.InternalErrorCode == 0 {
 		c.InternalErrorCode = 500

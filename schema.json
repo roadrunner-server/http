@@ -1,0 +1,471 @@
+{
+  "$id": "https://raw.githubusercontent.com/roadrunner-server/http/refs/heads/master/schema.json",
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "description": "All the valid configuration parameters for the http plugin for RoadRunner.",
+  "title": "roadrunner-http",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "address"
+  ],
+  "properties": {
+    "address": {
+      "description": "Host and/or port to listen on.",
+      "type": "string",
+      "minLength": 1,
+      "examples": [
+        "127.0.0.1:8080",
+        ":8080"
+      ]
+    },
+    "internal_error_code": {
+      "description": "The HTTP status code to use for internal RoadRunner errors. Defaults to 500 if not provided.",
+      "type": "integer",
+      "default": 500,
+      "minimum": 100,
+      "maximum": 599
+    },
+    "max_request_size": {
+      "description": "Maximum incoming request size in MB. Defaults to 1GB if zero or not provided.",
+      "type": "integer",
+      "minimum": 0,
+      "default": 1000
+    },
+    "raw_body": {
+      "description": "Whether to send the raw, encoded body for application/x-www-form-urlencoded content. By default, PHP workers will receive decoded content of this type.",
+      "type": "boolean",
+      "default": false
+    },
+    "access_logs": {
+      "description": "Whether to enable HTTP access logs.",
+      "type": "boolean",
+      "default": false
+    },
+    "middleware": {
+      "description": "Middlewares to load for the HTTP plugin. The order determines the order in which the middlewares are executed.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "enum": [
+          "headers",
+          "gzip",
+          "static",
+          "sendfile",
+          "http_metrics",
+          "cache",
+          "proxy_ip_parser",
+          "otel"
+        ]
+      }
+    },
+    "trusted_subnets": {
+      "description": "Allow incoming requests only from the provided subnets. Defaults to the usual private network ranges (192.168.*, 10.0.* and 172.16.*) as well as local/loopback interfaces (127.*).",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "examples": [
+          "10.0.0.0/8",
+          "127.0.0.0/8"
+        ]
+      },
+      "default": [
+        "10.0.0.0/8",
+        "127.0.0.0/8",
+        "172.16.0.0/12",
+        "192.168.0.0/16",
+        "::1/128",
+        "fc00::/7",
+        "fe80::/10"
+      ]
+    },
+    "uploads": {
+      "$ref": "#/$defs/Uploads"
+    },
+    "headers": {
+      "description": "HTTP headers map",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "cors": {
+          "description": "Controls which CORS headers are returned. Additional headers `Vary: Origin`, `Vary: Access-Control-Request-Method` and `Vary: Access-Control-Request-Headers` will be added to responses. Omit this section to disable CORS headers.",
+          "type": "object",
+          "properties": {
+            "allowed_origin": {
+              "description": "Controls the value of 'Access-Control-Allow-Origin'.",
+              "type": "string",
+              "examples": [
+                "*"
+              ]
+            },
+            "allowed_origin_regex": {
+              "description": "Controls the value of 'Access-Control-Allow-Origin' header value, but evaluated as regex.",
+              "type": "string",
+              "examples": [
+                "^https://foo"
+              ]
+            },
+            "allowed_headers": {
+              "description": "Controls the value of 'Access-Control-Allow-Headers'.",
+              "type": "string",
+              "examples": [
+                "*"
+              ]
+            },
+            "allowed_methods": {
+              "description": "Controls the value of 'Access-Control-Allow-Methods'. Provide a comma-separated string of HTTP verbs.",
+              "type": "string",
+              "examples": [
+                "GET,POST,PUT,DELETE"
+              ]
+            },
+            "allow_credentials": {
+              "description": "Controls the value of 'Access-Control-Allow-Credentials'.",
+              "type": "boolean",
+              "default": false
+            },
+            "exposed_headers": {
+              "description": "Controls the value of 'Access-Control-Expose-Headers'. Provide a comma-separated list of HTTP headers.",
+              "type": "string",
+              "examples": [
+                "Cache-Control,Content-Language,Content-Type,Expires,Last-Modified,Pragma"
+              ]
+            },
+            "max_age": {
+              "description": "Controls the value of 'Access-Control-Max-Age' (in seconds).",
+              "type": "integer",
+              "examples": [
+                600
+              ],
+              "default": 0
+            }
+          }
+        },
+        "request": {
+          "description": "Headers to add to every request passed to PHP.",
+          "$ref": "#/$defs/HashmapString"
+        },
+        "response": {
+          "description": "Headers added to every response.",
+          "$ref": "#/$defs/HashmapString"
+        }
+      }
+    },
+    "static": {
+      "description": "Configuration options for serving static files.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "dir": {
+          "description": "Path to the directory with static assets. Defaults to the current working directory. Empty/undefined and `.` are equal and are both treated as current directory.",
+          "type": "string",
+          "examples": [
+            ".",
+            "/var/www/html"
+          ]
+        },
+        "forbid": {
+          "description": "File extensions of files that must not be served. Empty/undefined disallows no files. If files are specified in both `forbid` and `allow`, they will be disallowed. Defaults to an empty array, disallowing no files.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "examples": [
+              ".php",
+              ".htaccess",
+              ".sh"
+            ]
+          }
+        },
+        "allow": {
+          "description": "File extensions of files that may be served. Empty/undefined allows all files, except files specified in `forbid`.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "examples": [
+              ".jpg",
+              ".png",
+              ".css",
+              ".js"
+            ]
+          }
+        },
+        "calculate_etag": {
+          "description": "Whether to enable ETag computation for static files.",
+          "type": "boolean",
+          "default": false
+        },
+        "weak": {
+          "description": "Whether to use a weak generator (/W), which uses only the filename to generate a CRC32 sum for et ETag. Disable to use the file contents.",
+          "type": "boolean",
+          "default": false
+        },
+        "response": {
+          "description": "Custom HTTP headers to add to responses to requests for static files.",
+          "$ref": "#/$defs/HashmapString"
+        },
+        "request": {
+          "description": "Custom HTTP headers to add to requests for static files.",
+          "$ref": "#/$defs/HashmapString"
+        }
+      }
+    },
+    "pool": {
+      "$ref": "https://raw.githubusercontent.com/roadrunner-server/pool/refs/heads/master/schema.json"
+    },
+    "ssl": {
+      "$ref": "#/$defs/SSL"
+    },
+    "fcgi": {
+      "$ref": "#/$defs/FCGI"
+    },
+    "http2": {
+      "$ref": "#/$defs/HTTP2"
+    }
+  },
+  "$defs": {
+    "Uploads": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "dir": {
+          "description": "Directory for file uploads. Empty/undefined value means the OS default temporary directory ($TEMP) will be used, i.e. `/tmp`.",
+          "type": "string",
+          "examples": [
+            "/tmp"
+          ]
+        },
+        "forbid": {
+          "description": "Disallow upload of files with the provided extensions.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "examples": [
+              ".php",
+              ".exe"
+            ]
+          },
+          "default": [
+            ".php",
+            ".exe",
+            ".bat"
+          ]
+        },
+        "allow": {
+          "description": "Allow only upload of files with the provided extensions. Empty/undefined value means all files except explicitly disallowed (`forbid`) files are allowed.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "examples": [
+              ".html",
+              ".go"
+            ]
+          },
+          "default": []
+        }
+      }
+    },
+    "SSL": {
+      "title": "SSL/TLS (HTTPS) Configuration",
+      "description": "Settings required to set up manual or automatic HTTPS for your server. Either `key` and `cert` *or* `acme` is required, but not both.",
+      "type": "object",
+      "additionalProperties": false,
+      "not": {
+        "anyOf": [
+          {
+            "required": [
+              "key",
+              "acme"
+            ]
+          },
+          {
+            "required": [
+              "cert",
+              "acme"
+            ]
+          },
+          {
+            "required": [
+              "root_ca",
+              "acme"
+            ]
+          },
+          {
+            "required": [
+              "client_auth_type",
+              "acme"
+            ]
+          }
+        ]
+      },
+      "anyOf": [
+        {
+          "required": [
+            "acme"
+          ]
+        },
+        {
+          "required": [
+            "key",
+            "cert"
+          ]
+        }
+      ],
+      "properties": {
+        "address": {
+          "description": "Host address/or port to bind to. Defaults to 127.0.0.1:443.",
+          "type": "string",
+          "default": "127.0.0.1:443",
+          "examples": [
+            "127.0.0.1:443",
+            ":8443"
+          ]
+        },
+        "acme": {
+          "description": "ACME certificates provider (Let's encrypt). Do not specify this parameter if you use `key` and `cert`.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "certs_dir": {
+              "description": "Directory to use for certificates, private keys, Let's Encrypt configuration etc.",
+              "type": "string",
+              "default": "rr_cache_dir"
+            },
+            "email": {
+              "description": "User email used to create a Let's Encrypt account. This is required.",
+              "type": "string",
+              "examples": [
+                "user@domain.com"
+              ]
+            },
+            "alt_http_port": {
+              "description": "Alternate port for the HTTP challenge. Challenge traffic should be redirected to this port if overridden. See https://letsencrypt.org/docs/challenge-types/#http-01-challenge",
+              "type": "integer",
+              "default": 80
+            },
+            "alt_tlsalpn_port": {
+              "description": "Alternate port for the TLS-ALPN-01 challenge. Challenge traffic should be redirected to this port if overridden. See https://letsencrypt.org/docs/challenge-types/#tls-alpn-01",
+              "type": "integer",
+              "default": 443
+            },
+            "challenge_type": {
+              "type": "string",
+              "enum": [
+                "http-01",
+                "tlsalpn-01"
+              ],
+              "description": "Challenge types",
+              "default": "http-01"
+            },
+            "use_production_endpoint": {
+              "description": "Whether to use the production endpoint. We recommend you use the staging endpoint to make sure everything works correctly before you deploy your certificate.",
+              "type": "boolean",
+              "default": false
+            },
+            "domains": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "examples": [
+                  "example.com"
+                ]
+              },
+              "description": "List of domains to obtain certificates for. At least one domain is required."
+            }
+          },
+          "required": [
+            "domains",
+            "email"
+          ]
+        },
+        "redirect": {
+          "description": "Whether to automatically redirect from HTTP to HTTPS.",
+          "type": "boolean",
+          "default": false
+        },
+        "key": {
+          "description": "Path to the private key for the certificate.",
+          "type": "string",
+          "minLength": 1,
+          "examples": [
+            "/ssl/server/key.pem"
+          ]
+        },
+        "cert": {
+          "description": "Path to the public certificate file.",
+          "type": "string",
+          "minLength": 1,
+          "examples": [
+            "/ssl/server/cert.crt"
+          ]
+        },
+        "root_ca": {
+          "description": "Path to the CA certificate, if required. Always required for mTLS. Omit this option if unused.",
+          "type": "string",
+          "minLength": 1,
+          "examples": [
+            "/ssl/server/ca.crt"
+          ]
+        },
+        "client_auth_type": {
+          "$ref": "#/$defs/ClientAuthType"
+        }
+      }
+    },
+    "ClientAuthType": {
+      "description": "Authorization method for mTLS.",
+      "type": "string",
+      "default": "no_client_certs",
+      "enum": [
+        "request_client_cert",
+        "require_any_client_cert",
+        "verify_client_cert_if_given",
+        "no_client_certs",
+        "require_and_verify_client_cert"
+      ]
+    },
+    "FCGI": {
+      "description": "FastCGI Frontend Support. Omit to disable FastCGI.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "address": {
+          "description": "FastCGI connection DSN. Supports TCP and Unix sockets.",
+          "type": "string",
+          "minLength": 1,
+          "examples": [
+            "tcp://0.0.0.0:7921"
+          ]
+        }
+      },
+      "required": [
+        "address"
+      ]
+    },
+    "HTTP2": {
+      "description": "HTTP/2 settings.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "h2c": {
+          "description": "Use HTTP/2 over non-encrypted TCP connection using H2C",
+          "type": "boolean",
+          "default": false
+        },
+        "max_concurrent_streams": {
+          "description": "Maximal concurrent streams. Defaults to 128 if omitted or zero.",
+          "type": "integer",
+          "default": 128,
+          "minimum": 0
+        }
+      }
+    },
+    "HashmapString": {
+      "$ref": "https://raw.githubusercontent.com/roadrunner-server/roadrunner/refs/heads/master/schemas/config/3.0.schema.json#/definitions/HashmapString"
+    }
+  }
+}
