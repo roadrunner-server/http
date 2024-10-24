@@ -143,11 +143,11 @@
         },
         "request": {
           "description": "Headers to add to every request passed to PHP.",
-          "$ref": "#/definitions/HashmapString"
+          "$ref": "#/$defs/HashmapString"
         },
         "response": {
           "description": "Headers added to every response.",
-          "$ref": "#/definitions/HashmapString"
+          "$ref": "#/$defs/HashmapString"
         }
       }
     },
@@ -203,11 +203,11 @@
         },
         "response": {
           "description": "Custom HTTP headers to add to responses to requests for static files.",
-          "$ref": "#/definitions/HashmapString"
+          "$ref": "#/$defs/HashmapString"
         },
         "request": {
           "description": "Custom HTTP headers to add to requests for static files.",
-          "$ref": "#/definitions/HashmapString"
+          "$ref": "#/$defs/HashmapString"
         }
       }
     },
@@ -463,6 +463,9 @@
           "minimum": 0
         }
       }
+    },
+    "HashmapString": {
+      "$ref": "https://raw.githubusercontent.com/roadrunner-server/roadrunner/refs/heads/master/schemas/config/3.0.schema.json#/definitions/HashmapString"
     }
   }
 }
