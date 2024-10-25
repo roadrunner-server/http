@@ -142,11 +142,11 @@
           }
         },
         "request": {
-          "description": "Customer HTTP headers to add to every request passed to PHP.",
+          "description": "Custom HTTP headers to add to every request passed to PHP.",
           "$ref": "#/$defs/Headers"
         },
         "response": {
-          "description": "Customer HTTP headers to add to every response from PHP.",
+          "description": "Custom HTTP headers to add to every response from PHP.",
           "$ref": "#/$defs/Headers"
         }
       }
@@ -474,6 +474,14 @@
       "required": [
         "address"
       ],
+      "dependentRequired": {
+        "cert": [
+          "key"
+        ],
+        "key": [
+          "cert"
+        ]
+      },
       "properties": {
         "address": {
           "description": "Host and/or port to listen on for HTTP/3.",
