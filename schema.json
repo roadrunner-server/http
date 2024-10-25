@@ -276,47 +276,14 @@
       "description": "Settings required to set up manual or automatic HTTPS for your server. Either `key` and `cert` *or* `acme` is required, but not both.",
       "type": "object",
       "additionalProperties": false,
-      "not": {
-        "anyOf": [
-          {
-            "required": [
-              "key",
-              "acme"
-            ]
-          },
-          {
-            "required": [
-              "cert",
-              "acme"
-            ]
-          },
-          {
-            "required": [
-              "root_ca",
-              "acme"
-            ]
-          },
-          {
-            "required": [
-              "client_auth_type",
-              "acme"
-            ]
-          }
+      "dependentRequired": {
+        "key": [
+          "cert"
+        ],
+        "cert": [
+          "key"
         ]
       },
-      "anyOf": [
-        {
-          "required": [
-            "acme"
-          ]
-        },
-        {
-          "required": [
-            "key",
-            "cert"
-          ]
-        }
-      ],
       "properties": {
         "address": {
           "description": "Host address/or port to bind to. Defaults to 127.0.0.1:443.",
