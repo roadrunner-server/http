@@ -142,12 +142,12 @@
           }
         },
         "request": {
-          "description": "Headers to add to every request passed to PHP.",
-          "$ref": "#/$defs/HashmapString"
+          "description": "Custom HTTP headers to add to every request passed to PHP.",
+          "$ref": "#/$defs/Headers"
         },
         "response": {
-          "description": "Headers added to every response.",
-          "$ref": "#/$defs/HashmapString"
+          "description": "Custom HTTP headers to add to every response from PHP.",
+          "$ref": "#/$defs/Headers"
         }
       }
     },
@@ -201,13 +201,13 @@
           "type": "boolean",
           "default": false
         },
-        "response": {
-          "description": "Custom HTTP headers to add to responses to requests for static files.",
-          "$ref": "#/$defs/HashmapString"
-        },
         "request": {
-          "description": "Custom HTTP headers to add to requests for static files.",
-          "$ref": "#/$defs/HashmapString"
+          "description": "Custom HTTP headers to add to every request for static files.",
+          "$ref": "#/$defs/Headers"
+        },
+        "response": {
+          "description": "Custom HTTP headers to add to every response from static files.",
+          "$ref": "#/$defs/Headers"
         }
       }
     },
@@ -222,6 +222,9 @@
     },
     "http2": {
       "$ref": "#/$defs/HTTP2"
+    },
+    "http3": {
+      "$ref": "#/$defs/HTTP3"
     }
   },
   "$defs": {
@@ -464,8 +467,49 @@
         }
       }
     },
-    "HashmapString": {
-      "$ref": "https://raw.githubusercontent.com/roadrunner-server/roadrunner/refs/heads/master/schemas/config/3.0.schema.json#/definitions/HashmapString"
+    "HTTP3": {
+      "description": "HTTP/3 settings. **Experimental**: Requires that RoadRunner has experimental features enabled. Unless you configured `acme`, you must provide a `key` and `cert` here.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "address"
+      ],
+      "dependentRequired": {
+        "cert": [
+          "key"
+        ],
+        "key": [
+          "cert"
+        ]
+      },
+      "properties": {
+        "address": {
+          "description": "Host and/or port to listen on for HTTP/3.",
+          "type": "string",
+          "minLength": 1,
+          "examples": [
+            "127.0.0.1:8080",
+            ":8080"
+          ]
+        },
+        "cert": {
+          "$ref": "#/$defs/SSL/properties/cert"
+        },
+        "key": {
+          "$ref": "#/$defs/SSL/properties/key"
+        }
+      }
+    },
+    "Headers": {
+      "type": "object",
+      "minProperties": 1,
+      "patternProperties": {
+        "^[a-zA-Z0-9._-]+$": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
     }
   }
 }
