@@ -5,12 +5,9 @@
   "title": "roadrunner-http",
   "type": "object",
   "additionalProperties": false,
-  "required": [
-    "address"
-  ],
   "properties": {
     "address": {
-      "description": "Host and/or port to listen on.",
+      "description": "Host and/or port to listen on for HTTP traffic. If omitted, RoadRunner will not listen for HTTP requests.",
       "type": "string",
       "minLength": 1,
       "examples": [
@@ -19,20 +16,20 @@
       ]
     },
     "internal_error_code": {
-      "description": "The HTTP status code to use for internal RoadRunner errors. Defaults to 500 if not provided.",
+      "description": "HTTP status code to use for internal RoadRunner errors. Defaults to 500 if omitted.",
       "type": "integer",
       "default": 500,
       "minimum": 100,
       "maximum": 599
     },
     "max_request_size": {
-      "description": "Maximum incoming request size in MB. Defaults to 1GB if zero or not provided.",
+      "description": "Maximum request size in MB. Defaults to 1 GB if zero or omitted.",
       "type": "integer",
       "minimum": 0,
       "default": 1000
     },
     "raw_body": {
-      "description": "Whether to send the raw, encoded body for application/x-www-form-urlencoded content. By default, PHP workers will receive decoded content of this type.",
+      "description": "Whether to send the raw, encoded body for `application/x-www-form-urlencoded` content. Defaults to sending decoded content to PHP workers.",
       "type": "boolean",
       "default": false
     },
@@ -42,7 +39,7 @@
       "default": false
     },
     "middleware": {
-      "description": "Middlewares to load for the HTTP plugin. The order determines the order in which the middlewares are executed.",
+      "description": "List of middleware to load for the HTTP plugin, executed in the specified order.",
       "type": "array",
       "minItems": 1,
       "items": {
@@ -60,7 +57,7 @@
       }
     },
     "trusted_subnets": {
-      "description": "Allow incoming requests only from the provided subnets. Defaults to the usual private network ranges (192.168.*, 10.0.* and 172.16.*) as well as local/loopback interfaces (127.*).",
+      "description": "List of subnets from which incoming requests are allowed. Defaults to typical private network ranges (192.168.*, 10.0.*, and 172.16.*) and local/loopback interfaces (127.*).",
       "type": "array",
       "items": {
         "type": "string",
@@ -83,7 +80,7 @@
       "$ref": "#/$defs/Uploads"
     },
     "headers": {
-      "description": "HTTP headers map",
+      "description": "HTTP header configuration.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -231,6 +228,7 @@
     "Uploads": {
       "type": "object",
       "additionalProperties": false,
+      "description": "File upload configuration.",
       "properties": {
         "dir": {
           "description": "Directory for file uploads. Empty/undefined value means the OS default temporary directory ($TEMP) will be used, i.e. `/tmp`.",
@@ -247,14 +245,10 @@
             "minLength": 1,
             "examples": [
               ".php",
-              ".exe"
+              ".sh",
+              ".go"
             ]
-          },
-          "default": [
-            ".php",
-            ".exe",
-            ".bat"
-          ]
+          }
         },
         "allow": {
           "description": "Allow only upload of files with the provided extensions. Empty/undefined value means all files except explicitly disallowed (`forbid`) files are allowed.",
@@ -295,7 +289,7 @@
           ]
         },
         "acme": {
-          "description": "ACME certificates provider (Let's encrypt). Do not specify this parameter if you use `key` and `cert`.",
+          "description": "ACME certificates provider (Let's encrypt). Do not provide this parameter if you use `key` and `cert`.",
           "type": "object",
           "additionalProperties": false,
           "properties": {
@@ -358,7 +352,7 @@
           "default": false
         },
         "key": {
-          "description": "Path to the private key for the certificate.",
+          "description": "Path to the private key for the certificate. Must not be provided if `acme` is set.",
           "type": "string",
           "minLength": 1,
           "examples": [
@@ -366,7 +360,7 @@
           ]
         },
         "cert": {
-          "description": "Path to the public certificate file.",
+          "description": "Path to the public certificate file. Must not be provided if `acme` is set.",
           "type": "string",
           "minLength": 1,
           "examples": [
@@ -374,7 +368,7 @@
           ]
         },
         "root_ca": {
-          "description": "Path to the CA certificate, if required. Always required for mTLS. Omit this option if unused.",
+          "description": "Path to the CA certificate, if required. Always required for mTLS. Omit this option if unused. Must not be provided if `acme` is set.",
           "type": "string",
           "minLength": 1,
           "examples": [
@@ -399,16 +393,19 @@
       ]
     },
     "FCGI": {
-      "description": "FastCGI Frontend Support. Omit to disable FastCGI.",
+      "description": "Enables FastCGI support. If omitted, RoadRunner will not listen for FCGI requests.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
         "address": {
-          "description": "FastCGI connection DSN. Supports TCP and Unix sockets.",
+          "description": "Host and/or port to listen on for FCGI requests.",
           "type": "string",
           "minLength": 1,
           "examples": [
-            "tcp://0.0.0.0:7921"
+            "0.0.0.0:9000",
+            "127.0.0.1:9000",
+            "localhost:9000",
+            "unix:/path/to/socket.sock"
           ]
         }
       },
@@ -427,7 +424,7 @@
           "default": false
         },
         "max_concurrent_streams": {
-          "description": "Maximal concurrent streams. Defaults to 128 if omitted or zero.",
+          "description": "Maximum number of concurrent streams. Defaults to 128 if omitted or zero.",
           "type": "integer",
           "default": 128,
           "minimum": 0
