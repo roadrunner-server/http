@@ -293,7 +293,7 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "certs_dir": {
+            "cache_dir": {
               "description": "Directory to use for certificates, private keys, Let's Encrypt configuration etc.",
               "type": "string",
               "default": "rr_cache_dir"
