@@ -6,7 +6,7 @@ toolchain go1.23.3
 
 require (
 	github.com/goccy/go-json v0.10.3
-	github.com/quic-go/quic-go v0.48.1
+	github.com/quic-go/quic-go v0.48.2
 	github.com/roadrunner-server/config/v5 v5.0.4
 	github.com/roadrunner-server/endure/v2 v2.6.1
 	github.com/roadrunner-server/fileserver/v5 v5.0.3
@@ -16,15 +16,15 @@ require (
 	github.com/roadrunner-server/http/v5 v5.0.0
 	github.com/roadrunner-server/informer/v5 v5.0.4
 	github.com/roadrunner-server/logger/v5 v5.0.4
-	github.com/roadrunner-server/memory/v5 v5.0.4
+	github.com/roadrunner-server/memory/v5 v5.1.0
 	github.com/roadrunner-server/otel/v5 v5.0.3
-	github.com/roadrunner-server/pool v1.0.2
+	github.com/roadrunner-server/pool v1.0.3
 	github.com/roadrunner-server/resetter/v5 v5.0.5
 	github.com/roadrunner-server/rpc/v5 v5.0.4
 	github.com/roadrunner-server/send/v5 v5.0.3
 	github.com/roadrunner-server/server/v5 v5.1.2
 	github.com/roadrunner-server/static/v5 v5.0.3
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 	github.com/yookoala/gofast v0.8.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/net v0.31.0
@@ -51,10 +51,10 @@ require (
 	github.com/gofiber/fiber/v2 v2.52.5 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/mock v1.7.0-rc.1 // indirect
-	github.com/google/pprof v0.0.0-20241101162523-b92577c0c142 // indirect
+	github.com/google/pprof v0.0.0-20241122213907-cbe949e5a41b // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0 // indirect
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.23.0 // indirect
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.24.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/klauspost/compress v1.17.11 // indirect
@@ -69,8 +69,8 @@ require (
 	github.com/miekg/dns v1.1.62 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
-	github.com/nexus-rpc/sdk-go v0.0.11 // indirect
-	github.com/onsi/ginkgo/v2 v2.21.0 // indirect
+	github.com/nexus-rpc/sdk-go v0.0.12 // indirect
+	github.com/onsi/ginkgo/v2 v2.22.0 // indirect
 	github.com/openzipkin/zipkin-go v0.4.3 // indirect
 	github.com/pborman/uuid v1.2.1 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.3 // indirect
@@ -82,7 +82,7 @@ require (
 	github.com/quic-go/qpack v0.5.1 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/roadrunner-server/api/v4 v4.16.0 // indirect
-	github.com/roadrunner-server/context v1.0.1 // indirect
+	github.com/roadrunner-server/context v1.0.2 // indirect
 	github.com/roadrunner-server/errors v1.4.1 // indirect
 	github.com/roadrunner-server/events v1.0.1 // indirect
 	github.com/roadrunner-server/tcplisten v1.5.1 // indirect
@@ -120,7 +120,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.32.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.3.1 // indirect
 	go.temporal.io/api v1.42.0 // indirect
-	go.temporal.io/sdk v1.30.0 // indirect
+	go.temporal.io/sdk v1.30.1 // indirect
 	go.temporal.io/sdk/contrib/opentelemetry v0.6.0 // indirect
 	go.uber.org/mock v0.5.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
