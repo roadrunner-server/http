@@ -2,7 +2,7 @@ module tests
 
 go 1.23
 
-toolchain go1.23.3
+toolchain go1.23.4
 
 require (
 	github.com/goccy/go-json v0.10.3
@@ -18,7 +18,7 @@ require (
 	github.com/roadrunner-server/logger/v5 v5.0.4
 	github.com/roadrunner-server/memory/v5 v5.1.0
 	github.com/roadrunner-server/otel/v5 v5.0.3
-	github.com/roadrunner-server/pool v1.0.3
+	github.com/roadrunner-server/pool v1.1.0
 	github.com/roadrunner-server/resetter/v5 v5.0.5
 	github.com/roadrunner-server/rpc/v5 v5.0.4
 	github.com/roadrunner-server/send/v5 v5.0.3
@@ -51,7 +51,7 @@ require (
 	github.com/gofiber/fiber/v2 v2.52.5 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/mock v1.7.0-rc.1 // indirect
-	github.com/google/pprof v0.0.0-20241128161848-dc51965c6481 // indirect
+	github.com/google/pprof v0.0.0-20241203143554-1e3fdc7de467 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.24.0 // indirect
@@ -118,7 +118,7 @@ require (
 	go.opentelemetry.io/otel/metric v1.32.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.32.0 // indirect
 	go.opentelemetry.io/otel/trace v1.32.0 // indirect
-	go.opentelemetry.io/proto/otlp v1.3.1 // indirect
+	go.opentelemetry.io/proto/otlp v1.4.0 // indirect
 	go.temporal.io/api v1.43.0 // indirect
 	go.temporal.io/sdk v1.30.1 // indirect
 	go.temporal.io/sdk/contrib/opentelemetry v0.6.0 // indirect
@@ -132,8 +132,8 @@ require (
 	golang.org/x/text v0.20.0 // indirect
 	golang.org/x/time v0.8.0 // indirect
 	golang.org/x/tools v0.27.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20241118233622-e639e219e697 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20241118233622-e639e219e697 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20241202173237-19429a94021a // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20241202173237-19429a94021a // indirect
 	google.golang.org/grpc v1.68.0 // indirect
 	google.golang.org/protobuf v1.35.2 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
