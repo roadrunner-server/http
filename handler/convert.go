@@ -17,7 +17,10 @@ func convert(headers http.Header) map[string]*httpV1proto.HeaderValue {
 		if resp[k] == nil {
 			resp[k] = &httpV1proto.HeaderValue{}
 		}
-		resp[k].Value = append(resp[k].Value, v...)
+
+		for _, vv := range v {
+			resp[k].Value = append(resp[k].Value, []byte(vv))
+		}
 	}
 
 	return resp
@@ -35,7 +38,7 @@ func convertCookies(headers map[string]string) map[string]*httpV1proto.HeaderVal
 			resp[k] = &httpV1proto.HeaderValue{}
 		}
 
-		resp[k].Value = append(resp[k].Value, v)
+		resp[k].Value = append(resp[k].Value, []byte(v))
 	}
 
 	return resp
