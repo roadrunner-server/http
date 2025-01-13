@@ -29,6 +29,8 @@ require (
 	google.golang.org/protobuf v1.36.2
 )
 
+replace github.com/roadrunner-server/api/v4 => ../../api
+
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/caddyserver/zerossl v0.1.3 // indirect

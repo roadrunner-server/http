@@ -1,7 +1,6 @@
 package handler
 
 import (
-	stderr "errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -55,7 +54,7 @@ func (h *Handler) handlePROTOresponse(pld *payload.Payload, w http.ResponseWrite
 
 			if pusher, ok := w.(http.Pusher); ok {
 				for i := 0; i < len(push); i++ {
-					err = pusher.Push(rsp.GetHeaders()[HTTP2Push].GetValue()[i], nil)
+					err = pusher.Push(string(rsp.GetHeaders()[HTTP2Push].GetValue()[i]), nil)
 					if err != nil {
 						return err
 					}
@@ -70,7 +69,7 @@ func (h *Handler) handlePROTOresponse(pld *payload.Payload, w http.ResponseWrite
 		// write all headers from the response to the writer
 		for k := range rsp.GetHeaders() {
 			for kk := range rsp.GetHeaders()[k].GetValue() {
-				w.Header().Add(k, rsp.GetHeaders()[k].GetValue()[kk])
+				w.Header().Add(k, string(rsp.GetHeaders()[k].GetValue()[kk]))
 			}
 		}
 
@@ -93,10 +92,8 @@ func (h *Handler) handlePROTOresponse(pld *payload.Payload, w http.ResponseWrite
 		return err
 	}
 
-	rw := http.NewResponseController(w) //nolint:bodyclose
-	err = rw.Flush()
-	if stderr.Is(err, http.ErrNotSupported) {
-		h.log.Warn("flushing is not supported by the response writer, using buffered writer")
+	if fl, ok := w.(http.Flusher); ok {
+		fl.Flush()
 	}
 
 	return nil
@@ -104,7 +101,7 @@ func (h *Handler) handlePROTOresponse(pld *payload.Payload, w http.ResponseWrite
 
 func handleProtoTrailers(h map[string]*httpV1proto.HeaderValue) {
 	for _, tr := range h[Trailer].GetValue() {
-		for _, n := range strings.Split(tr, ",") {
+		for _, n := range strings.Split(string(tr), ",") {
 			n = strings.Trim(n, "\t ")
 			if v, ok := h[n]; ok {
 				h["Trailer:"+n] = v
