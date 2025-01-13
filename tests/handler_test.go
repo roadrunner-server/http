@@ -130,7 +130,7 @@ func TestHandler_Headers(t *testing.T) {
 
 	go func() {
 		err = hs.ListenAndServe()
-		if err != nil && !errors.Is(http.ErrServerClosed, err) {
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			t.Errorf("error listening the interface: error %v", err)
 		}
 	}()
