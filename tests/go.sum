@@ -149,8 +149,7 @@ github.com/quic-go/quic-go v0.48.2/go.mod h1:yBgs3rWBOADpga7F+jJsb6Ybg1LSYiQvwWl
 github.com/rivo/uniseg v0.2.0/go.mod h1:J6wj4VEh+S6ZtnVlnTBMWIodfgj8LQOQFoIToxlJtxc=
 github.com/rivo/uniseg v0.4.7 h1:WUdvkW8uEhrYfLC4ZzdpI2ztxP1I582+49Oc5Mq64VQ=
 github.com/rivo/uniseg v0.4.7/go.mod h1:FN3SvrM+Zdj16jyLfmOkMNblXMcoc8DfTHruCPUcx88=
-github.com/roadrunner-server/api/v4 v4.17.0 h1:SVmqWfMCKcvjrpluk+mA1o1D8PT1uXHM6AWykFe6i0I=
-github.com/roadrunner-server/api/v4 v4.17.0/go.mod h1:ALjb4nL64DM9Cm/vTyfWyGt1b3m1lO4fg11YUq6NrqY=
+github.com/roadrunner-server/api/v4 v4.18.0 h1:o0JH/1lfCm+YaFI5sMkLDA4lmigFR5qb2phgLzpUdWE=
 github.com/roadrunner-server/config/v5 v5.1.1 h1:2ciLPg9/U52WEx0263rxWfSigRsI/3LomNytE6Ld52E=
 github.com/roadrunner-server/config/v5 v5.1.1/go.mod h1:7nm32rKEevspjkGSQWSqgbXkjeZEQffAbViq3Ekyx1I=
 github.com/roadrunner-server/context v1.0.2 h1:MSK6mjG2KsFKS1IoieMrY9Ia7SGxDGh/tagpBQxi1SE=

@@ -11,7 +11,7 @@ require (
 	github.com/mholt/acmez v1.2.0
 	github.com/prometheus/client_golang v1.20.5
 	github.com/quic-go/quic-go v0.48.2
-	github.com/roadrunner-server/api/v4 v4.17.0
+	github.com/roadrunner-server/api/v4 v4.18.0
 	github.com/roadrunner-server/context v1.0.2
 	github.com/roadrunner-server/endure/v2 v2.6.1
 	github.com/roadrunner-server/errors v1.4.1
@@ -28,8 +28,6 @@ require (
 	golang.org/x/sys v0.29.0
 	google.golang.org/protobuf v1.36.2
 )
-
-replace github.com/roadrunner-server/api/v4 => ../../api
 
 require (
 	github.com/beorn7/perks v1.0.1 // indirect

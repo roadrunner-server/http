@@ -1427,6 +1427,8 @@ github.com/redis/go-redis/extra/redisotel/v9 v9.0.5/go.mod h1:WZjPDy7VNzn77AAfnA
 github.com/redis/go-redis/v9 v9.2.0/go.mod h1:hdY0cQFCN4fnSYT6TkisLufl/4W5UIXyv0b/CLO2V2M=
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=
 github.com/roadrunner-server/amqp/v4 v4.8.4/go.mod h1:Easjf2zW/6SDPdgQEdpFFP7LLCpQXUuVyUHtqatZbcY=
+github.com/roadrunner-server/api/v4 v4.18.0 h1:o0JH/1lfCm+YaFI5sMkLDA4lmigFR5qb2phgLzpUdWE=
+github.com/roadrunner-server/api/v4 v4.18.0/go.mod h1:VdCLIpnjKFHNspqRlu5zfPvrDS9eLR7fYy5K9HYKNkE=
 github.com/roadrunner-server/app-logger/v4 v4.1.0/go.mod h1:X1Z4Pnuou5mE0l1ZZzKfdnqG7sRhtSm/asOM5wPdoTg=
 github.com/roadrunner-server/beanstalk/v4 v4.5.2/go.mod h1:ZWPj6Sinhr4G9cJi4EQWqgUIbsRCVvcbWhh+H+m3bM0=
 github.com/roadrunner-server/boltdb/v4 v4.7.1/go.mod h1:HZKq6Y3OxZvq1GEm8MEDrM0vrV1hrtEgOrGH2WuAlYI=
