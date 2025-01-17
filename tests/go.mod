@@ -7,22 +7,22 @@ toolchain go1.23.4
 require (
 	github.com/goccy/go-json v0.10.4
 	github.com/quic-go/quic-go v0.48.2
-	github.com/roadrunner-server/config/v5 v5.1.1
+	github.com/roadrunner-server/config/v5 v5.1.2
 	github.com/roadrunner-server/endure/v2 v2.6.1
-	github.com/roadrunner-server/fileserver/v5 v5.1.1
+	github.com/roadrunner-server/fileserver/v5 v5.1.2
 	github.com/roadrunner-server/goridge/v3 v3.8.3
-	github.com/roadrunner-server/gzip/v5 v5.1.1
-	github.com/roadrunner-server/headers/v5 v5.1.1
+	github.com/roadrunner-server/gzip/v5 v5.1.2
+	github.com/roadrunner-server/headers/v5 v5.1.2
 	github.com/roadrunner-server/http/v5 v5.0.0
-	github.com/roadrunner-server/informer/v5 v5.1.1
-	github.com/roadrunner-server/logger/v5 v5.1.1
-	github.com/roadrunner-server/memory/v5 v5.2.1
-	github.com/roadrunner-server/otel/v5 v5.1.1
+	github.com/roadrunner-server/informer/v5 v5.1.2
+	github.com/roadrunner-server/logger/v5 v5.1.2
+	github.com/roadrunner-server/memory/v5 v5.2.2
+	github.com/roadrunner-server/otel/v5 v5.1.2
 	github.com/roadrunner-server/pool v1.1.2
-	github.com/roadrunner-server/resetter/v5 v5.1.1
-	github.com/roadrunner-server/rpc/v5 v5.1.1
+	github.com/roadrunner-server/resetter/v5 v5.1.2
+	github.com/roadrunner-server/rpc/v5 v5.1.2
 	github.com/roadrunner-server/send/v5 v5.1.1
-	github.com/roadrunner-server/server/v5 v5.2.2
+	github.com/roadrunner-server/server/v5 v5.2.3
 	github.com/roadrunner-server/static/v5 v5.1.1
 	github.com/stretchr/testify v1.10.0
 	github.com/yookoala/gofast v0.8.0
@@ -77,7 +77,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/client_golang v1.20.5 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
-	github.com/prometheus/common v0.61.0 // indirect
+	github.com/prometheus/common v0.62.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/quic-go/qpack v0.5.1 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
