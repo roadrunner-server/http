@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"io"
 	"mime/multipart"
 	"os"
@@ -8,7 +9,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/goccy/go-json"
 	"go.uber.org/zap"
 )
 

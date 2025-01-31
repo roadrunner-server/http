@@ -6,7 +6,6 @@ toolchain go1.23.4
 
 require (
 	github.com/caddyserver/certmagic v0.21.7
-	github.com/goccy/go-json v0.10.5
 	github.com/google/go-cmp v0.6.0
 	github.com/mholt/acmez v1.2.0
 	github.com/prometheus/client_golang v1.20.5
@@ -39,6 +38,7 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
+	github.com/goccy/go-json v0.10.4 // indirect
 	github.com/google/pprof v0.0.0-20250128161936-077ca0a936bf // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/klauspost/compress v1.17.11 // indirect
