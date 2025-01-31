@@ -92,7 +92,7 @@ jobs:
           docker compose -f env/docker-compose-otel.yaml down
 
       - name: Archive code coverage results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coverage
           path: ./tests/coverage-ci/httpu.out
