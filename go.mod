@@ -6,10 +6,10 @@ toolchain go1.24.0
 
 require (
 	github.com/caddyserver/certmagic v0.21.7
-	github.com/google/go-cmp v0.6.0
+	github.com/google/go-cmp v0.7.0
 	github.com/mholt/acmez v1.2.0
-	github.com/prometheus/client_golang v1.20.5
-	github.com/quic-go/quic-go v0.49.0
+	github.com/prometheus/client_golang v1.21.0
+	github.com/quic-go/quic-go v0.50.0
 	github.com/roadrunner-server/api/v4 v4.18.1
 	github.com/roadrunner-server/context v1.0.2
 	github.com/roadrunner-server/endure/v2 v2.6.1
@@ -41,7 +41,7 @@ require (
 	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/google/pprof v0.0.0-20250208200701-d0013a598941 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/klauspost/compress v1.17.11 // indirect
+	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.9 // indirect
 	github.com/libdns/libdns v0.2.3 // indirect
 	github.com/mholt/acmez/v3 v3.0.1 // indirect
@@ -64,7 +64,7 @@ require (
 	go.uber.org/mock v0.5.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap/exp v0.3.0 // indirect
-	golang.org/x/crypto v0.33.0 // indirect
+	golang.org/x/crypto v0.34.0 // indirect
 	golang.org/x/exp v0.0.0-20250218142911-aa4b98e5adaa // indirect
 	golang.org/x/mod v0.23.0 // indirect
 	golang.org/x/sync v0.11.0 // indirect
