@@ -11,18 +11,18 @@ require (
 	github.com/roadrunner-server/endure/v2 v2.6.1
 	github.com/roadrunner-server/fileserver/v5 v5.1.5
 	github.com/roadrunner-server/goridge/v3 v3.8.3
-	github.com/roadrunner-server/gzip/v5 v5.1.4
-	github.com/roadrunner-server/headers/v5 v5.1.4
+	github.com/roadrunner-server/gzip/v5 v5.1.5
+	github.com/roadrunner-server/headers/v5 v5.1.5
 	github.com/roadrunner-server/http/v5 v5.0.0
-	github.com/roadrunner-server/informer/v5 v5.1.4
-	github.com/roadrunner-server/logger/v5 v5.1.4
-	github.com/roadrunner-server/memory/v5 v5.2.4
-	github.com/roadrunner-server/otel/v5 v5.1.4
+	github.com/roadrunner-server/informer/v5 v5.1.5
+	github.com/roadrunner-server/logger/v5 v5.1.5
+	github.com/roadrunner-server/memory/v5 v5.2.5
+	github.com/roadrunner-server/otel/v5 v5.1.5
 	github.com/roadrunner-server/pool v1.1.3
 	github.com/roadrunner-server/resetter/v5 v5.1.5
-	github.com/roadrunner-server/rpc/v5 v5.1.4
+	github.com/roadrunner-server/rpc/v5 v5.1.5
 	github.com/roadrunner-server/send/v5 v5.1.3
-	github.com/roadrunner-server/server/v5 v5.2.5
+	github.com/roadrunner-server/server/v5 v5.2.6
 	github.com/roadrunner-server/static/v5 v5.1.3
 	github.com/stretchr/testify v1.10.0
 	github.com/yookoala/gofast v0.8.0
