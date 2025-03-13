@@ -5,7 +5,7 @@ go 1.24
 toolchain go1.24.0
 
 require (
-	github.com/caddyserver/certmagic v0.21.7
+	github.com/caddyserver/certmagic v0.22.0
 	github.com/google/go-cmp v0.7.0
 	github.com/mholt/acmez v1.2.0
 	github.com/prometheus/client_golang v1.21.1
@@ -43,7 +43,7 @@ require (
 	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.10 // indirect
 	github.com/libdns/libdns v0.2.3 // indirect
-	github.com/mholt/acmez/v3 v3.0.1 // indirect
+	github.com/mholt/acmez/v3 v3.1.0 // indirect
 	github.com/miekg/dns v1.1.63 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/onsi/ginkgo/v2 v2.23.0 // indirect
