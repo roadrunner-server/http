@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"sync"
 
+	_ "google.golang.org/genproto/protobuf/ptype" //nolint:revive,nolintlint
+
 	rrcontext "github.com/roadrunner-server/context"
 	"github.com/roadrunner-server/endure/v2/dep"
 	"github.com/roadrunner-server/errors"

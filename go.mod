@@ -25,6 +25,7 @@ require (
 	go.uber.org/zap v1.27.0
 	golang.org/x/net v0.37.0
 	golang.org/x/sys v0.31.0
+	google.golang.org/genproto v0.0.0-20250313205543-e70fdf4c4cb4
 	google.golang.org/protobuf v1.36.5
 )
 

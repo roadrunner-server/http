@@ -28,6 +28,7 @@ require (
 	github.com/yookoala/gofast v0.8.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/net v0.37.0
+	google.golang.org/genproto v0.0.0-20250313205543-e70fdf4c4cb4
 )
 
 replace github.com/roadrunner-server/http/v5 => ../
