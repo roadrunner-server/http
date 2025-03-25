@@ -30,11 +30,11 @@ func (cfg *Uploads) InitDefaults() error {
 	cfg.Forbidden = make(map[string]struct{})
 	cfg.Allowed = make(map[string]struct{})
 
-	for i := 0; i < len(cfg.Forbid); i++ {
+	for i := range cfg.Forbid {
 		cfg.Forbidden[cfg.Forbid[i]] = struct{}{}
 	}
 
-	for i := 0; i < len(cfg.Allow); i++ {
+	for i := range cfg.Allow {
 		cfg.Allowed[cfg.Allow[i]] = struct{}{}
 	}
 

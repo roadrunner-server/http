@@ -5,11 +5,11 @@ go 1.24
 toolchain go1.24.0
 
 require (
-	github.com/caddyserver/certmagic v0.22.0
+	github.com/caddyserver/certmagic v0.22.2
 	github.com/google/go-cmp v0.7.0
 	github.com/mholt/acmez v1.2.0
 	github.com/prometheus/client_golang v1.21.1
-	github.com/quic-go/quic-go v0.50.0
+	github.com/quic-go/quic-go v0.50.1
 	github.com/roadrunner-server/api/v4 v4.18.1
 	github.com/roadrunner-server/context v1.0.2
 	github.com/roadrunner-server/endure/v2 v2.6.1
@@ -25,8 +25,8 @@ require (
 	go.uber.org/zap v1.27.0
 	golang.org/x/net v0.37.0
 	golang.org/x/sys v0.31.0
-	google.golang.org/genproto v0.0.0-20250313205543-e70fdf4c4cb4
-	google.golang.org/protobuf v1.36.5
+	google.golang.org/genproto v0.0.0-20250324211829-b45e905df463
+	google.golang.org/protobuf v1.36.6
 )
 
 require (
@@ -44,10 +44,10 @@ require (
 	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.10 // indirect
 	github.com/libdns/libdns v0.2.3 // indirect
-	github.com/mholt/acmez/v3 v3.1.0 // indirect
+	github.com/mholt/acmez/v3 v3.1.1 // indirect
 	github.com/miekg/dns v1.1.64 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
-	github.com/onsi/ginkgo/v2 v2.23.2 // indirect
+	github.com/onsi/ginkgo/v2 v2.23.3 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.63.0 // indirect
