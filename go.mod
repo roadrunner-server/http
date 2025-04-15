@@ -25,7 +25,7 @@ require (
 	go.uber.org/zap v1.27.0
 	golang.org/x/net v0.39.0
 	golang.org/x/sys v0.32.0
-	google.golang.org/genproto v0.0.0-20250407143221-ac9807e6c755
+	google.golang.org/genproto v0.0.0-20250414145226-207652e42e2e
 	google.golang.org/protobuf v1.36.6
 )
 
@@ -48,7 +48,7 @@ require (
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/onsi/ginkgo/v2 v2.23.4 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
-	github.com/prometheus/client_model v0.6.1 // indirect
+	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.63.0 // indirect
 	github.com/prometheus/procfs v0.16.0 // indirect
 	github.com/quic-go/qpack v0.5.1 // indirect
