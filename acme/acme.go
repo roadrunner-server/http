@@ -71,7 +71,7 @@ func IssueCertificates(cacheDir, email, challengeType string, domains []string, 
 
 	cfg.Issuers = append(cfg.Issuers, myAcme)
 
-	for i := 0; i < len(domains); i++ {
+	for i := range domains {
 		err := cfg.ObtainCertAsync(context.Background(), domains[i])
 		if err != nil {
 			return nil, err

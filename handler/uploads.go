@@ -44,7 +44,7 @@ func (u *Uploads) MarshalJSON() ([]byte, error) {
 // will be handled individually.
 func (u *Uploads) Open(log *zap.Logger, dir string, forbid, allow map[string]struct{}) {
 	var wg sync.WaitGroup
-	for i := 0; i < len(u.list); i++ {
+	for i := range u.list {
 		wg.Add(1)
 		go func(f *FileUpload) {
 			defer wg.Done()

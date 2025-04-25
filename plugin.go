@@ -150,7 +150,7 @@ func (p *Plugin) Serve() chan error {
 	p.applyBundledMiddleware()
 
 	// start all servers
-	for i := 0; i < len(p.servers); i++ {
+	for i := range p.servers {
 		go func(idx int) {
 			errSt := p.servers[idx].Serve(p.mdwr, p.cfg.Middleware)
 			if errSt != nil {
@@ -171,7 +171,7 @@ func (p *Plugin) Stop(ctx context.Context) error {
 	doneCh := make(chan struct{}, 1)
 
 	go func() {
-		for i := 0; i < len(p.servers); i++ {
+		for i := range p.servers {
 			if p.servers[i] != nil {
 				p.servers[i].Stop()
 			}
@@ -233,7 +233,7 @@ func (p *Plugin) Workers() []*process.State {
 	workers := p.pool.Workers()
 
 	ps := make([]*process.State, 0, len(workers))
-	for i := 0; i < len(workers); i++ {
+	for i := range workers {
 		state, err := process.WorkerProcessState(workers[i])
 		if err != nil {
 			return nil

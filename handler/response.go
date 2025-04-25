@@ -53,7 +53,7 @@ func (h *Handler) handlePROTOresponse(pld *payload.Payload, w http.ResponseWrite
 			push := rsp.GetHeaders()[HTTP2Push].GetValue()
 
 			if pusher, ok := w.(http.Pusher); ok {
-				for i := 0; i < len(push); i++ {
+				for i := range push {
 					err = pusher.Push(string(rsp.GetHeaders()[HTTP2Push].GetValue()[i]), nil)
 					if err != nil {
 						return err
@@ -101,7 +101,7 @@ func (h *Handler) handlePROTOresponse(pld *payload.Payload, w http.ResponseWrite
 
 func handleProtoTrailers(h map[string]*httpV1proto.HeaderValue) {
 	for _, tr := range h[Trailer].GetValue() {
-		for _, n := range strings.Split(string(tr), ",") {
+		for n := range strings.SplitSeq(string(tr), ",") {
 			n = strings.Trim(n, "\t ")
 			if v, ok := h[n]; ok {
 				h["Trailer:"+n] = v

@@ -57,7 +57,7 @@ func nilOr(cfg *config.Config) *acme.Config {
 
 func (p *Plugin) applyBundledMiddleware() {
 	// apply max_req_size and logger middleware
-	for i := 0; i < len(p.servers); i++ {
+	for i := range p.servers {
 		switch srv := p.servers[i].Server().(type) {
 		case *http.Server:
 			srv.Handler = bundledMw.MaxRequestSize(srv.Handler, p.cfg.MaxRequestSize*MB)

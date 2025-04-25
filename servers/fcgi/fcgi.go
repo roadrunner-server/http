@@ -65,7 +65,7 @@ func (s *Server) Stop() {
 }
 
 func applyMiddleware(server *http.Server, middleware map[string]common.Middleware, order []string, log *zap.Logger) {
-	for i := 0; i < len(order); i++ {
+	for i := range order {
 		if mdwr, ok := middleware[order[i]]; ok {
 			server.Handler = mdwr.Middleware(server.Handler)
 		} else {
