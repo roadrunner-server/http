@@ -10,7 +10,7 @@ require (
 	github.com/mholt/acmez v1.2.0
 	github.com/prometheus/client_golang v1.22.0
 	github.com/quic-go/quic-go v0.51.0
-	github.com/roadrunner-server/api/v4 v4.19.0
+	github.com/roadrunner-server/api/v4 v4.20.0
 	github.com/roadrunner-server/context v1.0.2
 	github.com/roadrunner-server/endure/v2 v2.6.1
 	github.com/roadrunner-server/errors v1.4.1
@@ -24,8 +24,8 @@ require (
 	go.opentelemetry.io/otel/trace v1.35.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/net v0.39.0
-	golang.org/x/sys v0.32.0
-	google.golang.org/genproto v0.0.0-20250428153025-10db94c68c34
+	golang.org/x/sys v0.33.0
+	google.golang.org/genproto v0.0.0-20250505191935-c3e32d0227f9
 	google.golang.org/protobuf v1.36.6
 )
 
@@ -64,10 +64,10 @@ require (
 	go.uber.org/mock v0.5.2 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap/exp v0.3.0 // indirect
-	golang.org/x/crypto v0.37.0 // indirect
+	golang.org/x/crypto v0.38.0 // indirect
 	golang.org/x/mod v0.24.0 // indirect
-	golang.org/x/sync v0.13.0 // indirect
-	golang.org/x/text v0.24.0 // indirect
+	golang.org/x/sync v0.14.0 // indirect
+	golang.org/x/text v0.25.0 // indirect
 	golang.org/x/tools v0.32.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
