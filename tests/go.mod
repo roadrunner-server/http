@@ -8,7 +8,7 @@ require (
 	github.com/goccy/go-json v0.10.5
 	github.com/quic-go/quic-go v0.51.0
 	github.com/roadrunner-server/config/v5 v5.1.7
-	github.com/roadrunner-server/endure/v2 v2.6.1
+	github.com/roadrunner-server/endure/v2 v2.6.2
 	github.com/roadrunner-server/fileserver/v5 v5.1.7
 	github.com/roadrunner-server/goridge/v3 v3.8.3
 	github.com/roadrunner-server/gzip/v5 v5.1.7
@@ -98,7 +98,7 @@ require (
 	github.com/tklauser/go-sysconf v0.3.15 // indirect
 	github.com/tklauser/numcpus v0.10.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/valyala/fasthttp v1.61.0 // indirect
+	github.com/valyala/fasthttp v1.62.0 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
