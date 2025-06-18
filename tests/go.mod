@@ -7,23 +7,23 @@ toolchain go1.24.0
 require (
 	github.com/goccy/go-json v0.10.5
 	github.com/quic-go/quic-go v0.52.0
-	github.com/roadrunner-server/config/v5 v5.1.7
+	github.com/roadrunner-server/config/v5 v5.1.8
 	github.com/roadrunner-server/endure/v2 v2.6.2
-	github.com/roadrunner-server/fileserver/v5 v5.1.7
+	github.com/roadrunner-server/fileserver/v5 v5.1.8
 	github.com/roadrunner-server/goridge/v3 v3.8.3
-	github.com/roadrunner-server/gzip/v5 v5.1.7
-	github.com/roadrunner-server/headers/v5 v5.1.7
+	github.com/roadrunner-server/gzip/v5 v5.1.8
+	github.com/roadrunner-server/headers/v5 v5.1.8
 	github.com/roadrunner-server/http/v5 v5.0.0
-	github.com/roadrunner-server/informer/v5 v5.1.7
-	github.com/roadrunner-server/logger/v5 v5.1.7
-	github.com/roadrunner-server/memory/v5 v5.2.7
-	github.com/roadrunner-server/otel/v5 v5.1.7
+	github.com/roadrunner-server/informer/v5 v5.1.8
+	github.com/roadrunner-server/logger/v5 v5.1.8
+	github.com/roadrunner-server/memory/v5 v5.2.8
+	github.com/roadrunner-server/otel/v5 v5.1.8
 	github.com/roadrunner-server/pool v1.1.3
-	github.com/roadrunner-server/resetter/v5 v5.1.7
-	github.com/roadrunner-server/rpc/v5 v5.1.7
-	github.com/roadrunner-server/send/v5 v5.1.4
-	github.com/roadrunner-server/server/v5 v5.2.8
-	github.com/roadrunner-server/static/v5 v5.1.5
+	github.com/roadrunner-server/resetter/v5 v5.1.8
+	github.com/roadrunner-server/rpc/v5 v5.1.8
+	github.com/roadrunner-server/send/v5 v5.1.5
+	github.com/roadrunner-server/server/v5 v5.2.9
+	github.com/roadrunner-server/static/v5 v5.1.6
 	github.com/stretchr/testify v1.10.0
 	github.com/yookoala/gofast v0.8.0
 	go.uber.org/zap v1.27.0
@@ -49,14 +49,14 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
-	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
+	github.com/go-viper/mapstructure/v2 v2.3.0 // indirect
 	github.com/gofiber/fiber/v2 v2.52.8 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/mock v1.7.0-rc.1 // indirect
 	github.com/google/pprof v0.0.0-20250607225305-033d6d78b36a // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0 // indirect
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.3 // indirect
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.0 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.10 // indirect
