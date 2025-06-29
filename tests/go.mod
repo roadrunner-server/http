@@ -17,7 +17,7 @@ require (
 	github.com/roadrunner-server/informer/v5 v5.1.8
 	github.com/roadrunner-server/logger/v5 v5.1.8
 	github.com/roadrunner-server/memory/v5 v5.2.8
-	github.com/roadrunner-server/otel/v5 v5.1.8
+	github.com/roadrunner-server/otel/v5 v5.2.0
 	github.com/roadrunner-server/pool v1.1.3
 	github.com/roadrunner-server/resetter/v5 v5.1.8
 	github.com/roadrunner-server/rpc/v5 v5.1.8
