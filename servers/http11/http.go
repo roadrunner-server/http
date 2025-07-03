@@ -8,7 +8,7 @@ import (
 
 	"github.com/roadrunner-server/tcplisten"
 
-	"github.com/roadrunner-server/http/v5/common"
+	"github.com/roadrunner-server/http/v5/api"
 	"github.com/roadrunner-server/http/v5/servers"
 
 	"github.com/roadrunner-server/errors"
@@ -72,7 +72,7 @@ func NewHTTPServer(handler http.Handler, cfg *config.Config, errLog *log.Logger,
 }
 
 // Serve is a blocking function
-func (s *Server) Serve(mdwr map[string]common.Middleware, order []string) error {
+func (s *Server) Serve(mdwr map[string]api.Middleware, order []string) error {
 	const op = errors.Op("serveHTTP")
 
 	if len(mdwr) > 0 {
@@ -109,7 +109,7 @@ func (s *Server) Stop() {
 	}
 }
 
-func applyMiddleware(server *http.Server, middleware map[string]common.Middleware, order []string, log *zap.Logger) {
+func applyMiddleware(server *http.Server, middleware map[string]api.Middleware, order []string, log *zap.Logger) {
 	for i := range order {
 		if mdwr, ok := middleware[order[i]]; ok {
 			server.Handler = mdwr.Middleware(server.Handler)

@@ -5,7 +5,7 @@ import (
 
 	"github.com/quic-go/quic-go/http3"
 	"github.com/roadrunner-server/http/v5/acme"
-	"github.com/roadrunner-server/http/v5/common"
+	"github.com/roadrunner-server/http/v5/api"
 	"github.com/roadrunner-server/http/v5/config"
 	bundledMw "github.com/roadrunner-server/http/v5/middleware"
 	"github.com/roadrunner-server/http/v5/servers/fcgi"
@@ -71,7 +71,7 @@ func (p *Plugin) applyBundledMiddleware() {
 	}
 }
 
-func (p *Plugin) unmarshal(cfg common.Configurer) error {
+func (p *Plugin) unmarshal(cfg api.Configurer) error {
 	// unmarshal general section
 	err := cfg.UnmarshalKey(PluginName, &p.cfg)
 	if err != nil {

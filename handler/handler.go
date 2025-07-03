@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/roadrunner-server/http/v5/common"
+	"github.com/roadrunner-server/http/v5/api"
 
 	httpV1proto "github.com/roadrunner-server/api/v4/build/http/v1"
 	"github.com/roadrunner-server/errors"
@@ -36,7 +36,7 @@ type uploads struct {
 type Handler struct {
 	uploads     *uploads
 	log         *zap.Logger
-	pool        common.Pool
+	pool        api.Pool
 	internalCtx context.Context
 
 	internalHTTPCode uint64
@@ -56,7 +56,7 @@ type Handler struct {
 }
 
 // NewHandler return 'handler' interface implementation
-func NewHandler(cfg *config.Config, pool common.Pool, log *zap.Logger) (*Handler, error) {
+func NewHandler(cfg *config.Config, pool api.Pool, log *zap.Logger) (*Handler, error) {
 	return &Handler{
 		uploads: &uploads{
 			dir:    cfg.Uploads.Dir,

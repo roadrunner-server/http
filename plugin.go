@@ -11,7 +11,7 @@ import (
 	rrcontext "github.com/roadrunner-server/context"
 	"github.com/roadrunner-server/endure/v2/dep"
 	"github.com/roadrunner-server/errors"
-	"github.com/roadrunner-server/http/v5/common"
+	"github.com/roadrunner-server/http/v5/api"
 	"github.com/roadrunner-server/http/v5/config"
 	"github.com/roadrunner-server/http/v5/handler"
 	"github.com/roadrunner-server/http/v5/servers"
@@ -49,7 +49,7 @@ type Plugin struct {
 	prop propagation.TextMapPropagator
 
 	// plugins
-	server common.Server
+	server api.Server
 	log    *zap.Logger
 	// stdlog passed to the http/https/fcgi servers to log their internal messages
 	stdLog               *stdlog.Logger
@@ -59,9 +59,9 @@ type Plugin struct {
 	cfg *config.Config
 
 	// middlewares to chain
-	mdwr map[string]common.Middleware
+	mdwr map[string]api.Middleware
 	// Pool which attached to all servers
-	pool common.Pool
+	pool api.Pool
 	// servers RR handler
 	handler *handler.Handler
 	// metrics
@@ -72,7 +72,7 @@ type Plugin struct {
 
 // Init must return configure svc and return true if svc hasStatus enabled. Must return error in case of
 // misconfiguration. Services must not be used without proper configuration pushed first.
-func (p *Plugin) Init(cfg common.Configurer, log common.Logger, srv common.Server) error {
+func (p *Plugin) Init(cfg api.Configurer, log api.Logger, srv api.Server) error {
 	const op = errors.Op("http_plugin_init")
 	if !cfg.Has(PluginName) {
 		return errors.E(op, errors.Disabled)
@@ -100,7 +100,7 @@ func (p *Plugin) Init(cfg common.Configurer, log common.Logger, srv common.Serve
 
 	// use time and date in UTC format
 	p.stdLog = stdlog.New(NewStdAdapter(p.log), "http_plugin: ", stdlog.Ldate|stdlog.Ltime|stdlog.LUTC)
-	p.mdwr = make(map[string]common.Middleware)
+	p.mdwr = make(map[string]api.Middleware)
 
 	if !p.cfg.EnableHTTP() && !p.cfg.EnableTLS() && !p.cfg.EnableFCGI() {
 		return errors.E(op, errors.Disabled)
@@ -276,11 +276,11 @@ func (p *Plugin) Reset() error {
 func (p *Plugin) Collects() []*dep.In {
 	return []*dep.In{
 		dep.Fits(func(pp any) {
-			mdw := pp.(common.Middleware)
+			mdw := pp.(api.Middleware)
 			// just to be safe
 			p.mu.Lock()
 			p.mdwr[mdw.Name()] = mdw
 			p.mu.Unlock()
-		}, (*common.Middleware)(nil)),
+		}, (*api.Middleware)(nil)),
 	}
 }

@@ -10,7 +10,7 @@ import (
 	"github.com/roadrunner-server/http/v5/tlsconf"
 	"go.uber.org/zap"
 
-	"github.com/roadrunner-server/http/v5/common"
+	"github.com/roadrunner-server/http/v5/api"
 	"github.com/roadrunner-server/http/v5/servers"
 )
 
@@ -57,7 +57,7 @@ func NewHTTP3server(handler http.Handler, acmeCfg *acme.Config, cfg *Config, log
 	return http3Srv, nil
 }
 
-func (s *Server) Serve(mdwr map[string]common.Middleware, order []string) error {
+func (s *Server) Serve(mdwr map[string]api.Middleware, order []string) error {
 	const op = errors.Op("serve_HTTP3")
 
 	if len(mdwr) > 0 {
@@ -84,7 +84,7 @@ func (s *Server) Stop() {
 	}
 }
 
-func applyMiddleware(server *http3.Server, middleware map[string]common.Middleware, order []string, log *zap.Logger) {
+func applyMiddleware(server *http3.Server, middleware map[string]api.Middleware, order []string, log *zap.Logger) {
 	for i := range order {
 		if mdwr, ok := middleware[order[i]]; ok {
 			server.Handler = mdwr.Middleware(server.Handler)

@@ -14,7 +14,7 @@ import (
 	"github.com/roadrunner-server/tcplisten"
 
 	"github.com/roadrunner-server/http/v5/acme"
-	"github.com/roadrunner-server/http/v5/common"
+	"github.com/roadrunner-server/http/v5/api"
 	"github.com/roadrunner-server/http/v5/servers"
 	"github.com/roadrunner-server/http/v5/tlsconf"
 
@@ -92,7 +92,7 @@ func NewHTTPSServer(handler http.Handler, cfg *SSL, cfgHTTP2 *HTTP2, errLog *log
 	}, nil
 }
 
-func (s *Server) Serve(mdwr map[string]common.Middleware, order []string) error {
+func (s *Server) Serve(mdwr map[string]api.Middleware, order []string) error {
 	const op = errors.Op("serveHTTPS")
 	if len(mdwr) > 0 {
 		applyMiddleware(s.https, mdwr, order, s.log)
@@ -195,7 +195,7 @@ func tlsAddr(host string, forcePort bool, sslPort int) string {
 	return host
 }
 
-func applyMiddleware(server *http.Server, middleware map[string]common.Middleware, order []string, log *zap.Logger) {
+func applyMiddleware(server *http.Server, middleware map[string]api.Middleware, order []string, log *zap.Logger) {
 	for i := range order {
 		if mdwr, ok := middleware[order[i]]; ok {
 			server.Handler = mdwr.Middleware(server.Handler)
