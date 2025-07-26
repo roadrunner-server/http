@@ -62,9 +62,11 @@ func (p *Plugin) applyBundledMiddleware() {
 		case *http.Server:
 			srv.Handler = bundledMw.MaxRequestSize(srv.Handler, p.cfg.MaxRequestSize*MB)
 			srv.Handler = bundledMw.NewLogMiddleware(srv.Handler, p.cfg.AccessLogs, p.log)
+			srv.Handler = bundledMw.TLSInfo(srv.Handler, p.log.Named("tls_info"))
 		case *http3.Server:
 			srv.Handler = bundledMw.MaxRequestSize(srv.Handler, p.cfg.MaxRequestSize*MB)
 			srv.Handler = bundledMw.NewLogMiddleware(srv.Handler, p.cfg.AccessLogs, p.log)
+			srv.Handler = bundledMw.TLSInfo(srv.Handler, p.log.Named("tls_info"))
 		default:
 			p.log.DPanic("unknown server type", zap.Any("server", p.servers[i].Server()))
 		}
