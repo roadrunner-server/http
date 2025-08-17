@@ -76,7 +76,7 @@ require (
 	github.com/prometheus/procfs v0.17.0 // indirect
 	github.com/quic-go/qpack v0.5.1 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
-	github.com/roadrunner-server/api/v4 v4.21.0 // indirect
+	github.com/roadrunner-server/api/v4 v4.22.1 // indirect
 	github.com/roadrunner-server/context v1.1.0 // indirect
 	github.com/roadrunner-server/errors v1.4.1 // indirect
 	github.com/roadrunner-server/events v1.0.1 // indirect
@@ -95,7 +95,7 @@ require (
 	github.com/tklauser/go-sysconf v0.3.15 // indirect
 	github.com/tklauser/numcpus v0.10.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/valyala/fasthttp v1.64.0 // indirect
+	github.com/valyala/fasthttp v1.65.0 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
