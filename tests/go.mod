@@ -24,7 +24,7 @@ require (
 	github.com/roadrunner-server/send/v5 v5.1.5
 	github.com/roadrunner-server/server/v5 v5.2.9
 	github.com/roadrunner-server/static/v5 v5.1.6
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.0
 	github.com/yookoala/gofast v0.8.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/net v0.43.0
