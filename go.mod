@@ -9,7 +9,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/mholt/acmez v1.2.0
 	github.com/prometheus/client_golang v1.23.2
-	github.com/quic-go/quic-go v0.54.0
+	github.com/quic-go/quic-go v0.54.1
 	github.com/roadrunner-server/api/v4 v4.22.1
 	github.com/roadrunner-server/context v1.1.0
 	github.com/roadrunner-server/endure/v2 v2.6.2
@@ -25,7 +25,7 @@ require (
 	go.uber.org/zap v1.27.0
 	golang.org/x/net v0.44.0
 	golang.org/x/sys v0.36.0
-	google.golang.org/genproto v0.0.0-20250908214217-97024824d090
+	google.golang.org/genproto v0.0.0-20250922171735-9219d122eba9
 	google.golang.org/protobuf v1.36.9
 )
 
@@ -41,7 +41,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/libdns/libdns v1.1.1 // indirect
-	github.com/mholt/acmez/v3 v3.1.3 // indirect
+	github.com/mholt/acmez/v3 v3.1.4 // indirect
 	github.com/miekg/dns v1.1.68 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
