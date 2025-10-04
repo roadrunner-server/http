@@ -9,7 +9,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/mholt/acmez v1.2.0
 	github.com/prometheus/client_golang v1.23.2
-	github.com/quic-go/quic-go v0.54.1
+	github.com/quic-go/quic-go v0.55.0
 	github.com/roadrunner-server/api/v4 v4.22.1
 	github.com/roadrunner-server/context v1.1.0
 	github.com/roadrunner-server/endure/v2 v2.6.2
@@ -25,7 +25,7 @@ require (
 	go.uber.org/zap v1.27.0
 	golang.org/x/net v0.44.0
 	golang.org/x/sys v0.36.0
-	google.golang.org/genproto v0.0.0-20250929231259-57b25ae835d4
+	google.golang.org/genproto v0.0.0-20251002232023-7c0ddcbb5797
 	google.golang.org/protobuf v1.36.10
 )
 
