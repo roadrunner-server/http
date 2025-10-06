@@ -1152,7 +1152,7 @@ func TestHTTPBigURLEncoded(t *testing.T) {
 	assert.NoError(t, err)
 	_, _ = io.ReadAll(resp.Body)
 
-	require.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+	require.Equal(t, http.StatusRequestEntityTooLarge, resp.StatusCode)
 
 	t.Cleanup(func() {
 		_ = resp.Body.Close()

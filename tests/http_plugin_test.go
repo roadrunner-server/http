@@ -1786,7 +1786,7 @@ func TestHTTPBigRequestSize(t *testing.T) {
 	assert.NoError(t, err)
 	b, err := io.ReadAll(r.Body)
 	assert.NoError(t, err)
-	assert.Equal(t, 500, r.StatusCode)
+	assert.Equal(t, http.StatusRequestEntityTooLarge, r.StatusCode)
 	assert.Equal(t, "serve_http: http: request body too large\n", string(b))
 
 	err = r.Body.Close()
