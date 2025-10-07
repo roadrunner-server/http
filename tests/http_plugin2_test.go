@@ -605,7 +605,7 @@ func TestHTTPBigRespMaxReqSize(t *testing.T) {
 	}()
 
 	assert.NoError(t, err)
-	assert.Equal(t, 500, r.StatusCode)
+	assert.Equal(t, http.StatusRequestEntityTooLarge, r.StatusCode)
 
 	stopCh <- struct{}{}
 	wg.Wait()

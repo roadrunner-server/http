@@ -137,7 +137,12 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		req.Close(h.log, r)
 		h.putReq(req)
-		http.Error(w, errors.E(op, err).Error(), 500)
+		status := http.StatusInternalServerError
+		var maxBytesErr *http.MaxBytesError
+		if stderr.As(err, &maxBytesErr) {
+			status = http.StatusRequestEntityTooLarge
+		}
+		http.Error(w, errors.E(op, err).Error(), status)
 		h.log.Error(
 			"request forming error",
 			zap.Time("start", start),
