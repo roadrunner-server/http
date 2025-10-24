@@ -28,7 +28,7 @@ require (
 	github.com/yookoala/gofast v0.8.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/net v0.46.0
-	google.golang.org/genproto v0.0.0-20251014184007-4626949a642f
+	google.golang.org/genproto v0.0.0-20251022142026-3a174f9686a8
 )
 
 replace github.com/roadrunner-server/http/v5 => ../
@@ -57,7 +57,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.2 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.3 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
-	github.com/klauspost/compress v1.18.0 // indirect
+	github.com/klauspost/compress v1.18.1 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/libdns/libdns v1.1.1 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
@@ -74,7 +74,7 @@ require (
 	github.com/prometheus/client_golang v1.23.2 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.67.1 // indirect
-	github.com/prometheus/procfs v0.17.0 // indirect
+	github.com/prometheus/procfs v0.18.0 // indirect
 	github.com/quic-go/qpack v0.5.1 // indirect
 	github.com/roadrunner-server/api/v4 v4.22.1 // indirect
 	github.com/roadrunner-server/context v1.1.0 // indirect
@@ -94,7 +94,7 @@ require (
 	github.com/tklauser/go-sysconf v0.3.15 // indirect
 	github.com/tklauser/numcpus v0.10.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/valyala/fasthttp v1.67.0 // indirect
+	github.com/valyala/fasthttp v1.68.0 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
@@ -127,8 +127,8 @@ require (
 	golang.org/x/time v0.14.0 // indirect
 	golang.org/x/tools v0.38.0 // indirect
 	golang.org/x/tools/godoc v0.1.0-deprecated // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20251014184007-4626949a642f // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20251014184007-4626949a642f // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20251022142026-3a174f9686a8 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20251022142026-3a174f9686a8 // indirect
 	google.golang.org/grpc v1.76.0 // indirect
 	google.golang.org/protobuf v1.36.10 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
