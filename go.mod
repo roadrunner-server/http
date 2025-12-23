@@ -2,14 +2,14 @@ module github.com/roadrunner-server/http/v5
 
 go 1.25
 
-toolchain go1.25.3
+toolchain go1.25.5
 
 require (
 	github.com/caddyserver/certmagic v0.25.0
 	github.com/google/go-cmp v0.7.0
 	github.com/mholt/acmez v1.2.0
 	github.com/prometheus/client_golang v1.23.2
-	github.com/quic-go/quic-go v0.57.1
+	github.com/quic-go/quic-go v0.58.0
 	github.com/roadrunner-server/api/v4 v4.23.0
 	github.com/roadrunner-server/context v1.1.0
 	github.com/roadrunner-server/endure/v2 v2.6.2
@@ -25,7 +25,7 @@ require (
 	go.uber.org/zap v1.27.1
 	golang.org/x/net v0.48.0
 	golang.org/x/sys v0.39.0
-	google.golang.org/genproto v0.0.0-20251213004720-97cd9d5aeac2
+	google.golang.org/genproto v0.0.0-20251222181119-0a764e51fe1b
 	google.golang.org/protobuf v1.36.11
 )
 
@@ -65,7 +65,6 @@ require (
 	golang.org/x/mod v0.31.0 // indirect
 	golang.org/x/sync v0.19.0 // indirect
 	golang.org/x/text v0.32.0 // indirect
-	golang.org/x/time v0.14.0 // indirect
 	golang.org/x/tools v0.40.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
