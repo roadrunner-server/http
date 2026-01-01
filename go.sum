@@ -54,8 +54,8 @@ github.com/quic-go/quic-go v0.58.0 h1:ggY2pvZaVdB9EyojxL1p+5mptkuHyX5MOSv4dgWF4U
 github.com/quic-go/quic-go v0.58.0/go.mod h1:upnsH4Ju1YkqpLXC305eW3yDZ4NfnNbmQRCMWS58IKU=
 github.com/roadrunner-server/api/v4 v4.23.0 h1:lrVXgP4ozD/H5DrIdT181ldVhD1R9QT5qsi8qWUTDF4=
 github.com/roadrunner-server/api/v4 v4.23.0/go.mod h1:AlHuVVOklb7XF33Cf7IfmwOn3j4gGg37on9Xi6j08Bg=
-github.com/roadrunner-server/context v1.1.0 h1:isgYCesTlmA/yM9SwF5npTGSaLRcaJcTQ95IPi+2pNQ=
-github.com/roadrunner-server/context v1.1.0/go.mod h1:nc2RUiN5nQgQUHZ4bf+XOmkWQ8GGFA7bYBtF76aFKDY=
+github.com/roadrunner-server/context v1.2.0 h1:QKSd6ZypPbtHlxaSUULsRYHPO1IlIm0H6hm6Fdu5Ge4=
+github.com/roadrunner-server/context v1.2.0/go.mod h1:BSjiuIBLbA5qxlLIIDS/tFDruikZ/AElS5wKtqZiltw=
 github.com/roadrunner-server/endure/v2 v2.6.2 h1:sIB4kTyE7gtT3fDhuYWUYn6Vt/dcPtiA6FoNS1eS+84=
 github.com/roadrunner-server/endure/v2 v2.6.2/go.mod h1:t/2+xpNYgGBwhzn83y2MDhvhZ19UVq1REcvqn7j7RB8=
 github.com/roadrunner-server/errors v1.4.1 h1:LKNeaCGiwd3t8IaL840ZNF3UA9yDQlpvHnKddnh0YRQ=
