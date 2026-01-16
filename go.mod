@@ -2,7 +2,7 @@ module github.com/roadrunner-server/http/v5
 
 go 1.25
 
-toolchain go1.25.5
+toolchain go1.25.6
 
 require (
 	github.com/caddyserver/certmagic v0.25.1
@@ -25,7 +25,7 @@ require (
 	go.uber.org/zap v1.27.1
 	golang.org/x/net v0.49.0
 	golang.org/x/sys v0.40.0
-	google.golang.org/genproto v0.0.0-20260112192933-99fd39fd28a9
+	google.golang.org/genproto v0.0.0-20260114163908-3f89685c29c3
 	google.golang.org/protobuf v1.36.11
 )
 

@@ -2,7 +2,7 @@ module tests
 
 go 1.25
 
-toolchain go1.25.5
+toolchain go1.25.6
 
 require (
 	github.com/goccy/go-json v0.10.5
@@ -28,7 +28,7 @@ require (
 	github.com/yookoala/gofast v0.8.0
 	go.uber.org/zap v1.27.1
 	golang.org/x/net v0.49.0
-	google.golang.org/genproto v0.0.0-20260112192933-99fd39fd28a9
+	google.golang.org/genproto v0.0.0-20260114163908-3f89685c29c3
 )
 
 replace github.com/roadrunner-server/http/v5 => ../
@@ -58,7 +58,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.3 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.4 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
-	github.com/klauspost/compress v1.18.2 // indirect
+	github.com/klauspost/compress v1.18.3 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/libdns/libdns v1.1.1 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
@@ -128,8 +128,8 @@ require (
 	golang.org/x/time v0.14.0 // indirect
 	golang.org/x/tools v0.41.0 // indirect
 	golang.org/x/tools/godoc v0.1.0-deprecated // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20260112192933-99fd39fd28a9 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260112192933-99fd39fd28a9 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20260114163908-3f89685c29c3 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260114163908-3f89685c29c3 // indirect
 	google.golang.org/grpc v1.78.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
