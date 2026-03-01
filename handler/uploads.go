@@ -62,7 +62,7 @@ func (u *Uploads) Open(log *zap.Logger, dir string, forbid, allow map[string]str
 func (u *Uploads) Clear(log *zap.Logger) {
 	for _, f := range u.list {
 		if f.TempFilename != "" && exists(f.TempFilename) {
-			err := os.Remove(f.TempFilename)
+			err := os.Remove(f.TempFilename) //nolint:gosec
 			if err != nil && log != nil {
 				log.Error("error removing the file", zap.Error(err))
 			}
@@ -166,7 +166,7 @@ func (f *FileUpload) Open(dir string, forbid, allow map[string]struct{}) error {
 
 // exists if file exists.
 func exists(path string) bool {
-	if _, err := os.Stat(path); os.IsNotExist(err) {
+	if _, err := os.Stat(path); os.IsNotExist(err) { //nolint:gosec
 		return false
 	}
 	return true

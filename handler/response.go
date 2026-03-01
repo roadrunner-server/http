@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	httpV1proto "github.com/roadrunner-server/api/v4/build/http/v1"
+	httpV2proto "github.com/roadrunner-server/api-go/v5/http/v2"
 	"github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/goridge/v3/pkg/frame"
 	"github.com/roadrunner-server/pool/payload"
@@ -50,11 +50,11 @@ func (h *Handler) handlePROTOresponse(pld *payload.Payload, w http.ResponseWrite
 
 		// handle push headers
 		if rsp.GetHeaders() != nil && rsp.GetHeaders()[HTTP2Push] != nil {
-			push := rsp.GetHeaders()[HTTP2Push].GetValue()
+			push := rsp.GetHeaders()[HTTP2Push].GetValues()
 
 			if pusher, ok := w.(http.Pusher); ok {
 				for i := range push {
-					err = pusher.Push(string(rsp.GetHeaders()[HTTP2Push].GetValue()[i]), nil)
+					err = pusher.Push(string(rsp.GetHeaders()[HTTP2Push].GetValues()[i]), nil)
 					if err != nil {
 						return err
 					}
@@ -68,14 +68,14 @@ func (h *Handler) handlePROTOresponse(pld *payload.Payload, w http.ResponseWrite
 
 		// write all headers from the response to the writer
 		for k := range rsp.GetHeaders() {
-			for kk := range rsp.GetHeaders()[k].GetValue() {
-				w.Header().Add(k, string(rsp.GetHeaders()[k].GetValue()[kk]))
+			for kk := range rsp.GetHeaders()[k].GetValues() {
+				w.Header().Add(k, string(rsp.GetHeaders()[k].GetValues()[kk]))
 			}
 		}
 
 		// The provided code must be a valid HTTP 1xx-5xx status code.
 		if rsp.Status < 100 || rsp.Status >= 600 {
-			http.Error(w, fmt.Sprintf("unknown status code from worker: %d", rsp.Status), 500)
+			http.Error(w, fmt.Sprintf("unknown status code from worker: %d", rsp.Status), http.StatusInternalServerError)
 			return errors.Errorf("unknown status code from worker: %d", rsp.Status)
 		}
 
@@ -99,8 +99,8 @@ func (h *Handler) handlePROTOresponse(pld *payload.Payload, w http.ResponseWrite
 	return nil
 }
 
-func handleProtoTrailers(h map[string]*httpV1proto.HeaderValue) {
-	for _, tr := range h[Trailer].GetValue() {
+func handleProtoTrailers(h map[string]*httpV2proto.HttpHeaderValue) {
+	for _, tr := range h[Trailer].GetValues() {
 		for n := range strings.SplitSeq(string(tr), ",") {
 			n = strings.Trim(n, "\t ")
 			if v, ok := h[n]; ok {

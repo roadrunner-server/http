@@ -3,14 +3,14 @@ package handler
 import (
 	"context"
 	stderr "errors"
-	"fmt"
+	"html/template"
 	"net/http"
 	"sync"
 	"time"
 
 	"github.com/roadrunner-server/http/v5/api"
 
-	httpV1proto "github.com/roadrunner-server/api/v4/build/http/v1"
+	httpV2proto "github.com/roadrunner-server/api-go/v5/http/v2"
 	"github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/goridge/v3/pkg/frame"
 	"github.com/roadrunner-server/http/v5/config"
@@ -90,15 +90,15 @@ func NewHandler(cfg *config.Config, pool api.Pool, log *zap.Logger) (*Handler, e
 		},
 		protoRespPool: sync.Pool{
 			New: func() any {
-				return &httpV1proto.Response{
-					Headers: make(map[string]*httpV1proto.HeaderValue),
+				return &httpV2proto.HttpResponse{
+					Headers: make(map[string]*httpV2proto.HttpHeaderValue),
 					Status:  -1,
 				}
 			},
 		},
 		protoReqPool: sync.Pool{
 			New: func() any {
-				return &httpV1proto.Request{}
+				return &httpV2proto.HttpRequest{}
 			},
 		},
 		pldPool: sync.Pool{
@@ -138,8 +138,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		req.Close(h.log, r)
 		h.putReq(req)
 		status := http.StatusInternalServerError
-		var maxBytesErr *http.MaxBytesError
-		if stderr.As(err, &maxBytesErr) {
+		if _, ok := stderr.AsType[*http.MaxBytesError](err); ok {
 			status = http.StatusRequestEntityTooLarge
 		}
 		http.Error(w, errors.E(op, err).Error(), status)
@@ -223,17 +222,17 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // handleError will handle internal RR errors and return 500
 func (h *Handler) handleError(w http.ResponseWriter, err error) {
-	// write an internal server error
-	w.WriteHeader(int(h.internalHTTPCode)) //nolint:gosec
-
 	// if there are no free workers -> write a special header
 	if errors.Is(errors.NoFreeWorkers, err) {
 		// set header for the prometheus
 		w.Header().Set(noWorkers, trueStr)
 	}
 
+	// write an internal server error
+	w.WriteHeader(int(h.internalHTTPCode)) //nolint:gosec
+
 	// in debug mode, write all output into the browser/curl/any_tool
 	if h.debugMode {
-		_, _ = fmt.Fprintln(w, err)
+		template.HTMLEscape(w, []byte(err.Error()))
 	}
 }
