@@ -4,15 +4,15 @@ import (
 	"net/http"
 	"strings"
 
-	httpV1proto "github.com/roadrunner-server/api/v4/build/http/v1"
+	httpV2proto "github.com/roadrunner-server/api-go/v5/http/v2"
 	"github.com/roadrunner-server/goridge/v3/pkg/frame"
 	"github.com/roadrunner-server/http/v5/attributes"
 	"github.com/roadrunner-server/http/v5/config"
 	"github.com/roadrunner-server/pool/payload"
 )
 
-func (h *Handler) getProtoReq(r *Request) *httpV1proto.Request {
-	req := h.protoReqPool.Get().(*httpV1proto.Request)
+func (h *Handler) getProtoReq(r *Request) *httpV2proto.HttpRequest {
+	req := h.protoReqPool.Get().(*httpV2proto.HttpRequest)
 
 	req.RemoteAddr = r.RemoteAddr
 	req.Protocol = r.Protocol
@@ -27,7 +27,7 @@ func (h *Handler) getProtoReq(r *Request) *httpV1proto.Request {
 	return req
 }
 
-func (h *Handler) putProtoReq(req *httpV1proto.Request) {
+func (h *Handler) putProtoReq(req *httpV2proto.HttpRequest) {
 	req.RemoteAddr = ""
 	req.Protocol = ""
 	req.Method = ""
@@ -79,14 +79,14 @@ func (h *Handler) putReq(req *Request) {
 	h.reqPool.Put(req)
 }
 
-func (h *Handler) putProtoRsp(rsp *httpV1proto.Response) {
+func (h *Handler) putProtoRsp(rsp *httpV2proto.HttpResponse) {
 	rsp.Headers = nil
 	rsp.Status = -1
 	h.protoRespPool.Put(rsp)
 }
 
-func (h *Handler) getProtoRsp() *httpV1proto.Response {
-	return h.protoRespPool.Get().(*httpV1proto.Response)
+func (h *Handler) getProtoRsp() *httpV2proto.HttpResponse {
+	return h.protoRespPool.Get().(*httpV2proto.HttpResponse)
 }
 
 func (h *Handler) putPld(pld *payload.Payload) {

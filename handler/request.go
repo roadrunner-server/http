@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"strings"
 
-	httpV1proto "github.com/roadrunner-server/api/v4/build/http/v1"
+	httpV2proto "github.com/roadrunner-server/api-go/v5/http/v2"
 	"github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/pool/payload"
 	"go.uber.org/zap"
@@ -166,7 +166,7 @@ func (r *Request) Close(log *zap.Logger, hr *http.Request) {
 
 // Payload request marshaled RoadRunner payload based on PSR7 data. values encode method is JSON. Make sure to open
 // files prior to calling this method.
-func (r *Request) Payload(p *payload.Payload, sendRawBody bool, req *httpV1proto.Request) error {
+func (r *Request) Payload(p *payload.Payload, sendRawBody bool, req *httpV2proto.HttpRequest) error {
 	const op = errors.Op("marshal_payload")
 
 	if r.Uploads != nil {
