@@ -59,7 +59,7 @@ func TestServeHTTP_InvalidMultipart_Returns400(t *testing.T) {
 	h := newTestHandler(t, defaultCfg(), nil)
 
 	// Boundary declared in header but body has no valid multipart parts → EOF.
-	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(""))
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/", strings.NewReader(""))
 	req.Header.Set("Content-Type", "multipart/form-data; boundary=1111")
 
 	rr := httptest.NewRecorder()
@@ -73,7 +73,7 @@ func TestServeHTTP_InvalidMultipart_Returns400(t *testing.T) {
 func TestServeHTTP_StreamBody_MaxBytesExceeded_Returns413(t *testing.T) {
 	h := newTestHandler(t, defaultCfg(), nil)
 
-	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader("this body is too long"))
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/", strings.NewReader("this body is too long"))
 	req.Header.Set("Content-Type", "application/json")
 
 	rr := httptest.NewRecorder()
@@ -92,7 +92,7 @@ func TestServeHTTP_TruncatedMultipart_Returns400(t *testing.T) {
 
 	// Multipart body with an open part but no closing boundary → ErrUnexpectedEOF.
 	body := "--1111\r\nContent-Disposition: form-data; name=\"f\"\r\n\r\nval"
-	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/", strings.NewReader(body))
 	req.Header.Set("Content-Type", "multipart/form-data; boundary=1111")
 
 	rr := httptest.NewRecorder()
@@ -150,7 +150,7 @@ func TestHandleError_DebugMode_WritesEscapedError(t *testing.T) {
 }
 
 func TestURI_PlainHTTP(t *testing.T) {
-	r := httptest.NewRequest(http.MethodGet, "/path?q=1", nil)
+	r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/path?q=1", nil)
 	r.Host = "example.com"
 
 	got := URI(r)
@@ -161,7 +161,7 @@ func TestURI_PlainHTTP(t *testing.T) {
 }
 
 func TestURI_TLSRequest_HTTPSScheme(t *testing.T) {
-	r := httptest.NewRequest(http.MethodGet, "/path?q=1", nil)
+	r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/path?q=1", nil)
 	r.Host = "example.com"
 	r.TLS = &tls.ConnectionState{}
 
@@ -173,7 +173,7 @@ func TestURI_TLSRequest_HTTPSScheme(t *testing.T) {
 }
 
 func TestURI_StripsCRLFInjection(t *testing.T) {
-	r := httptest.NewRequest(http.MethodGet, "/path", nil)
+	r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/path", nil)
 	r.Host = "example.com"
 	// Inject CRLF into the raw query — a classic HTTP response-splitting vector.
 	r.URL.RawQuery = "param=value\r\nX-Injected: true"
@@ -206,7 +206,7 @@ func TestServeHTTP_PoolExecError_Returns500(t *testing.T) {
 	mp := &mockPool{execErr: fmt.Errorf("worker died")}
 	h := newTestHandler(t, defaultCfg(), mp)
 
-	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(`{"key":"val"}`))
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/", strings.NewReader(`{"key":"val"}`))
 	req.Header.Set("Content-Type", "application/json")
 
 	rr := httptest.NewRecorder()
@@ -221,7 +221,7 @@ func TestServeHTTP_NoFreeWorkers_SetsHeader(t *testing.T) {
 	mp := &mockPool{execErr: errors.E(errors.NoFreeWorkers)}
 	h := newTestHandler(t, defaultCfg(), mp)
 
-	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(`{"key":"val"}`))
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/", strings.NewReader(`{"key":"val"}`))
 	req.Header.Set("Content-Type", "application/json")
 
 	rr := httptest.NewRecorder()

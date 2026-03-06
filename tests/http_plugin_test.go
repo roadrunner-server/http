@@ -549,7 +549,7 @@ func fcgiEcho(t *testing.T) {
 	)
 
 	w := httptest.NewRecorder()
-	req := httptest.NewRequest("GET", "http://site.local/?hello=world", nil)
+	req := httptest.NewRequestWithContext(t.Context(), "GET", "http://site.local/?hello=world", nil)
 	fcgiHandler.ServeHTTP(w, req)
 
 	body, err := io.ReadAll(w.Result().Body) //nolint:bodyclose
@@ -838,7 +838,7 @@ func fcgiEcho1(t *testing.T) {
 	)
 
 	w := httptest.NewRecorder()
-	req := httptest.NewRequest("GET", "http://site.local/hello-world", nil)
+	req := httptest.NewRequestWithContext(t.Context(), "GET", "http://site.local/hello-world", nil)
 	fcgiHandler.ServeHTTP(w, req)
 
 	_, err := io.ReadAll(w.Result().Body) //nolint:bodyclose
@@ -924,7 +924,7 @@ func fcgiEchoUnix(t *testing.T) {
 	)
 
 	w := httptest.NewRecorder()
-	req := httptest.NewRequest("GET", "http://site.local/hello-world", nil)
+	req := httptest.NewRequestWithContext(t.Context(), "GET", "http://site.local/hello-world", nil)
 	fcgiHandler.ServeHTTP(w, req)
 
 	_, err := io.ReadAll(w.Result().Body) //nolint:bodyclose
@@ -1005,7 +1005,7 @@ func fcgiReqURI(t *testing.T) {
 	)
 
 	w := httptest.NewRecorder()
-	req := httptest.NewRequest("GET", "http://site.local/hello-world", nil)
+	req := httptest.NewRequestWithContext(t.Context(), "GET", "http://site.local/hello-world", nil)
 	fcgiHandler.ServeHTTP(w, req)
 
 	body, err := io.ReadAll(w.Result().Body) //nolint:bodyclose
