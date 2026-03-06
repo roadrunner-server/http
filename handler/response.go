@@ -53,8 +53,8 @@ func (h *Handler) handlePROTOresponse(pld *payload.Payload, w http.ResponseWrite
 			push := rsp.GetHeaders()[HTTP2Push].GetValues()
 
 			if pusher, ok := w.(http.Pusher); ok {
-				for i := range push {
-					err = pusher.Push(string(rsp.GetHeaders()[HTTP2Push].GetValues()[i]), nil)
+				for _, pushVal := range push {
+					err = pusher.Push(string(pushVal), nil)
 					if err != nil {
 						return err
 					}

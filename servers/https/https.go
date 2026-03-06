@@ -4,10 +4,12 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	stderr "errors"
-	"fmt"
 	"log"
+	"net"
 	"net/http"
+	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -185,22 +187,28 @@ func initTLS(handler http.Handler, errLog *log.Logger, addr string, port int) *h
 
 // tlsAddr replaces listen or host port with port configured by SSLConfig config.
 func tlsAddr(host string, forcePort bool, sslPort int) string {
-	// remove current forcePort first
-	host = strings.Split(host, ":")[0]
+	if u, err := url.Parse("//" + host); err == nil {
+		host = u.Hostname()
+	}
 
 	if forcePort || sslPort != 443 {
-		host = fmt.Sprintf("%s:%v", host, sslPort)
+		return net.JoinHostPort(host, strconv.Itoa(sslPort))
+	}
+
+	// url.URL.Host requires bracketed IPv6 literals even without a port.
+	if strings.Contains(host, ":") {
+		return "[" + host + "]"
 	}
 
 	return host
 }
 
 func applyMiddleware(server *http.Server, middleware map[string]api.Middleware, order []string, log *zap.Logger) {
-	for i := range order {
-		if mdwr, ok := middleware[order[i]]; ok {
+	for _, name := range order {
+		if mdwr, ok := middleware[name]; ok {
 			server.Handler = mdwr.Middleware(server.Handler)
 		} else {
-			log.Warn("requested middleware does not exist", zap.String("requested", order[i]))
+			log.Warn("requested middleware does not exist", zap.String("requested", name))
 		}
 	}
 }

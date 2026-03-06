@@ -2,7 +2,6 @@ package tests
 
 import (
 	"bytes"
-	"context"
 	"crypto/tls"
 	"io"
 	"log/slog"
@@ -115,7 +114,7 @@ func echoHTTPPost(t *testing.T) {
 	rdr := bytes.NewReader(bd)
 	client := &http.Client{}
 
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, "http://127.0.0.1:10084/", rdr)
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodPost, "http://127.0.0.1:10084/", rdr)
 	assert.NoError(t, err)
 
 	resp, err := client.Do(req)
@@ -131,7 +130,7 @@ func echoHTTPPost(t *testing.T) {
 
 	for range 20 {
 		rdr = bytes.NewReader(bd)
-		req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, "http://127.0.0.1:10084/", rdr)
+		req, err := http.NewRequestWithContext(t.Context(), http.MethodPost, "http://127.0.0.1:10084/", rdr)
 		assert.NoError(t, err)
 		req.Header.Add("Content-Type", "application/json")
 
@@ -493,7 +492,7 @@ func TestHTTPExecTTL(t *testing.T) {
 
 	time.Sleep(time.Second)
 
-	req, err2 := http.NewRequestWithContext(context.Background(), http.MethodGet, "http://127.0.0.1:18988", nil)
+	req, err2 := http.NewRequestWithContext(t.Context(), http.MethodGet, "http://127.0.0.1:18988", nil)
 	require.NoError(t, err2)
 
 	r, err2 := http.DefaultClient.Do(req)

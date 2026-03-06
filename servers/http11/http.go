@@ -110,11 +110,11 @@ func (s *Server) Stop() {
 }
 
 func applyMiddleware(server *http.Server, middleware map[string]api.Middleware, order []string, log *zap.Logger) {
-	for i := range order {
-		if mdwr, ok := middleware[order[i]]; ok {
+	for _, name := range order {
+		if mdwr, ok := middleware[name]; ok {
 			server.Handler = mdwr.Middleware(server.Handler)
 		} else {
-			log.Warn("requested middleware does not exist", zap.String("requested", order[i]))
+			log.Warn("requested middleware does not exist", zap.String("requested", name))
 		}
 	}
 }

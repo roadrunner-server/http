@@ -68,14 +68,14 @@ func (s *StatsExporter) Collect(ch chan<- prometheus.Metric) {
 	var invalid float64
 
 	// collect the memory
-	for i := range workerStates {
-		cum += float64(workerStates[i].MemoryUsage)
+	for _, ws := range workerStates {
+		cum += float64(ws.MemoryUsage)
 
-		ch <- prometheus.MustNewConstMetric(s.StateDesc, prometheus.GaugeValue, 0, workerStates[i].StatusStr, strconv.Itoa(int(workerStates[i].Pid)))
-		ch <- prometheus.MustNewConstMetric(s.WorkerMemoryDesc, prometheus.GaugeValue, float64(workerStates[i].MemoryUsage), strconv.Itoa(int(workerStates[i].Pid)))
+		ch <- prometheus.MustNewConstMetric(s.StateDesc, prometheus.GaugeValue, 0, ws.StatusStr, strconv.Itoa(int(ws.Pid)))
+		ch <- prometheus.MustNewConstMetric(s.WorkerMemoryDesc, prometheus.GaugeValue, float64(ws.MemoryUsage), strconv.Itoa(int(ws.Pid)))
 
 		// sync with sdk/worker/state.go
-		switch workerStates[i].Status {
+		switch ws.Status {
 		case fsm.StateReady:
 			ready++
 		case fsm.StateWorking:

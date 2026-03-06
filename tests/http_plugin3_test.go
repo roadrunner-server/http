@@ -3,7 +3,6 @@ package tests
 import (
 	"bufio"
 	"bytes"
-	"context"
 	"crypto/rand"
 	"crypto/tls"
 	"fmt"
@@ -1120,7 +1119,7 @@ func TestHTTPBigURLEncoded(t *testing.T) {
 
 	form.Add("foo", string(buf))
 
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, "http://127.0.0.1:55777", strings.NewReader(form.Encode()))
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodPost, "http://127.0.0.1:55777", strings.NewReader(form.Encode()))
 	require.NoError(t, err)
 
 	client := &http.Client{}
@@ -1208,7 +1207,7 @@ func TestHTTPBigURLEncoded2(t *testing.T) {
 	// after encode will be ~28mb
 	form.Add("foo", string(buf))
 
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, "http://127.0.0.1:55778", strings.NewReader(form.Encode()))
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodPost, "http://127.0.0.1:55778", strings.NewReader(form.Encode()))
 	require.NoError(t, err)
 
 	client := &http.Client{}
@@ -1295,7 +1294,7 @@ func TestHTTPBigURLEncoded3(t *testing.T) {
 
 	form.Add("foo", string(buf))
 
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, "http://127.0.0.1:55779", strings.NewReader(form.Encode()))
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodPost, "http://127.0.0.1:55779", strings.NewReader(form.Encode()))
 	require.NoError(t, err)
 
 	client := &http.Client{}

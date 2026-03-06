@@ -171,9 +171,9 @@ func (p *Plugin) Stop(ctx context.Context) error {
 	doneCh := make(chan struct{}, 1)
 
 	go func() {
-		for i := range p.servers {
-			if p.servers[i] != nil {
-				p.servers[i].Stop()
+		for _, srv := range p.servers {
+			if srv != nil {
+				srv.Stop()
 			}
 		}
 

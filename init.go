@@ -57,8 +57,8 @@ func nilOr(cfg *config.Config) *acme.Config {
 
 func (p *Plugin) applyBundledMiddleware() {
 	// apply max_req_size and logger middleware
-	for i := range p.servers {
-		switch srv := p.servers[i].Server().(type) {
+	for _, s := range p.servers {
+		switch srv := s.Server().(type) {
 		case *http.Server:
 			srv.Handler = bundledMw.MaxRequestSize(srv.Handler, p.cfg.MaxRequestSize*MB)
 			srv.Handler = bundledMw.NewLogMiddleware(srv.Handler, p.cfg.AccessLogs, p.log)
@@ -66,7 +66,7 @@ func (p *Plugin) applyBundledMiddleware() {
 			srv.Handler = bundledMw.MaxRequestSize(srv.Handler, p.cfg.MaxRequestSize*MB)
 			srv.Handler = bundledMw.NewLogMiddleware(srv.Handler, p.cfg.AccessLogs, p.log)
 		default:
-			p.log.DPanic("unknown server type", zap.Any("server", p.servers[i].Server()))
+			p.log.DPanic("unknown server type", zap.Any("server", s.Server()))
 		}
 	}
 }

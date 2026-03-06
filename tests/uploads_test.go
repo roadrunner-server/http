@@ -29,7 +29,7 @@ import (
 const testFile = "uploads_test.go"
 
 func TestHandler_Upload_File(t *testing.T) {
-	pl, err := staticPool.NewPool(context.Background(),
+	pl, err := staticPool.NewPool(t.Context(),
 		func(_ []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/http/client.php", "upload", "pipes")
 		},
@@ -67,7 +67,7 @@ func TestHandler_Upload_File(t *testing.T) {
 
 	go func() {
 		errL := hs.ListenAndServe()
-		if errL != nil && !errors.Is(http.ErrServerClosed, errL) {
+		if errL != nil && !errors.Is(errL, http.ErrServerClosed) {
 			t.Errorf("error listening the interface: error %v", errL)
 		}
 	}()
@@ -122,7 +122,7 @@ func TestHandler_Upload_File(t *testing.T) {
 }
 
 func TestHandler_Upload_NestedFile(t *testing.T) {
-	pl, err := staticPool.NewPool(context.Background(),
+	pl, err := staticPool.NewPool(t.Context(),
 		func(_ []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/http/client.php", "upload", "pipes")
 		},
@@ -161,7 +161,7 @@ func TestHandler_Upload_NestedFile(t *testing.T) {
 
 	go func() {
 		errL := hs.ListenAndServe()
-		if errL != nil && !errors.Is(http.ErrServerClosed, errL) {
+		if errL != nil && !errors.Is(errL, http.ErrServerClosed) {
 			t.Errorf("error listening the interface: error %v", errL)
 		}
 	}()
@@ -216,7 +216,7 @@ func TestHandler_Upload_NestedFile(t *testing.T) {
 }
 
 func TestHandler_Upload_File_NoTmpDir(t *testing.T) {
-	pl, err := staticPool.NewPool(context.Background(),
+	pl, err := staticPool.NewPool(t.Context(),
 		func(_ []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/http/client.php", "upload", "pipes")
 		},
@@ -254,7 +254,7 @@ func TestHandler_Upload_File_NoTmpDir(t *testing.T) {
 
 	go func() {
 		err = hs.ListenAndServe()
-		if err != nil && !errors.Is(http.ErrServerClosed, err) {
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			t.Errorf("error listening the interface: error %v", err)
 		}
 	}()
@@ -309,7 +309,7 @@ func TestHandler_Upload_File_NoTmpDir(t *testing.T) {
 }
 
 func TestHandler_Upload_File_Forbids(t *testing.T) {
-	pl, err := staticPool.NewPool(context.Background(),
+	pl, err := staticPool.NewPool(t.Context(),
 		func(_ []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/http/client.php", "upload", "pipes")
 		},
@@ -347,7 +347,7 @@ func TestHandler_Upload_File_Forbids(t *testing.T) {
 
 	go func() {
 		err = hs.ListenAndServe()
-		if err != nil && !errors.Is(http.ErrServerClosed, err) {
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			t.Errorf("error listening the interface: error %v", err)
 		}
 	}()
@@ -402,7 +402,7 @@ func TestHandler_Upload_File_Forbids(t *testing.T) {
 }
 
 func TestHandler_Upload_File_NotAllowed(t *testing.T) {
-	pl, err := staticPool.NewPool(context.Background(),
+	pl, err := staticPool.NewPool(t.Context(),
 		func(_ []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/http/client.php", "upload", "pipes")
 		},
@@ -440,7 +440,7 @@ func TestHandler_Upload_File_NotAllowed(t *testing.T) {
 
 	go func() {
 		err = hs.ListenAndServe()
-		if err != nil && !errors.Is(http.ErrServerClosed, err) {
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			t.Errorf("error listening the interface: error %v", err)
 		}
 	}()
