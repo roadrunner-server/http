@@ -63,12 +63,10 @@ func TestHTTPPost(t *testing.T) {
 	signal.Notify(sig, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
 	wg := &sync.WaitGroup{}
-	wg.Add(1)
 
 	stopCh := make(chan struct{}, 1)
 
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		for {
 			select {
 			case e := <-ch:
@@ -92,7 +90,7 @@ func TestHTTPPost(t *testing.T) {
 				return
 			}
 		}
-	}()
+	})
 
 	time.Sleep(time.Second * 1)
 	t.Run("BombardWithPosts", echoHTTPPost)
@@ -131,7 +129,7 @@ func echoHTTPPost(t *testing.T) {
 
 	_ = resp.Body.Close()
 
-	for i := 0; i < 20; i++ {
+	for range 20 {
 		rdr = bytes.NewReader(bd)
 		req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, "http://127.0.0.1:10084/", rdr)
 		assert.NoError(t, err)
@@ -179,12 +177,10 @@ func TestSSLNoHTTP(t *testing.T) {
 	signal.Notify(sig, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
 	wg := &sync.WaitGroup{}
-	wg.Add(1)
 
 	stopCh := make(chan struct{}, 1)
 
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		for {
 			select {
 			case e := <-ch:
@@ -208,7 +204,7 @@ func TestSSLNoHTTP(t *testing.T) {
 				return
 			}
 		}
-	}()
+	})
 
 	time.Sleep(time.Second * 1)
 	t.Run("SSLEcho", sslEcho2)
@@ -278,12 +274,10 @@ func TestFileServer(t *testing.T) {
 	signal.Notify(sig, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
 	wg := &sync.WaitGroup{}
-	wg.Add(1)
 
 	stopCh := make(chan struct{}, 1)
 
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		for {
 			select {
 			case e := <-ch:
@@ -307,7 +301,7 @@ func TestFileServer(t *testing.T) {
 				return
 			}
 		}
-	}()
+	})
 
 	time.Sleep(time.Second)
 	t.Run("ServeSampleEtag", serveStaticSampleEtag2)
@@ -374,12 +368,10 @@ func TestHTTPBigResp(t *testing.T) {
 	signal.Notify(sig, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
 	wg := &sync.WaitGroup{}
-	wg.Add(1)
 
 	stopCh := make(chan struct{}, 1)
 
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		for {
 			select {
 			case e := <-ch:
@@ -403,7 +395,7 @@ func TestHTTPBigResp(t *testing.T) {
 				return
 			}
 		}
-	}()
+	})
 
 	time.Sleep(time.Second * 5)
 
@@ -470,12 +462,10 @@ func TestHTTPExecTTL(t *testing.T) {
 	signal.Notify(sig, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
 	wg := &sync.WaitGroup{}
-	wg.Add(1)
 
 	stopCh := make(chan struct{}, 1)
 
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		for {
 			select {
 			case e := <-ch:
@@ -499,7 +489,7 @@ func TestHTTPExecTTL(t *testing.T) {
 				return
 			}
 		}
-	}()
+	})
 
 	time.Sleep(time.Second)
 
@@ -554,12 +544,10 @@ func TestHTTPBigRespMaxReqSize(t *testing.T) {
 	signal.Notify(sig, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
 	wg := &sync.WaitGroup{}
-	wg.Add(1)
 
 	stopCh := make(chan struct{}, 1)
 
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		for {
 			select {
 			case e := <-ch:
@@ -583,12 +571,12 @@ func TestHTTPBigRespMaxReqSize(t *testing.T) {
 				return
 			}
 		}
-	}()
+	})
 
 	time.Sleep(time.Second)
 
 	b2 := &bytes.Buffer{}
-	for i := 0; i < 1024*1024; i++ {
+	for range 1024 * 1024 {
 		b2.Write([]byte("  "))
 	}
 

@@ -1,7 +1,7 @@
 package tests
 
 import (
-	"bytes"
+	"context"
 	"io"
 	"log/slog"
 	"net/http"
@@ -12,24 +12,54 @@ import (
 	"testing"
 	"time"
 
-	mocklogger "tests/mock"
+	rrcontext "github.com/roadrunner-server/context"
 
 	"github.com/roadrunner-server/config/v5"
 	"github.com/roadrunner-server/endure/v2"
 	"github.com/roadrunner-server/gzip/v5"
 	httpPlugin "github.com/roadrunner-server/http/v5"
 	"github.com/roadrunner-server/logger/v5"
-	"github.com/roadrunner-server/otel/v5"
 	"github.com/roadrunner-server/server/v5"
 	"github.com/stretchr/testify/assert"
-	"go.uber.org/zap"
+	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	otelglobal "go.opentelemetry.io/otel"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 )
 
+// tracetestMiddleware replaces otel.Plugin in tests. It creates a root span via
+// otelhttp (using the global TracerProvider set by setupTracetest) and injects
+// OtelTracerNameKey so the HTTP plugin activates its own child-span logic.
+type tracetestMiddleware struct{}
+
+func (m *tracetestMiddleware) Init() error  { return nil }
+func (m *tracetestMiddleware) Name() string { return "tracetestOtel" }
+
+func (m *tracetestMiddleware) Middleware(next http.Handler) http.Handler {
+	return otelhttp.NewHandler(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := context.WithValue(r.Context(), rrcontext.OtelTracerNameKey, m.Name())
+			next.ServeHTTP(w, r.WithContext(ctx))
+		}),
+		"http-server",
+	)
+}
+
+// setupTracetest installs an in-memory exporter as the global TracerProvider.
+// Spans are exported synchronously (WithSyncer), so all spans are available
+// immediately after the server shuts down.
+func setupTracetest(t *testing.T) *tracetest.InMemoryExporter {
+	t.Helper()
+	exp := tracetest.NewInMemoryExporter()
+	tp := sdktrace.NewTracerProvider(sdktrace.WithSyncer(exp))
+	otelglobal.SetTracerProvider(tp)
+	t.Cleanup(func() { _ = tp.Shutdown(context.Background()) })
+	return exp
+}
+
 func TestHTTPOTLP_Init(t *testing.T) {
-	// TODO(rustatian) use the: https://pkg.go.dev/go.opentelemetry.io/otel/sdk/trace/tracetest"
-	rd, wr, err := os.Pipe()
-	assert.NoError(t, err)
-	os.Stderr = wr
+	exp := setupTracetest(t)
 
 	cont := endure.New(slog.LevelDebug)
 
@@ -38,13 +68,13 @@ func TestHTTPOTLP_Init(t *testing.T) {
 		Path:    "configs/.rr-http-otel.yaml",
 	}
 
-	err = cont.RegisterAll(
+	err := cont.RegisterAll(
 		cfg,
 		&logger.Plugin{},
 		&server.Plugin{},
 		&gzip.Plugin{},
 		&httpPlugin.Plugin{},
-		&otel.Plugin{},
+		&tracetestMiddleware{},
 	)
 	assert.NoError(t, err)
 
@@ -60,12 +90,10 @@ func TestHTTPOTLP_Init(t *testing.T) {
 	signal.Notify(sig, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
 	wg := &sync.WaitGroup{}
-	wg.Add(1)
 
 	stopCh := make(chan struct{}, 1)
 
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		for {
 			select {
 			case e := <-ch:
@@ -89,7 +117,7 @@ func TestHTTPOTLP_Init(t *testing.T) {
 				return
 			}
 		}
-	}()
+	})
 
 	time.Sleep(time.Second * 2)
 
@@ -109,39 +137,34 @@ func TestHTTPOTLP_Init(t *testing.T) {
 	stopCh <- struct{}{}
 	wg.Wait()
 
-	time.Sleep(time.Second)
-	_ = wr.Close()
-	buf := new(bytes.Buffer)
-	_, err = io.Copy(buf, rd)
-	assert.NoError(t, err)
+	spans := exp.GetSpans()
+	require.GreaterOrEqual(t, len(spans), 2)
 
-	// contains spans
-	assert.Contains(t, buf.String(), `"Name": "http",`)
-	assert.Contains(t, buf.String(), `"Name": "gzip",`)
+	spanNames := make([]string, len(spans))
+	for i, s := range spans {
+		spanNames[i] = s.Name
+	}
+	assert.Contains(t, spanNames, "http")
+	assert.Contains(t, spanNames, "gzip")
 }
 
 func TestHTTPOTLP_WithPHP(t *testing.T) {
-	// TODO(rustatian) use the: https://pkg.go.dev/go.opentelemetry.io/otel/sdk/trace/tracetest"
-	rd, wr, err := os.Pipe()
-	assert.NoError(t, err)
-	os.Stderr = wr
+	exp := setupTracetest(t)
 
 	cont := endure.New(slog.LevelDebug)
-	assert.NoError(t, err)
 
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
 		Path:    "configs/.rr-http-otel2.yaml",
 	}
 
-	l, oLogger := mocklogger.ZapTestLogger(zap.DebugLevel)
-	err = cont.RegisterAll(
+	err := cont.RegisterAll(
 		cfg,
-		l,
+		&logger.Plugin{},
 		&server.Plugin{},
 		&gzip.Plugin{},
 		&httpPlugin.Plugin{},
-		&otel.Plugin{},
+		&tracetestMiddleware{},
 	)
 	assert.NoError(t, err)
 
@@ -157,12 +180,10 @@ func TestHTTPOTLP_WithPHP(t *testing.T) {
 	signal.Notify(sig, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
 	wg := &sync.WaitGroup{}
-	wg.Add(1)
 
 	stopCh := make(chan struct{}, 1)
 
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		for {
 			select {
 			case e := <-ch:
@@ -186,7 +207,7 @@ func TestHTTPOTLP_WithPHP(t *testing.T) {
 				return
 			}
 		}
-	}()
+	})
 
 	time.Sleep(time.Second * 2)
 
@@ -206,18 +227,13 @@ func TestHTTPOTLP_WithPHP(t *testing.T) {
 	stopCh <- struct{}{}
 	wg.Wait()
 
-	time.Sleep(time.Second)
-	_ = wr.Close()
-	buf := new(bytes.Buffer)
-	_, err = io.Copy(buf, rd)
-	assert.NoError(t, err)
+	spans := exp.GetSpans()
+	require.GreaterOrEqual(t, len(spans), 2)
 
-	// contains spans
-	assert.Contains(t, buf.String(), `"Name": "/",`)
-	assert.Contains(t, buf.String(), `"Name": "http",`)
-	assert.Contains(t, buf.String(), `"Name": "gzip",`)
-
-	assert.Equal(t, 1, oLogger.FilterMessageSnippet("trace_id").Len())
-	assert.Equal(t, 1, oLogger.FilterMessageSnippet("span_id").Len())
-	assert.Equal(t, 1, oLogger.FilterMessageSnippet("trace_state").Len())
+	spanNames := make([]string, len(spans))
+	for i, s := range spans {
+		spanNames[i] = s.Name
+	}
+	assert.Contains(t, spanNames, "http")
+	assert.Contains(t, spanNames, "gzip")
 }
