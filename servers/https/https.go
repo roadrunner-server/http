@@ -186,7 +186,7 @@ func initTLS(handler http.Handler, errLog *log.Logger, addr string, port int) *h
 // tlsAddr replaces listen or host port with port configured by SSLConfig config.
 func tlsAddr(host string, forcePort bool, sslPort int) string {
 	// remove current forcePort first
-	host = strings.Split(host, ":")[0]
+	host, _, _ = strings.Cut(host, ":")
 
 	if forcePort || sslPort != 443 {
 		host = fmt.Sprintf("%s:%v", host, sslPort)
@@ -196,11 +196,11 @@ func tlsAddr(host string, forcePort bool, sslPort int) string {
 }
 
 func applyMiddleware(server *http.Server, middleware map[string]api.Middleware, order []string, log *zap.Logger) {
-	for i := range order {
-		if mdwr, ok := middleware[order[i]]; ok {
+	for _, name := range order {
+		if mdwr, ok := middleware[name]; ok {
 			server.Handler = mdwr.Middleware(server.Handler)
 		} else {
-			log.Warn("requested middleware does not exist", zap.String("requested", order[i]))
+			log.Warn("requested middleware does not exist", zap.String("requested", name))
 		}
 	}
 }

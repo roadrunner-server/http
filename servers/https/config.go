@@ -97,26 +97,20 @@ func (s *SSL) EnableACME() bool {
 func (s *SSL) Valid() error {
 	const op = errors.Op("ssl_valid")
 
-	parts := strings.Split(s.Address, ":")
-	switch len(parts) {
-	// :443 form
-	// 127.0.0.1:443 form
-	// use 0.0.0.0 as host and 443 as port
-	case 2:
-		if parts[0] == "" {
-			s.host = "127.0.0.1"
-		} else {
-			s.host = parts[0]
-		}
-
-		port, err := strconv.Atoi(parts[1])
-		if err != nil {
-			return errors.E(op, err)
-		}
-		s.Port = port
-	default:
+	host, portStr, ok := strings.Cut(s.Address, ":")
+	if !ok {
 		return errors.E(op, errors.Errorf("unknown format, accepted format is [:<port> or <host>:<port>], provided: %s", s.Address))
 	}
+	if host == "" {
+		s.host = "127.0.0.1"
+	} else {
+		s.host = host
+	}
+	port, err := strconv.Atoi(portStr)
+	if err != nil {
+		return errors.E(op, err)
+	}
+	s.Port = port
 
 	// the user use they own certificates
 	if s.Acme == nil {

@@ -29,7 +29,7 @@ import (
 )
 
 func TestHandler_Echo(t *testing.T) {
-	p, err := staticPool.NewPool(context.Background(),
+	p, err := staticPool.NewPool(t.Context(),
 		func(_ []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/http/client.php", "echo", "pipes")
 		},
@@ -81,11 +81,11 @@ func TestHandler_Echo(t *testing.T) {
 	}()
 	assert.Equal(t, 201, r.StatusCode)
 	assert.Equal(t, "WORLD", body)
-	p.Destroy(context.Background())
+	p.Destroy(t.Context())
 }
 
 func TestHandler_Headers(t *testing.T) {
-	p, err := staticPool.NewPool(context.Background(),
+	p, err := staticPool.NewPool(t.Context(),
 		func(_ []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/http/client.php", "header", "pipes")
 		},
@@ -160,7 +160,7 @@ func TestHandler_Headers(t *testing.T) {
 }
 
 func TestHandler_Empty_User_Agent(t *testing.T) {
-	p, err := staticPool.NewPool(context.Background(),
+	p, err := staticPool.NewPool(t.Context(),
 		func(cmd []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/http/client.php", "user-agent", "pipes")
 		},
@@ -234,7 +234,7 @@ func TestHandler_Empty_User_Agent(t *testing.T) {
 }
 
 func TestHandler_User_Agent(t *testing.T) {
-	p, err := staticPool.NewPool(context.Background(),
+	p, err := staticPool.NewPool(t.Context(),
 		func(_ []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/http/client.php", "user-agent", "pipes")
 		},
@@ -308,7 +308,7 @@ func TestHandler_User_Agent(t *testing.T) {
 }
 
 func TestHandler_Cookies(t *testing.T) {
-	p, err := staticPool.NewPool(context.Background(),
+	p, err := staticPool.NewPool(t.Context(),
 		func(_ []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/http/client.php", "cookie", "pipes")
 		},
@@ -384,7 +384,7 @@ func TestHandler_Cookies(t *testing.T) {
 }
 
 func TestHandler_JsonPayload_POST(t *testing.T) {
-	p, err := staticPool.NewPool(context.Background(),
+	p, err := staticPool.NewPool(t.Context(),
 		func(_ []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/http/client.php", "payload", "pipes")
 		},
@@ -458,7 +458,7 @@ func TestHandler_JsonPayload_POST(t *testing.T) {
 }
 
 func TestHandler_JsonPayload_PUT(t *testing.T) {
-	p, err := staticPool.NewPool(context.Background(),
+	p, err := staticPool.NewPool(t.Context(),
 		func(_ []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/http/client.php", "payload", "pipes")
 		},
@@ -528,7 +528,7 @@ func TestHandler_JsonPayload_PUT(t *testing.T) {
 }
 
 func TestHandler_JsonPayload_PATCH(t *testing.T) {
-	p, err := staticPool.NewPool(context.Background(),
+	p, err := staticPool.NewPool(t.Context(),
 		func(_ []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/http/client.php", "payload", "pipes")
 		},
@@ -598,7 +598,7 @@ func TestHandler_JsonPayload_PATCH(t *testing.T) {
 }
 
 func TestHandler_UrlEncoded_POST_DELETE(t *testing.T) {
-	p, err := staticPool.NewPool(context.Background(),
+	p, err := staticPool.NewPool(t.Context(),
 		func(_ []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/psr-worker-echo.php")
 		},
@@ -690,7 +690,7 @@ func TestHandler_UrlEncoded_POST_DELETE(t *testing.T) {
 }
 
 func TestHandler_FormData_POST(t *testing.T) {
-	p, err := staticPool.NewPool(context.Background(),
+	p, err := staticPool.NewPool(t.Context(),
 		func(cmd []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/http/client.php", "data", "pipes")
 		},
@@ -783,7 +783,7 @@ func TestHandler_FormData_POST(t *testing.T) {
 }
 
 func TestHandler_FormData_POST_Overwrite(t *testing.T) {
-	p, err := staticPool.NewPool(context.Background(),
+	p, err := staticPool.NewPool(t.Context(),
 		func(cmd []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/http/client.php", "data", "pipes")
 		},
@@ -880,7 +880,7 @@ func TestHandler_FormData_POST_Overwrite(t *testing.T) {
 }
 
 func TestHandler_FormData_POST_Form_UrlEncoded_Charset(t *testing.T) {
-	p, err := staticPool.NewPool(context.Background(),
+	p, err := staticPool.NewPool(t.Context(),
 		func(cmd []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/http/client.php", "data", "pipes")
 		},
@@ -973,7 +973,7 @@ func TestHandler_FormData_POST_Form_UrlEncoded_Charset(t *testing.T) {
 }
 
 func TestHandler_FormData_PUT(t *testing.T) {
-	p, err := staticPool.NewPool(context.Background(),
+	p, err := staticPool.NewPool(t.Context(),
 		func(cmd []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/http/client.php", "data", "pipes")
 		},
@@ -1067,7 +1067,7 @@ func TestHandler_FormData_PUT(t *testing.T) {
 }
 
 func TestHandler_FormData_PATCH(t *testing.T) {
-	p, err := staticPool.NewPool(context.Background(),
+	p, err := staticPool.NewPool(t.Context(),
 		func(cmd []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/http/client.php", "data", "pipes")
 		},
@@ -1160,7 +1160,7 @@ func TestHandler_FormData_PATCH(t *testing.T) {
 }
 
 func TestHandler_Multipart_POST(t *testing.T) {
-	p, err := staticPool.NewPool(context.Background(),
+	p, err := staticPool.NewPool(t.Context(),
 		func(cmd []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/http/client.php", "data", "pipes")
 		},
@@ -1295,7 +1295,7 @@ func TestHandler_Multipart_POST(t *testing.T) {
 }
 
 func TestHandler_Multipart_PUT(t *testing.T) {
-	p, err := staticPool.NewPool(context.Background(),
+	p, err := staticPool.NewPool(t.Context(),
 		func(cmd []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/http/client.php", "data", "pipes")
 		},
@@ -1430,7 +1430,7 @@ func TestHandler_Multipart_PUT(t *testing.T) {
 }
 
 func TestHandler_Multipart_PATCH(t *testing.T) {
-	p, err := staticPool.NewPool(context.Background(),
+	p, err := staticPool.NewPool(t.Context(),
 		func(cmd []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/http/client.php", "data", "pipes")
 		},
@@ -1568,7 +1568,7 @@ func TestHandler_Multipart_PATCH(t *testing.T) {
 }
 
 func TestHandler_Error(t *testing.T) {
-	p, err := staticPool.NewPool(context.Background(),
+	p, err := staticPool.NewPool(t.Context(),
 		func(cmd []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/http/client.php", "error", "pipes")
 		},
@@ -1624,7 +1624,7 @@ func TestHandler_Error(t *testing.T) {
 }
 
 func TestHandler_Error2(t *testing.T) {
-	p, err := staticPool.NewPool(context.Background(),
+	p, err := staticPool.NewPool(t.Context(),
 		func(cmd []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/http/client.php", "error2", "pipes")
 		},
@@ -1680,7 +1680,7 @@ func TestHandler_Error2(t *testing.T) {
 }
 
 func TestHandler_ResponseDuration(t *testing.T) {
-	p, err := staticPool.NewPool(context.Background(),
+	p, err := staticPool.NewPool(t.Context(),
 		func(cmd []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/http/client.php", "echo", "pipes")
 		},
@@ -1738,7 +1738,7 @@ func TestHandler_ResponseDuration(t *testing.T) {
 }
 
 func TestHandler_ResponseDurationDelayed(t *testing.T) {
-	p, err := staticPool.NewPool(context.Background(),
+	p, err := staticPool.NewPool(t.Context(),
 		func(cmd []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/http/client.php", "echoDelay", "pipes")
 		},
@@ -1779,7 +1779,7 @@ func TestHandler_ResponseDurationDelayed(t *testing.T) {
 }
 
 func TestHandler_ErrorDuration(t *testing.T) {
-	p, err := staticPool.NewPool(context.Background(),
+	p, err := staticPool.NewPool(t.Context(),
 		func(cmd []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/http/client.php", "error", "pipes")
 		},
@@ -1836,7 +1836,7 @@ func TestHandler_ErrorDuration(t *testing.T) {
 }
 
 func TestHandler_IP(t *testing.T) {
-	p, err := staticPool.NewPool(context.Background(),
+	p, err := staticPool.NewPool(t.Context(),
 		func(cmd []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/http/client.php", "ip", "pipes")
 		},
@@ -1893,7 +1893,7 @@ func TestHandler_IP(t *testing.T) {
 }
 
 func BenchmarkHandler_Listen_Echo(b *testing.B) {
-	p, err := staticPool.NewPool(context.Background(),
+	p, err := staticPool.NewPool(b.Context(),
 		func(cmd []string) *exec.Cmd {
 			return exec.Command("php", "php_test_files/http/client.php", "echo", "pipes")
 		},
@@ -1944,11 +1944,11 @@ func BenchmarkHandler_Listen_Echo(b *testing.B) {
 	b.ReportAllocs()
 	bb := "WORLD"
 
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "http://127.0.0.1:8188/?hello=world", nil)
+	req, err := http.NewRequestWithContext(b.Context(), http.MethodGet, "http://127.0.0.1:8188/?hello=world", nil)
 	require.NoError(b, err)
 	client := &http.Client{}
 
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		r, err := client.Do(req)
 		require.NoError(b, err)
 		// Response might be nil here

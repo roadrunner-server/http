@@ -642,7 +642,7 @@ func sslRedirect(t *testing.T) {
 		},
 	}
 
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "http://127.0.0.1:8087?hello=world", nil)
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, "http://127.0.0.1:8087?hello=world", nil)
 	assert.NoError(t, err)
 
 	r, err := client.Do(req)
@@ -740,7 +740,7 @@ func sslPush(t *testing.T) {
 		},
 	}
 
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "https://127.0.0.1:8894?hello=world", nil)
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, "https://127.0.0.1:8894?hello=world", nil)
 	assert.NoError(t, err)
 
 	r, err := client.Do(req)
@@ -1171,7 +1171,7 @@ func TestH2CUpgrade(t *testing.T) {
 	time.Sleep(time.Second * 1)
 	client := &http.Client{}
 
-	req, err := http.NewRequestWithContext(context.Background(), "PRI", "http://127.0.0.1:8083", nil)
+	req, err := http.NewRequestWithContext(t.Context(), "PRI", "http://127.0.0.1:8083", nil)
 	assert.NoError(t, err)
 
 	req.Header.Add("Upgrade", "h2c")
@@ -1187,7 +1187,7 @@ func TestH2CUpgrade(t *testing.T) {
 
 	assert.Equal(t, http.StatusSwitchingProtocols, r.StatusCode)
 
-	req, err = http.NewRequestWithContext(context.Background(), http.MethodGet, "http://127.0.0.1:8083?hello=world", nil)
+	req, err = http.NewRequestWithContext(t.Context(), http.MethodGet, "http://127.0.0.1:8083?hello=world", nil)
 	assert.NoError(t, err)
 
 	resp, err := client.Do(req)

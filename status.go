@@ -14,8 +14,8 @@ func (p *Plugin) Status() (*status.Status, error) {
 
 	workers := p.pool.Workers()
 
-	for i := range workers {
-		if workers[i].State().IsActive() {
+	for _, w := range workers {
+		if w.State().IsActive() {
 			return &status.Status{
 				Code: http.StatusOK,
 			}, nil
@@ -34,10 +34,10 @@ func (p *Plugin) Ready() (*status.Status, error) {
 
 	workers := p.pool.Workers()
 
-	for i := range workers {
+	for _, w := range workers {
 		// If state of the worker is ready (at least 1)
 		// we assume, that plugin's worker pool is ready
-		if workers[i].State().Compare(fsm.StateReady) {
+		if w.State().Compare(fsm.StateReady) {
 			return &status.Status{
 				Code: http.StatusOK,
 			}, nil

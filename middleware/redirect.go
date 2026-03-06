@@ -27,7 +27,7 @@ func Redirect(_ http.Handler, port int) http.Handler {
 // TLSAddr replaces listen or host port with port configured by SSLConfig config.
 func TLSAddr(host string, forcePort bool, sslPort int) string {
 	// remove current forcePort first
-	host = strings.Split(host, ":")[0]
+	host, _, _ = strings.Cut(host, ":")
 
 	if forcePort || sslPort != 443 {
 		host = fmt.Sprintf("%s:%v", host, sslPort)
