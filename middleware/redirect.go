@@ -1,10 +1,10 @@
 package middleware
 
 import (
-	"fmt"
+	"net"
 	"net/http"
 	"net/url"
-	"strings"
+	"strconv"
 )
 
 const scheme string = "https"
@@ -26,11 +26,12 @@ func Redirect(_ http.Handler, port int) http.Handler {
 
 // TLSAddr replaces listen or host port with port configured by SSLConfig config.
 func TLSAddr(host string, forcePort bool, sslPort int) string {
-	// remove current forcePort first
-	host, _, _ = strings.Cut(host, ":")
+	if u, err := url.Parse("//" + host); err == nil {
+		host = u.Hostname()
+	}
 
 	if forcePort || sslPort != 443 {
-		host = fmt.Sprintf("%s:%v", host, sslPort)
+		return net.JoinHostPort(host, strconv.Itoa(sslPort))
 	}
 
 	return host

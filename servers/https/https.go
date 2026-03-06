@@ -4,11 +4,12 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	stderr "errors"
-	"fmt"
 	"log"
+	"net"
 	"net/http"
+	"net/url"
 	"os"
-	"strings"
+	"strconv"
 	"time"
 
 	"github.com/roadrunner-server/tcplisten"
@@ -185,11 +186,12 @@ func initTLS(handler http.Handler, errLog *log.Logger, addr string, port int) *h
 
 // tlsAddr replaces listen or host port with port configured by SSLConfig config.
 func tlsAddr(host string, forcePort bool, sslPort int) string {
-	// remove current forcePort first
-	host, _, _ = strings.Cut(host, ":")
+	if u, err := url.Parse("//" + host); err == nil {
+		host = u.Hostname()
+	}
 
 	if forcePort || sslPort != 443 {
-		host = fmt.Sprintf("%s:%v", host, sslPort)
+		return net.JoinHostPort(host, strconv.Itoa(sslPort))
 	}
 
 	return host

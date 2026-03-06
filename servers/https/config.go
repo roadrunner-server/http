@@ -1,9 +1,9 @@
 package https
 
 import (
+	"net"
 	"os"
 	"strconv"
-	"strings"
 
 	"github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/http/v5/acme"
@@ -97,20 +97,20 @@ func (s *SSL) EnableACME() bool {
 func (s *SSL) Valid() error {
 	const op = errors.Op("ssl_valid")
 
-	host, portStr, ok := strings.Cut(s.Address, ":")
-	if !ok {
-		return errors.E(op, errors.Errorf("unknown format, accepted format is [:<port> or <host>:<port>], provided: %s", s.Address))
+	host, portStr, err := net.SplitHostPort(s.Address)
+	if err != nil {
+		return errors.E(op, err)
 	}
 	if host == "" {
 		s.host = "127.0.0.1"
 	} else {
 		s.host = host
 	}
-	port, err := strconv.Atoi(portStr)
+	port, err := strconv.ParseUint(portStr, 10, 16)
 	if err != nil {
 		return errors.E(op, err)
 	}
-	s.Port = port
+	s.Port = int(port)
 
 	// the user use they own certificates
 	if s.Acme == nil {
