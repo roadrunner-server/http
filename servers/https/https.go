@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/roadrunner-server/tcplisten"
@@ -192,6 +193,11 @@ func tlsAddr(host string, forcePort bool, sslPort int) string {
 
 	if forcePort || sslPort != 443 {
 		return net.JoinHostPort(host, strconv.Itoa(sslPort))
+	}
+
+	// url.URL.Host requires bracketed IPv6 literals even without a port.
+	if strings.Contains(host, ":") {
+		return "[" + host + "]"
 	}
 
 	return host

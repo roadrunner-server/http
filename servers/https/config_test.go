@@ -148,6 +148,7 @@ func TestTlsAddr(t *testing.T) {
 		{"ipv6 with port force port", "[::1]:80", true, 443, "[::1]:443"},
 		{"ipv6 with port non-default ssl", "[::1]:80", false, 8443, "[::1]:8443"},
 		{"ipv6 no port force port", "[::1]", true, 443, "[::1]:443"},
+		{"ipv6 with port default ssl", "[::1]:443", false, 443, "[::1]"},
 	}
 
 	for _, tt := range tests {
