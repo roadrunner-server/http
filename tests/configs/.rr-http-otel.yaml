@@ -11,22 +11,12 @@ server:
 http:
   address: 127.0.0.1:43239
   max_request_size: 1024
-  middleware: [ gzip, otel ]
+  middleware: [ gzip, tracetestOtel ]
   pool:
     num_workers: 2
     max_jobs: 0
     allocate_timeout: 60s
     destroy_timeout: 1s
-
-otel:
-  resource:
-    service_name: "rr_test"
-    service_version: "1.0.0"
-    service_namespace: "RR-Shop"
-    service_instance_id: "UUID"
-  insecure: false
-  compress: true
-  exporter: stderr
 
 logs:
   mode: development

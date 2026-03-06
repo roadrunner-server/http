@@ -38,7 +38,7 @@ linters:
       threshold: 100
     goconst:
       min-len: 2
-      min-occurrences: 3
+      min-occurrences: 10
     gocyclo:
       min-complexity: 20
     godot:

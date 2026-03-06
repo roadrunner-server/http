@@ -4,6 +4,7 @@ import (
 	"context"
 	stderr "errors"
 	"html/template"
+	"io"
 	"net/http"
 	"sync"
 	"time"
@@ -140,6 +141,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		status := http.StatusInternalServerError
 		if _, ok := stderr.AsType[*http.MaxBytesError](err); ok {
 			status = http.StatusRequestEntityTooLarge
+		} else if stderr.Is(err, io.EOF) || stderr.Is(err, io.ErrUnexpectedEOF) {
+			status = http.StatusBadRequest
 		}
 		http.Error(w, errors.E(op, err).Error(), status)
 		h.log.Error(
