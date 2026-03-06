@@ -217,6 +217,123 @@ func TestServeHTTP_PoolExecError_Returns500(t *testing.T) {
 	}
 }
 
+// ── Group B′: FetchIP edge cases ─────────────────────────────────────────────
+
+func TestFetchIP_EdgeCases(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		want  string
+	}{
+		{"empty string", "", ""},
+		{"ipv4 no port", "10.0.0.1", "10.0.0.1"},
+		{"ipv6 bracketed with port", "[::1]:8080", "::1"},
+		{"ipv6 full address bare", "2001:db8::1", "2001:db8::1"},
+		{"garbage with colons", "not:a:valid:thing", ""},
+		{"port only", ":8080", ""},
+		{"ipv4 with empty port", "127.0.0.1:", "127.0.0.1"},
+		{"ipv6 full with port", "[2001:db8::1]:443", "2001:db8::1"},
+	}
+
+	log := zap.NewNop()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := FetchIP(tt.input, log)
+			if got != tt.want {
+				t.Errorf("FetchIP(%q) = %q, want %q", tt.input, got, tt.want)
+			}
+		})
+	}
+}
+
+// ── Group B″: URI edge cases ─────────────────────────────────────────────────
+
+func TestURI_EdgeCases(t *testing.T) {
+	tests := []struct {
+		name  string
+		setup func() *http.Request
+		want  string
+	}{
+		{
+			name: "empty host",
+			setup: func() *http.Request {
+				r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
+				r.Host = ""
+				return r
+			},
+			want: "http:///",
+		},
+		{
+			name: "host with port",
+			setup: func() *http.Request {
+				r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/p", nil)
+				r.Host = "example.com:8080"
+				return r
+			},
+			want: "http://example.com:8080/p",
+		},
+		{
+			name: "url already has host set",
+			setup: func() *http.Request {
+				r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/x", nil)
+				r.URL.Host = "other.com"
+				return r
+			},
+			want: "//other.com/x",
+		},
+		{
+			name: "root path only",
+			setup: func() *http.Request {
+				r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
+				r.Host = "example.com"
+				return r
+			},
+			want: "http://example.com/",
+		},
+		{
+			name: "query but no path",
+			setup: func() *http.Request {
+				r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
+				r.Host = "example.com"
+				r.URL.Path = ""
+				r.URL.RawQuery = "a=1"
+				return r
+			},
+			want: "http://example.com?a=1",
+		},
+		{
+			name: "encoded CRLF in path preserved",
+			setup: func() *http.Request {
+				r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/foo%0D%0Abar", nil)
+				r.Host = "example.com"
+				return r
+			},
+			want: "http://example.com/foo%0D%0Abar",
+		},
+		{
+			name: "tab in query not stripped",
+			setup: func() *http.Request {
+				r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
+				r.Host = "example.com"
+				r.URL.RawQuery = "x=1\tX-Bad: true"
+				return r
+			},
+			want: "http://example.com/?x=1\tX-Bad: true",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := URI(tt.setup())
+			if got != tt.want {
+				t.Errorf("URI() = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
+// ── Group C: mockPool tests ───────────────────────────────────────────────────
+
 func TestServeHTTP_NoFreeWorkers_SetsHeader(t *testing.T) {
 	mp := &mockPool{execErr: errors.E(errors.NoFreeWorkers)}
 	h := newTestHandler(t, defaultCfg(), mp)
