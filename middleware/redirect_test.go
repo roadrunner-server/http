@@ -24,12 +24,12 @@ func TestTLSAddr(t *testing.T) {
 		{"ipv4 no port, force port", "example.com", true, 443, "example.com:443"},
 
 		// IPv6 with port — core fix
-		{"ipv6 with port, default ssl port", "[::1]:8080", false, 443, "::1"},
+		{"ipv6 with port, default ssl port", "[::1]:8080", false, 443, "[::1]"},
 		{"ipv6 with port, force port", "[::1]:8080", true, 443, "[::1]:443"},
 		{"ipv6 with port, non-default ssl port", "[::1]:8080", false, 8443, "[::1]:8443"},
 
 		// IPv6 without port (bare bracketed form from r.Host)
-		{"ipv6 no port, default ssl port", "[::1]", false, 443, "::1"},
+		{"ipv6 no port, default ssl port", "[::1]", false, 443, "[::1]"},
 		{"ipv6 no port, force port", "[::1]", true, 443, "[::1]:443"},
 	}
 
