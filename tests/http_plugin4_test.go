@@ -19,7 +19,7 @@ import (
 	"github.com/quic-go/quic-go/http3"
 	"github.com/roadrunner-server/config/v5"
 	"github.com/roadrunner-server/endure/v2"
-	httpPlugin "github.com/roadrunner-server/http/v5"
+	httpPlugin "github.com/roadrunner-server/http/v6"
 	"github.com/roadrunner-server/logger/v5"
 	rpcPlugin "github.com/roadrunner-server/rpc/v5"
 	"github.com/roadrunner-server/server/v5"

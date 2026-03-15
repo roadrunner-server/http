@@ -11,8 +11,8 @@ import (
 	"testing"
 
 	"github.com/roadrunner-server/errors"
-	"github.com/roadrunner-server/http/v5/api"
-	"github.com/roadrunner-server/http/v5/config"
+	"github.com/roadrunner-server/http/v6/api"
+	"github.com/roadrunner-server/http/v6/config"
 	"github.com/roadrunner-server/pool/payload"
 	"github.com/roadrunner-server/pool/pool"
 	staticPool "github.com/roadrunner-server/pool/pool/static_pool"

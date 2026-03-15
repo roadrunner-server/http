@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"strings"
 
-	httpV2proto "github.com/roadrunner-server/api-go/v5/http/v2"
+	httpV2proto "github.com/roadrunner-server/api-go/v6/http/v2"
 	"github.com/roadrunner-server/errors"
-	"github.com/roadrunner-server/goridge/v3/pkg/frame"
+	"github.com/roadrunner-server/goridge/v4/pkg/frame"
 	"github.com/roadrunner-server/pool/payload"
 	"google.golang.org/protobuf/proto"
 )

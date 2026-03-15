@@ -1,7 +1,7 @@
 package servers
 
 import (
-	"github.com/roadrunner-server/http/v5/api"
+	"github.com/roadrunner-server/http/v6/api"
 )
 
 // internal interface to start-stop http servers

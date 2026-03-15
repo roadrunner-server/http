@@ -28,10 +28,10 @@ import (
 
 	"github.com/roadrunner-server/config/v5"
 	"github.com/roadrunner-server/endure/v2"
-	goridgeRpc "github.com/roadrunner-server/goridge/v3/pkg/rpc"
-	"github.com/roadrunner-server/gzip/v5"
+	goridgeRpc "github.com/roadrunner-server/goridge/v4/pkg/rpc"
+	"github.com/roadrunner-server/gzip/v6"
 	"github.com/roadrunner-server/headers/v5"
-	httpPlugin "github.com/roadrunner-server/http/v5"
+	httpPlugin "github.com/roadrunner-server/http/v6"
 	"github.com/roadrunner-server/informer/v5"
 	"github.com/roadrunner-server/logger/v5"
 	"github.com/roadrunner-server/pool/state/process"

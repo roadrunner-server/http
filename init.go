@@ -4,14 +4,14 @@ import (
 	"net/http"
 
 	"github.com/quic-go/quic-go/http3"
-	"github.com/roadrunner-server/http/v5/acme"
-	"github.com/roadrunner-server/http/v5/api"
-	"github.com/roadrunner-server/http/v5/config"
-	bundledMw "github.com/roadrunner-server/http/v5/middleware"
-	"github.com/roadrunner-server/http/v5/servers/fcgi"
-	httpServer "github.com/roadrunner-server/http/v5/servers/http11"
-	http3Server "github.com/roadrunner-server/http/v5/servers/http3"
-	httpsServer "github.com/roadrunner-server/http/v5/servers/https"
+	"github.com/roadrunner-server/http/v6/acme"
+	"github.com/roadrunner-server/http/v6/api"
+	"github.com/roadrunner-server/http/v6/config"
+	bundledMw "github.com/roadrunner-server/http/v6/middleware"
+	"github.com/roadrunner-server/http/v6/servers/fcgi"
+	httpServer "github.com/roadrunner-server/http/v6/servers/http11"
+	http3Server "github.com/roadrunner-server/http/v6/servers/http3"
+	httpsServer "github.com/roadrunner-server/http/v6/servers/https"
 	"go.uber.org/zap"
 )
 

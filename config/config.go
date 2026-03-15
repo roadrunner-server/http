@@ -3,9 +3,9 @@ package config
 import (
 	"strings"
 
-	"github.com/roadrunner-server/http/v5/servers/fcgi"
-	"github.com/roadrunner-server/http/v5/servers/http3"
-	"github.com/roadrunner-server/http/v5/servers/https"
+	"github.com/roadrunner-server/http/v6/servers/fcgi"
+	"github.com/roadrunner-server/http/v6/servers/http3"
+	"github.com/roadrunner-server/http/v6/servers/https"
 
 	"github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/pool/pool"

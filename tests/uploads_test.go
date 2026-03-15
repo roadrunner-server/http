@@ -18,8 +18,8 @@ import (
 	"tests/testLog"
 
 	"github.com/goccy/go-json"
-	"github.com/roadrunner-server/http/v5/config"
-	"github.com/roadrunner-server/http/v5/handler"
+	"github.com/roadrunner-server/http/v6/config"
+	"github.com/roadrunner-server/http/v6/handler"
 	"github.com/roadrunner-server/pool/ipc/pipe"
 	"github.com/roadrunner-server/pool/pool"
 	staticPool "github.com/roadrunner-server/pool/pool/static_pool"

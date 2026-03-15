@@ -67,13 +67,6 @@ linters:
       - common-false-positives
       - legacy
       - std-error-handling
-    rules:
-      - linters:
-          - dupl
-          - funlen
-          - gocognit
-          - scopelint
-        path: _test\.go
     paths:
       - .github
       - .git

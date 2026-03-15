@@ -3,7 +3,7 @@ package handler
 import (
 	"net/http"
 
-	httpV2proto "github.com/roadrunner-server/api-go/v5/http/v2"
+	httpV2proto "github.com/roadrunner-server/api-go/v6/http/v2"
 )
 
 func convert(headers http.Header) map[string]*httpV2proto.HttpHeaderValue {

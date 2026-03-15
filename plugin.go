@@ -11,10 +11,10 @@ import (
 	rrcontext "github.com/roadrunner-server/context"
 	"github.com/roadrunner-server/endure/v2/dep"
 	"github.com/roadrunner-server/errors"
-	"github.com/roadrunner-server/http/v5/api"
-	"github.com/roadrunner-server/http/v5/config"
-	"github.com/roadrunner-server/http/v5/handler"
-	"github.com/roadrunner-server/http/v5/servers"
+	"github.com/roadrunner-server/http/v6/api"
+	"github.com/roadrunner-server/http/v6/config"
+	"github.com/roadrunner-server/http/v6/handler"
+	"github.com/roadrunner-server/http/v6/servers"
 	"github.com/roadrunner-server/pool/pool/static_pool"
 	"github.com/roadrunner-server/pool/state/process"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -201,13 +201,14 @@ func (p *Plugin) Stop(ctx context.Context) error {
 
 // ServeHTTP handles connection using set of middleware and pool PSR-7 server.
 func (p *Plugin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	var span trace.Span
+
 	if val, ok := r.Context().Value(rrcontext.OtelTracerNameKey).(string); ok {
 		tp := trace.SpanFromContext(r.Context()).TracerProvider()
-		ctx, span := tp.Tracer(val, trace.WithSchemaURL(semconv.SchemaURL),
+		var ctx context.Context
+		ctx, span = tp.Tracer(val, trace.WithSchemaURL(semconv.SchemaURL),
 			trace.WithInstrumentationVersion(otelhttp.Version)).
-			Start(r.Context(), PluginName, trace.WithSpanKind(trace.SpanKindServer))
-		defer span.End()
-
+			Start(r.Context(), PluginName, trace.WithSpanKind(trace.SpanKindInternal))
 		// inject
 		p.prop.Inject(ctx, propagation.HeaderCarrier(r.Header))
 		r = r.WithContext(ctx)
@@ -219,6 +220,10 @@ func (p *Plugin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	p.mu.RUnlock()
 
 	_ = r.Body.Close()
+
+	if span != nil {
+		span.End()
+	}
 }
 
 // Workers returns slice with the process states for the workers

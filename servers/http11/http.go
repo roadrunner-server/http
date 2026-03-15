@@ -8,12 +8,12 @@ import (
 
 	"github.com/roadrunner-server/tcplisten"
 
-	"github.com/roadrunner-server/http/v5/api"
-	"github.com/roadrunner-server/http/v5/servers"
+	"github.com/roadrunner-server/http/v6/api"
+	"github.com/roadrunner-server/http/v6/servers"
 
 	"github.com/roadrunner-server/errors"
-	"github.com/roadrunner-server/http/v5/config"
-	"github.com/roadrunner-server/http/v5/middleware"
+	"github.com/roadrunner-server/http/v6/config"
+	"github.com/roadrunner-server/http/v6/middleware"
 	"go.uber.org/zap"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
@@ -110,7 +110,8 @@ func (s *Server) Stop() {
 }
 
 func applyMiddleware(server *http.Server, middleware map[string]api.Middleware, order []string, log *zap.Logger) {
-	for _, name := range order {
+	for i := len(order) - 1; i >= 0; i-- {
+		name := order[i]
 		if mdwr, ok := middleware[name]; ok {
 			server.Handler = mdwr.Middleware(server.Handler)
 		} else {

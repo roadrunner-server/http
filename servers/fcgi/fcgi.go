@@ -7,8 +7,8 @@ import (
 	"net/http/fcgi"
 	"time"
 
-	"github.com/roadrunner-server/http/v5/api"
-	"github.com/roadrunner-server/http/v5/servers"
+	"github.com/roadrunner-server/http/v6/api"
+	"github.com/roadrunner-server/http/v6/servers"
 	"github.com/roadrunner-server/tcplisten"
 
 	"github.com/roadrunner-server/errors"
@@ -65,7 +65,8 @@ func (s *Server) Stop() {
 }
 
 func applyMiddleware(server *http.Server, middleware map[string]api.Middleware, order []string, log *zap.Logger) {
-	for _, name := range order {
+	for i := len(order) - 1; i >= 0; i-- {
+		name := order[i]
 		if mdwr, ok := middleware[name]; ok {
 			server.Handler = mdwr.Middleware(server.Handler)
 		} else {

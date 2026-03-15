@@ -9,12 +9,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/roadrunner-server/http/v5/api"
+	"github.com/roadrunner-server/http/v6/api"
 
-	httpV2proto "github.com/roadrunner-server/api-go/v5/http/v2"
+	httpV2proto "github.com/roadrunner-server/api-go/v6/http/v2"
 	"github.com/roadrunner-server/errors"
-	"github.com/roadrunner-server/goridge/v3/pkg/frame"
-	"github.com/roadrunner-server/http/v5/config"
+	"github.com/roadrunner-server/goridge/v4/pkg/frame"
+	"github.com/roadrunner-server/http/v6/config"
 	"github.com/roadrunner-server/pool/payload"
 	"go.uber.org/zap"
 )

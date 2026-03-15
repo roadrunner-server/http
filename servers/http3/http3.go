@@ -6,12 +6,12 @@ import (
 	"github.com/quic-go/quic-go"
 	"github.com/quic-go/quic-go/http3"
 	"github.com/roadrunner-server/errors"
-	"github.com/roadrunner-server/http/v5/acme"
-	"github.com/roadrunner-server/http/v5/tlsconf"
+	"github.com/roadrunner-server/http/v6/acme"
+	"github.com/roadrunner-server/http/v6/tlsconf"
 	"go.uber.org/zap"
 
-	"github.com/roadrunner-server/http/v5/api"
-	"github.com/roadrunner-server/http/v5/servers"
+	"github.com/roadrunner-server/http/v6/api"
+	"github.com/roadrunner-server/http/v6/servers"
 )
 
 const ACMETLS1Protocol string = "acme-tls/1"
@@ -85,7 +85,8 @@ func (s *Server) Stop() {
 }
 
 func applyMiddleware(server *http3.Server, middleware map[string]api.Middleware, order []string, log *zap.Logger) {
-	for _, name := range order {
+	for i := len(order) - 1; i >= 0; i-- {
+		name := order[i]
 		if mdwr, ok := middleware[name]; ok {
 			server.Handler = mdwr.Middleware(server.Handler)
 		} else {
