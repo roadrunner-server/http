@@ -10,14 +10,15 @@ import (
 	"strings"
 	"testing"
 
+	"log/slog"
+
 	"github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/http/v6/api"
 	"github.com/roadrunner-server/http/v6/config"
-	"github.com/roadrunner-server/pool/payload"
-	"github.com/roadrunner-server/pool/pool"
-	staticPool "github.com/roadrunner-server/pool/pool/static_pool"
-	"github.com/roadrunner-server/pool/worker"
-	"go.uber.org/zap"
+	"github.com/roadrunner-server/pool/v2/payload"
+	"github.com/roadrunner-server/pool/v2/pool"
+	staticPool "github.com/roadrunner-server/pool/v2/pool/static_pool"
+	"github.com/roadrunner-server/pool/v2/worker"
 )
 
 // mockPool satisfies api.Pool. Only Exec is exercised by the tests below.
@@ -34,7 +35,7 @@ func (m *mockPool) Destroy(_ context.Context)     {}
 
 func newTestHandler(t *testing.T, cfg *config.Config, p api.Pool) *Handler {
 	t.Helper()
-	h, err := NewHandler(cfg, p, zap.NewNop())
+	h, err := NewHandler(cfg, p, slog.New(slog.DiscardHandler))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -185,7 +186,7 @@ func TestURI_StripsCRLFInjection(t *testing.T) {
 }
 
 func TestFetchIP_StripPortFromIPv4(t *testing.T) {
-	got := FetchIP("127.0.0.1:8080", zap.NewNop())
+	got := FetchIP("127.0.0.1:8080", slog.New(slog.DiscardHandler))
 	if got != "127.0.0.1" {
 		t.Errorf("FetchIP() = %q, want %q", got, "127.0.0.1")
 	}
@@ -194,7 +195,7 @@ func TestFetchIP_StripPortFromIPv4(t *testing.T) {
 func TestFetchIP_BareIPv6_NoPort(t *testing.T) {
 	// "::1" contains colons but is not host:port — SplitHostPort fails,
 	// ParseIP succeeds.
-	got := FetchIP("::1", zap.NewNop())
+	got := FetchIP("::1", slog.New(slog.DiscardHandler))
 	if got != "::1" {
 		t.Errorf("FetchIP() = %q, want %q", got, "::1")
 	}
@@ -235,7 +236,7 @@ func TestFetchIP_EdgeCases(t *testing.T) {
 		{"ipv6 full with port", "[2001:db8::1]:443", "2001:db8::1"},
 	}
 
-	log := zap.NewNop()
+	log := slog.New(slog.DiscardHandler)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := FetchIP(tt.input, log)

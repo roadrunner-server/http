@@ -8,7 +8,7 @@ import (
 	"github.com/roadrunner-server/http/v6/servers/https"
 
 	"github.com/roadrunner-server/errors"
-	"github.com/roadrunner-server/pool/pool"
+	"github.com/roadrunner-server/pool/v2/pool"
 )
 
 // Config configures RoadRunner HTTP server.

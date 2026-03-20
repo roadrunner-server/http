@@ -5,6 +5,7 @@ import (
 	stderr "errors"
 	"html/template"
 	"io"
+	"log/slog"
 	"net/http"
 	"sync"
 	"time"
@@ -15,8 +16,7 @@ import (
 	"github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/goridge/v4/pkg/frame"
 	"github.com/roadrunner-server/http/v6/config"
-	"github.com/roadrunner-server/pool/payload"
-	"go.uber.org/zap"
+	"github.com/roadrunner-server/pool/v2/payload"
 )
 
 const (
@@ -36,7 +36,7 @@ type uploads struct {
 // parsed files and query, payload will include parsed form dataTree (if any).
 type Handler struct {
 	uploads     *uploads
-	log         *zap.Logger
+	log         *slog.Logger
 	pool        api.Pool
 	internalCtx context.Context
 
@@ -57,7 +57,7 @@ type Handler struct {
 }
 
 // NewHandler return 'handler' interface implementation
-func NewHandler(cfg *config.Config, pool api.Pool, log *zap.Logger) (*Handler, error) {
+func NewHandler(cfg *config.Config, pool api.Pool, log *slog.Logger) (*Handler, error) {
 	return &Handler{
 		uploads: &uploads{
 			dir:    cfg.Uploads.Dir,
@@ -129,9 +129,9 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			h.putReq(req)
 			h.log.Error(
 				"write response error",
-				zap.Time("start", start),
-				zap.Int64("elapsed", time.Since(start).Milliseconds()),
-				zap.Error(err),
+				"start", start,
+				"elapsed", time.Since(start).Milliseconds(),
+				"error", err,
 			)
 			return
 		}
@@ -147,9 +147,9 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, errors.E(op, err).Error(), status)
 		h.log.Error(
 			"request forming error",
-			zap.Time("start", start),
-			zap.Int64("elapsed", time.Since(start).Milliseconds()),
-			zap.Error(err),
+			"start", start,
+			"elapsed", time.Since(start).Milliseconds(),
+			"error", err,
 		)
 		return
 	}
@@ -168,9 +168,9 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.handleError(w, err)
 		h.log.Error(
 			"payload forming error",
-			zap.Time("start", start),
-			zap.Int64("elapsed", time.Since(start).Milliseconds()),
-			zap.Error(err),
+			"start", start,
+			"elapsed", time.Since(start).Milliseconds(),
+			"error", err,
 		)
 		return
 	}
@@ -183,7 +183,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.putPld(pld)
 		h.putCh(stopCh)
 		h.handleError(w, err)
-		h.log.Error("execute", zap.Time("start", start), zap.Int64("elapsed", time.Since(start).Milliseconds()), zap.Error(err))
+		h.log.Error("execute", "start", start, "elapsed", time.Since(start).Milliseconds(), "error", err)
 		return
 	}
 	// return payload to the pool
@@ -196,9 +196,9 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			h.putCh(stopCh)
 			w.WriteHeader(int(h.internalHTTPCode)) //nolint:gosec
 			h.log.Error("read stream",
-				zap.Time("start", start),
-				zap.Int64("elapsed", time.Since(start).Milliseconds()),
-				zap.Error(recv.Error()))
+				"start", start,
+				"elapsed", time.Since(start).Milliseconds(),
+				"error", recv.Error())
 			return
 		}
 
@@ -212,9 +212,9 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 			// we should not exit from the loop here, since after sending close signal, it should be closed from the SDK side
 			h.log.Error("write response (chunk) error",
-				zap.Time("start", start),
-				zap.Int64("elapsed", time.Since(start).Milliseconds()),
-				zap.Error(err))
+				"start", start,
+				"elapsed", time.Since(start).Milliseconds(),
+				"error", err)
 		}
 	}
 

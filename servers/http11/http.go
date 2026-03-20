@@ -3,6 +3,7 @@ package http
 import (
 	stderr "errors"
 	"log"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -14,20 +15,19 @@ import (
 	"github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/http/v6/config"
 	"github.com/roadrunner-server/http/v6/middleware"
-	"go.uber.org/zap"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 )
 
 type Server struct {
-	log          *zap.Logger
+	log          *slog.Logger
 	http         *http.Server
 	address      string
 	redirect     bool
 	redirectPort int
 }
 
-func NewHTTPServer(handler http.Handler, cfg *config.Config, errLog *log.Logger, log *zap.Logger) servers.InternalServer[any] {
+func NewHTTPServer(handler http.Handler, cfg *config.Config, errLog *log.Logger, log *slog.Logger) servers.InternalServer[any] {
 	var redirect bool
 	var redirectPort int
 
@@ -89,7 +89,7 @@ func (s *Server) Serve(mdwr map[string]api.Middleware, order []string) error {
 		return errors.E(op, err)
 	}
 
-	s.log.Debug("http server was started", zap.String("address", s.address))
+	s.log.Debug("http server was started", "address", s.address)
 	err = s.http.Serve(l)
 	if err != nil && !stderr.Is(err, http.ErrServerClosed) {
 		return errors.E(op, err)
@@ -105,17 +105,17 @@ func (s *Server) Server() any {
 func (s *Server) Stop() {
 	err := s.http.Close()
 	if err != nil && !stderr.Is(err, http.ErrServerClosed) {
-		s.log.Error("http shutdown", zap.Error(err))
+		s.log.Error("http shutdown", "error", err)
 	}
 }
 
-func applyMiddleware(server *http.Server, middleware map[string]api.Middleware, order []string, log *zap.Logger) {
+func applyMiddleware(server *http.Server, middleware map[string]api.Middleware, order []string, log *slog.Logger) {
 	for i := len(order) - 1; i >= 0; i-- {
 		name := order[i]
 		if mdwr, ok := middleware[name]; ok {
 			server.Handler = mdwr.Middleware(server.Handler)
 		} else {
-			log.Warn("requested middleware does not exist", zap.String("requested", name))
+			log.Warn("requested middleware does not exist", "requested", name)
 		}
 	}
 }

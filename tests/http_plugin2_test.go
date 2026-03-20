@@ -23,14 +23,12 @@ import (
 	"github.com/roadrunner-server/fileserver/v6"
 	"github.com/roadrunner-server/gzip/v6"
 	httpPlugin "github.com/roadrunner-server/http/v6"
-	"github.com/roadrunner-server/logger/v5"
+	"github.com/roadrunner-server/logger/v6"
 	"github.com/roadrunner-server/memory/v5"
 	rpcPlugin "github.com/roadrunner-server/rpc/v5"
 	"github.com/roadrunner-server/server/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 )
 
 func TestHTTPPost(t *testing.T) {
@@ -440,7 +438,7 @@ func TestHTTPExecTTL(t *testing.T) {
 		Path:    "configs/.rr-http-exec_ttl.yaml",
 	}
 
-	l, oLogger := mocklogger.ZapTestLogger(zap.DebugLevel)
+	l, oLogger := mocklogger.SlogTestLogger(slog.LevelDebug)
 	err := cont.RegisterAll(
 		cfg,
 		l,
@@ -503,13 +501,7 @@ func TestHTTPExecTTL(t *testing.T) {
 	stopCh <- struct{}{}
 	wg.Wait()
 
-	shouldBe1 := oLogger.FilterField(zapcore.Field{
-		Key:       "internal_event_name",
-		Type:      zapcore.StringType,
-		Integer:   0,
-		String:    "EventExecTTL",
-		Interface: nil,
-	}).Len()
+	shouldBe1 := oLogger.FilterAttrKey("internal_event_name").Len()
 	require.Equal(t, 1, shouldBe1)
 }
 

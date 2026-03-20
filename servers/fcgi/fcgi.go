@@ -3,6 +3,7 @@ package fcgi
 import (
 	stderr "errors"
 	"log"
+	"log/slog"
 	"net/http"
 	"net/http/fcgi"
 	"time"
@@ -12,16 +13,15 @@ import (
 	"github.com/roadrunner-server/tcplisten"
 
 	"github.com/roadrunner-server/errors"
-	"go.uber.org/zap"
 )
 
 type Server struct {
 	cfg  *FCGI
-	log  *zap.Logger
+	log  *slog.Logger
 	fcgi *http.Server
 }
 
-func NewFCGIServer(handler http.Handler, cfg *FCGI, log *zap.Logger, errLog *log.Logger) servers.InternalServer[any] {
+func NewFCGIServer(handler http.Handler, cfg *FCGI, log *slog.Logger, errLog *log.Logger) servers.InternalServer[any] {
 	return &Server{
 		cfg: cfg,
 		log: log,
@@ -60,17 +60,17 @@ func (s *Server) Server() any {
 func (s *Server) Stop() {
 	err := s.fcgi.Close()
 	if err != nil && !stderr.Is(err, http.ErrServerClosed) {
-		s.log.Error("fcgi shutdown", zap.Error(err))
+		s.log.Error("fcgi shutdown", "error", err)
 	}
 }
 
-func applyMiddleware(server *http.Server, middleware map[string]api.Middleware, order []string, log *zap.Logger) {
+func applyMiddleware(server *http.Server, middleware map[string]api.Middleware, order []string, log *slog.Logger) {
 	for i := len(order) - 1; i >= 0; i-- {
 		name := order[i]
 		if mdwr, ok := middleware[name]; ok {
 			server.Handler = mdwr.Middleware(server.Handler)
 		} else {
-			log.Warn("requested middleware does not exist", zap.String("requested", name))
+			log.Warn("requested middleware does not exist", "requested", name)
 		}
 	}
 }

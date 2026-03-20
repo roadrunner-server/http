@@ -12,7 +12,6 @@ import (
 	httpServer "github.com/roadrunner-server/http/v6/servers/http11"
 	http3Server "github.com/roadrunner-server/http/v6/servers/http3"
 	httpsServer "github.com/roadrunner-server/http/v6/servers/https"
-	"go.uber.org/zap"
 )
 
 // ------- PRIVATE ---------
@@ -66,7 +65,7 @@ func (p *Plugin) applyBundledMiddleware() {
 			srv.Handler = bundledMw.MaxRequestSize(srv.Handler, p.cfg.MaxRequestSize*MB)
 			srv.Handler = bundledMw.NewLogMiddleware(srv.Handler, p.cfg.AccessLogs, p.log)
 		default:
-			p.log.DPanic("unknown server type", zap.Any("server", s.Server()))
+			p.log.Error("unknown server type", "server", s.Server())
 		}
 	}
 }

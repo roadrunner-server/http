@@ -3,6 +3,7 @@ package http
 import (
 	"context"
 	stdlog "log"
+	"log/slog"
 	"net/http"
 	"sync"
 
@@ -15,14 +16,13 @@ import (
 	"github.com/roadrunner-server/http/v6/config"
 	"github.com/roadrunner-server/http/v6/handler"
 	"github.com/roadrunner-server/http/v6/servers"
-	"github.com/roadrunner-server/pool/pool/static_pool"
-	"github.com/roadrunner-server/pool/state/process"
+	"github.com/roadrunner-server/pool/v2/pool/static_pool"
+	"github.com/roadrunner-server/pool/v2/state/process"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	jprop "go.opentelemetry.io/contrib/propagators/jaeger"
 	"go.opentelemetry.io/otel/propagation"
 	semconv "go.opentelemetry.io/otel/semconv/v1.20.0"
 	"go.opentelemetry.io/otel/trace"
-	"go.uber.org/zap"
 )
 
 const (
@@ -50,7 +50,7 @@ type Plugin struct {
 
 	// plugins
 	server api.Server
-	log    *zap.Logger
+	log    *slog.Logger
 	// stdlog passed to the http/https/fcgi servers to log their internal messages
 	stdLog               *stdlog.Logger
 	experimentalFeatures bool

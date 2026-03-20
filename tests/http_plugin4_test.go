@@ -20,12 +20,11 @@ import (
 	"github.com/roadrunner-server/config/v5"
 	"github.com/roadrunner-server/endure/v2"
 	httpPlugin "github.com/roadrunner-server/http/v6"
-	"github.com/roadrunner-server/logger/v5"
+	"github.com/roadrunner-server/logger/v6"
 	rpcPlugin "github.com/roadrunner-server/rpc/v5"
 	"github.com/roadrunner-server/server/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
 )
 
 func TestHttp3(t *testing.T) {
@@ -103,7 +102,7 @@ func TestBug1843(t *testing.T) {
 		Path:                 "configs/.rr-bug1843.yaml",
 	}
 
-	l, oLogger := mocklogger.ZapTestLogger(zap.DebugLevel)
+	l, oLogger := mocklogger.SlogTestLogger(slog.LevelDebug)
 	err := cont.RegisterAll(
 		cfg,
 		&rpcPlugin.Plugin{},

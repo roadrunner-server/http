@@ -2,13 +2,13 @@ package api
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 
-	"github.com/roadrunner-server/pool/payload"
-	"github.com/roadrunner-server/pool/pool"
-	staticPool "github.com/roadrunner-server/pool/pool/static_pool"
-	"github.com/roadrunner-server/pool/worker"
-	"go.uber.org/zap"
+	"github.com/roadrunner-server/pool/v2/payload"
+	"github.com/roadrunner-server/pool/v2/pool"
+	staticPool "github.com/roadrunner-server/pool/v2/pool/static_pool"
+	"github.com/roadrunner-server/pool/v2/worker"
 )
 
 type Pool interface {
@@ -30,7 +30,7 @@ type Pool interface {
 type Server interface {
 	UID() int
 	GID() int
-	NewPool(ctx context.Context, cfg *pool.Config, env map[string]string, _ *zap.Logger) (*staticPool.Pool, error)
+	NewPool(ctx context.Context, cfg *pool.Config, env map[string]string, _ *slog.Logger) (*staticPool.Pool, error)
 }
 
 // Middleware represents http stdlib middleware interface
@@ -49,5 +49,5 @@ type Configurer interface {
 }
 
 type Logger interface {
-	NamedLogger(name string) *zap.Logger
+	NamedLogger(name string) *slog.Logger
 }

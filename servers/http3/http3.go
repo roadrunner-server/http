@@ -1,6 +1,7 @@
 package http3
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/quic-go/quic-go"
@@ -8,7 +9,6 @@ import (
 	"github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/http/v6/acme"
 	"github.com/roadrunner-server/http/v6/tlsconf"
-	"go.uber.org/zap"
 
 	"github.com/roadrunner-server/http/v6/api"
 	"github.com/roadrunner-server/http/v6/servers"
@@ -18,11 +18,11 @@ const ACMETLS1Protocol string = "acme-tls/1"
 
 type Server struct {
 	server *http3.Server
-	log    *zap.Logger
+	log    *slog.Logger
 	cfg    *Config
 }
 
-func NewHTTP3server(handler http.Handler, acmeCfg *acme.Config, cfg *Config, log *zap.Logger) (servers.InternalServer[any], error) {
+func NewHTTP3server(handler http.Handler, acmeCfg *acme.Config, cfg *Config, log *slog.Logger) (servers.InternalServer[any], error) {
 	http3Srv := &Server{
 		log: log,
 		cfg: cfg,
@@ -64,7 +64,7 @@ func (s *Server) Serve(mdwr map[string]api.Middleware, order []string) error {
 		applyMiddleware(s.server, mdwr, order, s.log)
 	}
 
-	s.log.Debug("http3 server was started", zap.String("address", s.server.Addr))
+	s.log.Debug("http3 server was started", "address", s.server.Addr)
 	err := s.server.ListenAndServeTLS(s.cfg.Cert, s.cfg.Key)
 	if err != nil {
 		return errors.E(op, err)
@@ -80,17 +80,17 @@ func (s *Server) Server() any {
 func (s *Server) Stop() {
 	err := s.server.Close()
 	if err != nil {
-		s.log.Error("http3 server shutdown", zap.Error(err))
+		s.log.Error("http3 server shutdown", "error", err)
 	}
 }
 
-func applyMiddleware(server *http3.Server, middleware map[string]api.Middleware, order []string, log *zap.Logger) {
+func applyMiddleware(server *http3.Server, middleware map[string]api.Middleware, order []string, log *slog.Logger) {
 	for i := len(order) - 1; i >= 0; i-- {
 		name := order[i]
 		if mdwr, ok := middleware[name]; ok {
 			server.Handler = mdwr.Middleware(server.Handler)
 		} else {
-			log.Warn("requested middleware does not exist", zap.String("requested", name))
+			log.Warn("requested middleware does not exist", "requested", name)
 		}
 	}
 }

@@ -1,14 +1,12 @@
 package testLog //nolint: stylecheck
 
 import (
-	"go.uber.org/zap"
+	"log/slog"
+	"os"
 )
 
-func ZapLogger() *zap.Logger {
-	l, err := zap.NewDevelopment()
-	if err != nil {
-		panic(err)
-	}
-
-	return l
+func SlogLogger() *slog.Logger {
+	return slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
+		Level: slog.LevelDebug,
+	}))
 }

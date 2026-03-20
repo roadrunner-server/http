@@ -8,7 +8,7 @@ import (
 	httpV2proto "github.com/roadrunner-server/api-go/v6/http/v2"
 	"github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/goridge/v4/pkg/frame"
-	"github.com/roadrunner-server/pool/payload"
+	"github.com/roadrunner-server/pool/v2/payload"
 	"google.golang.org/protobuf/proto"
 )
 

@@ -3,6 +3,7 @@ package middleware
 import (
 	"bufio"
 	"io"
+	"log/slog"
 	"net"
 	"net/http"
 	"strings"
@@ -10,7 +11,6 @@ import (
 	"time"
 
 	"github.com/roadrunner-server/errors"
-	"go.uber.org/zap"
 )
 
 var _ io.ReadCloser = (*wrapper)(nil)
@@ -91,10 +91,10 @@ func (w *wrapper) reset() {
 
 type lm struct {
 	pool sync.Pool
-	log  *zap.Logger
+	log  *slog.Logger
 }
 
-func NewLogMiddleware(next http.Handler, accessLogs bool, log *zap.Logger) http.Handler {
+func NewLogMiddleware(next http.Handler, accessLogs bool, log *slog.Logger) http.Handler {
 	l := &lm{
 		log: log,
 		pool: sync.Pool{
@@ -131,15 +131,15 @@ func (l *lm) writeLog(accessLog bool, r *http.Request, bw *wrapper, start time.T
 	switch accessLog {
 	case false:
 		l.log.Info("http log",
-			zap.Int("status", bw.code),
-			zap.String("method", r.Method),
-			zap.String("URI", r.RequestURI),
-			zap.String("URL", r.URL.String()),
-			zap.String("remote_address", r.RemoteAddr),
-			zap.Int("read_bytes", bw.read),
-			zap.Int("write_bytes", bw.write),
-			zap.Time("start", start),
-			zap.Int64("elapsed", time.Since(start).Milliseconds()))
+			"status", bw.code,
+			"method", r.Method,
+			"URI", r.RequestURI,
+			"URL", r.URL.String(),
+			"remote_address", r.RemoteAddr,
+			"read_bytes", bw.read,
+			"write_bytes", bw.write,
+			"start", start,
+			"elapsed", time.Since(start).Milliseconds())
 	case true:
 		// external/cwe/cwe-117
 		usrA := r.UserAgent()
@@ -155,22 +155,22 @@ func (l *lm) writeLog(accessLog bool, r *http.Request, bw *wrapper, start time.T
 		rq = strings.ReplaceAll(rq, "\r", "")
 
 		l.log.Info("http access log",
-			zap.Int("read_bytes", bw.read),
-			zap.Int("write_bytes", bw.write),
-			zap.Int("status", bw.code),
-			zap.String("method", r.Method),
-			zap.String("URI", r.RequestURI),
-			zap.String("URL", r.URL.String()),
-			zap.String("remote_address", r.RemoteAddr),
-			zap.String("query", rq),
-			zap.Int64("content_len", r.ContentLength),
-			zap.String("host", r.Host),
-			zap.String("user_agent", usrA),
-			zap.String("referer", rfr),
-			zap.String("time_local", time.Now().Format("02/Jan/06:15:04:05 -0700")),
-			zap.Time("request_time", time.Now()),
-			zap.Time("start", start),
-			zap.Int64("elapsed", time.Since(start).Milliseconds()))
+			"read_bytes", bw.read,
+			"write_bytes", bw.write,
+			"status", bw.code,
+			"method", r.Method,
+			"URI", r.RequestURI,
+			"URL", r.URL.String(),
+			"remote_address", r.RemoteAddr,
+			"query", rq,
+			"content_len", r.ContentLength,
+			"host", r.Host,
+			"user_agent", usrA,
+			"referer", rfr,
+			"time_local", time.Now().Format("02/Jan/06:15:04:05 -0700"),
+			"request_time", time.Now(),
+			"start", start,
+			"elapsed", time.Since(start).Milliseconds())
 	}
 }
 

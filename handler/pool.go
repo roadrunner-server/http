@@ -8,7 +8,7 @@ import (
 	"github.com/roadrunner-server/goridge/v4/pkg/frame"
 	"github.com/roadrunner-server/http/v6/attributes"
 	"github.com/roadrunner-server/http/v6/config"
-	"github.com/roadrunner-server/pool/payload"
+	"github.com/roadrunner-server/pool/v2/payload"
 )
 
 func (h *Handler) getProtoReq(r *Request) *httpV2proto.HttpRequest {

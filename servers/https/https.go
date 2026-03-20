@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	stderr "errors"
 	"log"
+	"log/slog"
 	"net"
 	"net/http"
 	"net/url"
@@ -22,16 +23,15 @@ import (
 
 	"github.com/mholt/acmez"
 	"github.com/roadrunner-server/errors"
-	"go.uber.org/zap"
 )
 
 type Server struct {
 	cfg   *SSL
-	log   *zap.Logger
+	log   *slog.Logger
 	https *http.Server
 }
 
-func NewHTTPSServer(handler http.Handler, cfg *SSL, cfgHTTP2 *HTTP2, errLog *log.Logger, logger *zap.Logger) (servers.InternalServer[any], error) {
+func NewHTTPSServer(handler http.Handler, cfg *SSL, cfgHTTP2 *HTTP2, errLog *log.Logger, logger *slog.Logger) (servers.InternalServer[any], error) {
 	httpsServer := initTLS(handler, errLog, cfg.Address, cfg.Port)
 
 	if cfg.RootCA != "" {
@@ -109,7 +109,7 @@ func (s *Server) Serve(mdwr map[string]api.Middleware, order []string) error {
 		ACME powered server
 	*/
 	if s.cfg.EnableACME() {
-		s.log.Debug("https(acme) server was started", zap.String("address", s.cfg.Address))
+		s.log.Debug("https(acme) server was started", "address", s.cfg.Address)
 		err = s.https.ServeTLS(
 			l,
 			"",
@@ -122,7 +122,7 @@ func (s *Server) Serve(mdwr map[string]api.Middleware, order []string) error {
 		return nil
 	}
 
-	s.log.Debug("https server was started", zap.String("address", s.cfg.Address))
+	s.log.Debug("https server was started", "address", s.cfg.Address)
 	err = s.https.ServeTLS(
 		l,
 		s.cfg.Cert,
@@ -143,7 +143,7 @@ func (s *Server) Server() any {
 func (s *Server) Stop() {
 	err := s.https.Close()
 	if err != nil && !stderr.Is(err, http.ErrServerClosed) {
-		s.log.Error("https shutdown", zap.Error(err))
+		s.log.Error("https shutdown", "error", err)
 	}
 }
 
@@ -203,13 +203,13 @@ func tlsAddr(host string, forcePort bool, sslPort int) string {
 	return host
 }
 
-func applyMiddleware(server *http.Server, middleware map[string]api.Middleware, order []string, log *zap.Logger) {
+func applyMiddleware(server *http.Server, middleware map[string]api.Middleware, order []string, log *slog.Logger) {
 	for i := len(order) - 1; i >= 0; i-- {
 		name := order[i]
 		if mdwr, ok := middleware[name]; ok {
 			server.Handler = mdwr.Middleware(server.Handler)
 		} else {
-			log.Warn("requested middleware does not exist", zap.String("requested", name))
+			log.Warn("requested middleware does not exist", "requested", name)
 		}
 	}
 }

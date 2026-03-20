@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net"
 	"net/http"
 	"net/url"
@@ -11,8 +12,7 @@ import (
 
 	httpV2proto "github.com/roadrunner-server/api-go/v6/http/v2"
 	"github.com/roadrunner-server/errors"
-	"github.com/roadrunner-server/pool/payload"
-	"go.uber.org/zap"
+	"github.com/roadrunner-server/pool/v2/payload"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -50,7 +50,7 @@ type Request struct {
 	body any
 }
 
-func FetchIP(pair string, log *zap.Logger) string {
+func FetchIP(pair string, log *slog.Logger) string {
 	if !strings.ContainsRune(pair, ':') {
 		return pair
 	}
@@ -62,7 +62,7 @@ func FetchIP(pair string, log *zap.Logger) string {
 
 	ip := net.ParseIP(pair)
 	if ip == nil {
-		log.Warn("remote address parsing failure", zap.Error(err)) // error from the SplitHostPort
+		log.Warn("remote address parsing failure", "error", err) // error from the SplitHostPort
 		return ""
 	}
 
@@ -144,7 +144,7 @@ func request(r *http.Request, req *Request, uid, gid int, sendRawBody bool) erro
 }
 
 // Open moves all uploaded files to temporary directory so it can be given to php later.
-func (r *Request) Open(log *zap.Logger, dir string, forbid, allow map[string]struct{}) {
+func (r *Request) Open(log *slog.Logger, dir string, forbid, allow map[string]struct{}) {
 	if r.Uploads == nil {
 		return
 	}
@@ -153,7 +153,7 @@ func (r *Request) Open(log *zap.Logger, dir string, forbid, allow map[string]str
 }
 
 // Close clears all temp file uploads
-func (r *Request) Close(log *zap.Logger, hr *http.Request) {
+func (r *Request) Close(log *slog.Logger, hr *http.Request) {
 	if r.Uploads == nil {
 		return
 	}

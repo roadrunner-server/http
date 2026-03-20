@@ -33,8 +33,8 @@ import (
 	"github.com/roadrunner-server/headers/v5"
 	httpPlugin "github.com/roadrunner-server/http/v6"
 	"github.com/roadrunner-server/informer/v5"
-	"github.com/roadrunner-server/logger/v5"
-	"github.com/roadrunner-server/pool/state/process"
+	"github.com/roadrunner-server/logger/v6"
+	"github.com/roadrunner-server/pool/v2/state/process"
 	"github.com/roadrunner-server/resetter/v5"
 	rpcPlugin "github.com/roadrunner-server/rpc/v5"
 	"github.com/roadrunner-server/send/v5"
@@ -43,7 +43,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/yookoala/gofast"
-	"go.uber.org/zap"
 	"golang.org/x/net/http2"
 )
 
@@ -1022,7 +1021,7 @@ func TestHTTP2Req(t *testing.T) {
 		Path:    "configs/.rr-h2-ssl.yaml",
 	}
 
-	l, oLogger := mocklogger.ZapTestLogger(zap.DebugLevel)
+	l, oLogger := mocklogger.SlogTestLogger(slog.LevelDebug)
 	err := cont.RegisterAll(
 		cfg,
 		&rpcPlugin.Plugin{},
@@ -1118,7 +1117,7 @@ func TestH2CUpgrade(t *testing.T) {
 		Path:    "configs/.rr-h2c.yaml",
 	}
 
-	l, oLogger := mocklogger.ZapTestLogger(zap.DebugLevel)
+	l, oLogger := mocklogger.SlogTestLogger(slog.LevelDebug)
 	err := cont.RegisterAll(
 		cfg,
 		&rpcPlugin.Plugin{},
@@ -1210,7 +1209,7 @@ func TestH2C(t *testing.T) {
 		Path:    "configs/.rr-h2c.yaml",
 	}
 
-	l, oLogger := mocklogger.ZapTestLogger(zap.DebugLevel)
+	l, oLogger := mocklogger.SlogTestLogger(slog.LevelDebug)
 	err := cont.RegisterAll(
 		cfg,
 		&rpcPlugin.Plugin{},
@@ -2282,7 +2281,7 @@ func TestStaticFilesForbid(t *testing.T) {
 		Path:    "configs/.rr-http-static-files.yaml",
 	}
 
-	l, oLogger := mocklogger.ZapTestLogger(zap.DebugLevel)
+	l, oLogger := mocklogger.SlogTestLogger(slog.LevelDebug)
 	err := cont.RegisterAll(
 		cfg,
 		l,
