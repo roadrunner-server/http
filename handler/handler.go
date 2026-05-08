@@ -91,7 +91,7 @@ func NewHandler(cfg *config.Config, pool api.Pool, log *slog.Logger) (*Handler, 
 		},
 		protoRespPool: sync.Pool{
 			New: func() any {
-				return &httpV2proto.HttpResponse{
+				return &httpV2proto.HttpHandlerResponse{
 					Headers: make(map[string]*httpV2proto.HttpHeaderValue),
 					Status:  -1,
 				}
@@ -99,7 +99,7 @@ func NewHandler(cfg *config.Config, pool api.Pool, log *slog.Logger) (*Handler, 
 		},
 		protoReqPool: sync.Pool{
 			New: func() any {
-				return &httpV2proto.HttpRequest{}
+				return &httpV2proto.HttpHandlerRequest{}
 			},
 		},
 		pldPool: sync.Pool{
