@@ -3,10 +3,8 @@ module github.com/roadrunner-server/http/v6
 go 1.26
 
 require (
-	connectrpc.com/connect v1.19.2
 	github.com/caddyserver/certmagic v0.25.3
 	github.com/google/go-cmp v0.7.0
-	github.com/google/uuid v1.6.0
 	github.com/mholt/acmez v1.2.0
 	github.com/prometheus/client_golang v1.23.2
 	github.com/quic-go/quic-go v0.59.0
@@ -38,6 +36,7 @@ require (
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
+	github.com/google/uuid v1.6.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/libdns/libdns v1.1.1 // indirect
 	github.com/mholt/acmez/v3 v3.1.6 // indirect
