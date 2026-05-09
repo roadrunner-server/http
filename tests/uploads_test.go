@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/sha512"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -15,15 +16,13 @@ import (
 	"testing"
 	"time"
 
-	"tests/testLog"
-
-	"github.com/goccy/go-json"
 	"github.com/roadrunner-server/http/v6/config"
 	"github.com/roadrunner-server/http/v6/handler"
 	"github.com/roadrunner-server/pool/v2/ipc/pipe"
 	"github.com/roadrunner-server/pool/v2/pool"
 	staticPool "github.com/roadrunner-server/pool/v2/pool/static_pool"
 	"github.com/stretchr/testify/assert"
+	"tests/testLog"
 )
 
 const testFile = "uploads_test.go"

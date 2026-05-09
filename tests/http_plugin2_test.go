@@ -3,6 +3,7 @@ package tests
 import (
 	"bytes"
 	"crypto/tls"
+	"encoding/json"
 	"io"
 	"log/slog"
 	"net/http"
@@ -14,10 +15,6 @@ import (
 	"testing"
 	"time"
 
-	"tests/helpers"
-	mocklogger "tests/mock"
-
-	"github.com/goccy/go-json"
 	"github.com/roadrunner-server/config/v5"
 	"github.com/roadrunner-server/endure/v2"
 	"github.com/roadrunner-server/fileserver/v6"
@@ -29,6 +26,8 @@ import (
 	"github.com/roadrunner-server/server/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"tests/helpers"
+	mocklogger "tests/mock"
 )
 
 func TestHTTPPost(t *testing.T) {

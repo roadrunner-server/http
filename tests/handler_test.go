@@ -3,6 +3,7 @@ package tests
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
 	"mime/multipart"
@@ -15,10 +16,6 @@ import (
 	"testing"
 	"time"
 
-	"tests/helpers"
-	"tests/testLog"
-
-	"github.com/goccy/go-json"
 	"github.com/roadrunner-server/http/v6/config"
 	"github.com/roadrunner-server/http/v6/handler"
 	"github.com/roadrunner-server/pool/v2/ipc/pipe"
@@ -26,6 +23,8 @@ import (
 	staticPool "github.com/roadrunner-server/pool/v2/pool/static_pool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"tests/helpers"
+	"tests/testLog"
 )
 
 func TestHandler_Echo(t *testing.T) {

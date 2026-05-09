@@ -16,7 +16,7 @@ import (
 	"github.com/roadrunner-server/http/v6/config"
 	"github.com/roadrunner-server/http/v6/middleware"
 	"golang.org/x/net/http2"
-	"golang.org/x/net/http2/h2c"
+	"golang.org/x/net/http2/h2c" //nolint:staticcheck // SA1019: h2c migration to http.Server.Protocols tracked separately
 )
 
 type Server struct {
@@ -43,7 +43,7 @@ func NewHTTPServer(handler http.Handler, cfg *config.Config, errLog *log.Logger,
 			redirectPort: redirectPort,
 			address:      cfg.Address,
 			http: &http.Server{
-				Handler: h2c.NewHandler(handler, &http2.Server{
+				Handler: h2c.NewHandler(handler, &http2.Server{ //nolint:staticcheck // SA1019: see import note
 					MaxConcurrentStreams:         cfg.HTTP2Config.MaxConcurrentStreams,
 					PermitProhibitedCipherSuites: false,
 				}),
