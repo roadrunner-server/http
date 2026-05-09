@@ -6,22 +6,22 @@ toolchain go1.26.0
 
 require (
 	github.com/quic-go/quic-go v0.59.0
-	github.com/roadrunner-server/config/v5 v5.1.9
+	github.com/roadrunner-server/config/v6 v6.0.0-beta.3
 	github.com/roadrunner-server/endure/v2 v2.6.2
 	github.com/roadrunner-server/fileserver/v6 v6.0.0-beta.5
 	github.com/roadrunner-server/goridge/v4 v4.0.0-beta.1
 	github.com/roadrunner-server/gzip/v6 v6.0.0-beta.2
-	github.com/roadrunner-server/headers/v5 v5.2.0
-	github.com/roadrunner-server/http/v6 v6.0.0-beta.4
-	github.com/roadrunner-server/informer/v5 v5.1.9
+	github.com/roadrunner-server/headers/v6 v6.0.0-beta.2
+	github.com/roadrunner-server/http/v6 v6.0.0-beta.6
+	github.com/roadrunner-server/informer/v6 v6.0.0-beta.1
 	github.com/roadrunner-server/logger/v6 v6.0.0-beta.3
-	github.com/roadrunner-server/memory/v5 v5.2.9
+	github.com/roadrunner-server/memory/v6 v6.0.0-beta.3
 	github.com/roadrunner-server/pool/v2 v2.0.0-beta.1
-	github.com/roadrunner-server/resetter/v5 v5.1.9
-	github.com/roadrunner-server/rpc/v5 v5.1.9
-	github.com/roadrunner-server/send/v5 v5.2.0
-	github.com/roadrunner-server/server/v5 v5.2.10
-	github.com/roadrunner-server/static/v5 v5.2.0
+	github.com/roadrunner-server/resetter/v6 v6.0.0-beta.2
+	github.com/roadrunner-server/rpc/v6 v6.0.0-beta.3
+	github.com/roadrunner-server/send/v6 v6.0.0-beta.4
+	github.com/roadrunner-server/server/v6 v6.0.0-beta.5
+	github.com/roadrunner-server/static/v6 v6.0.0-beta.4
 	github.com/stretchr/testify v1.11.1
 	github.com/yookoala/gofast v0.8.0
 	golang.org/x/net v0.54.0
@@ -29,9 +29,6 @@ require (
 )
 
 require (
-	github.com/goccy/go-json v0.10.6 // indirect
-	github.com/roadrunner-server/goridge/v3 v3.8.3 // indirect
-	github.com/roadrunner-server/pool v1.1.3 // indirect
 	go.uber.org/zap v1.28.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260504160031-60b97b32f348 // indirect
 	google.golang.org/grpc v1.81.0 // indirect
@@ -76,7 +73,6 @@ require (
 	github.com/quic-go/qpack v0.6.0 // indirect
 	github.com/roadrunner-server/api-go/v6 v6.0.0-beta.4 // indirect
 	github.com/roadrunner-server/api-plugins/v6 v6.0.0-beta.2 // indirect
-	github.com/roadrunner-server/api/v4 v4.24.0 // indirect
 	github.com/roadrunner-server/context v1.3.0
 	github.com/roadrunner-server/errors v1.5.0 // indirect
 	github.com/roadrunner-server/events v1.0.1 // indirect
@@ -93,8 +89,6 @@ require (
 	github.com/tklauser/numcpus v0.11.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.71.0 // indirect
-	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
-	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	github.com/zeebo/blake3 v0.2.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
