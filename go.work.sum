@@ -2741,6 +2741,7 @@ go.temporal.io/api v1.30.0/go.mod h1:PIZ+UyGTMh3HJFauMysfanNBAh3f0jRf1xydrhTEcSQ
 go.temporal.io/api v1.57.0/go.mod h1:iaxoP/9OXMJcQkETTECfwYq4cw/bj4nwov8b3ZLVnXM=
 go.temporal.io/api v1.62.2 h1:jFhIzlqNyJsJZTiCRQmTIMv6OTQ5BZ57z8gbgLGMaoo=
 go.temporal.io/api v1.62.2/go.mod h1:iaxoP/9OXMJcQkETTECfwYq4cw/bj4nwov8b3ZLVnXM=
+go.temporal.io/api v1.62.11/go.mod h1:iaxoP/9OXMJcQkETTECfwYq4cw/bj4nwov8b3ZLVnXM=
 go.temporal.io/sdk v1.26.0-rc.2 h1:0NX4wR2qwD6xCv+JNhZdViamsITMYWzZkUqBJEIVHBw=
 go.temporal.io/sdk v1.26.0-rc.2/go.mod h1:HDr8fIWJ/HF8dJwTPgOayI8PYB5WoVIxUMjzE78M2ng=
 go.temporal.io/sdk/contrib/opentelemetry v0.4.0 h1:Ddx+39cESh4CNFI6cy8TI1OBJC8MUQUDzt6TpIJJjPQ=
