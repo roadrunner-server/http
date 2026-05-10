@@ -54,7 +54,7 @@ func (h *Handler) handlePROTOresponse(pld *payload.Payload, w http.ResponseWrite
 
 			if pusher, ok := w.(http.Pusher); ok {
 				for _, pushVal := range push {
-					err = pusher.Push(string(pushVal), nil)
+					err = pusher.Push(pushVal, nil)
 					if err != nil {
 						return err
 					}
@@ -67,9 +67,9 @@ func (h *Handler) handlePROTOresponse(pld *payload.Payload, w http.ResponseWrite
 		}
 
 		// write all headers from the response to the writer
-		for k := range rsp.GetHeaders() {
-			for kk := range rsp.GetHeaders()[k].GetValues() {
-				w.Header().Add(k, string(rsp.GetHeaders()[k].GetValues()[kk]))
+		for k, hv := range rsp.GetHeaders() {
+			for _, v := range hv.GetValues() {
+				w.Header().Add(k, v)
 			}
 		}
 
@@ -101,7 +101,7 @@ func (h *Handler) handlePROTOresponse(pld *payload.Payload, w http.ResponseWrite
 
 func handleProtoTrailers(h map[string]*httpV2proto.HttpHeaderValue) {
 	for _, tr := range h[Trailer].GetValues() {
-		for n := range strings.SplitSeq(string(tr), ",") {
+		for n := range strings.SplitSeq(tr, ",") {
 			n = strings.Trim(n, "\t ")
 			if v, ok := h[n]; ok {
 				h["Trailer:"+n] = v
