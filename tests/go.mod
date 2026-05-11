@@ -9,7 +9,6 @@ require (
 	github.com/roadrunner-server/config/v6 v6.0.0-beta.3
 	github.com/roadrunner-server/endure/v2 v2.6.2
 	github.com/roadrunner-server/fileserver/v6 v6.0.0-beta.5
-	github.com/roadrunner-server/goridge/v4 v4.0.0-beta.1
 	github.com/roadrunner-server/gzip/v6 v6.0.0-beta.2
 	github.com/roadrunner-server/headers/v6 v6.0.0-beta.2
 	github.com/roadrunner-server/http/v6 v6.0.0-beta.6
@@ -29,6 +28,7 @@ require (
 )
 
 require (
+	github.com/roadrunner-server/goridge/v4 v4.0.0-beta.2 // indirect
 	go.uber.org/zap v1.28.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260504160031-60b97b32f348 // indirect
 	google.golang.org/grpc v1.81.0 // indirect
@@ -71,7 +71,7 @@ require (
 	github.com/prometheus/common v0.67.5 // indirect
 	github.com/prometheus/procfs v0.20.1 // indirect
 	github.com/quic-go/qpack v0.6.0 // indirect
-	github.com/roadrunner-server/api-go/v6 v6.0.0-beta.4 // indirect
+	github.com/roadrunner-server/api-go/v6 v6.0.0-beta.5 // indirect
 	github.com/roadrunner-server/api-plugins/v6 v6.0.0-beta.2 // indirect
 	github.com/roadrunner-server/context v1.3.0
 	github.com/roadrunner-server/errors v1.5.0 // indirect
