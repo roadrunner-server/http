@@ -15,7 +15,7 @@ require (
 	github.com/roadrunner-server/http/v6 v6.0.0-beta.6
 	github.com/roadrunner-server/informer/v6 v6.0.0-beta.1
 	github.com/roadrunner-server/logger/v6 v6.0.0-beta.3
-	github.com/roadrunner-server/memory/v6 v6.0.0-beta.3
+	github.com/roadrunner-server/memory/v6 v6.0.0-beta.4
 	github.com/roadrunner-server/pool/v2 v2.0.0-beta.1
 	github.com/roadrunner-server/resetter/v6 v6.0.0-beta.2
 	github.com/roadrunner-server/rpc/v6 v6.0.0-beta.3
@@ -71,7 +71,7 @@ require (
 	github.com/prometheus/common v0.67.5 // indirect
 	github.com/prometheus/procfs v0.20.1 // indirect
 	github.com/quic-go/qpack v0.6.0 // indirect
-	github.com/roadrunner-server/api-go/v6 v6.0.0-beta.4 // indirect
+	github.com/roadrunner-server/api-go/v6 v6.0.0-beta.5 // indirect
 	github.com/roadrunner-server/api-plugins/v6 v6.0.0-beta.2 // indirect
 	github.com/roadrunner-server/context v1.3.0
 	github.com/roadrunner-server/errors v1.5.0 // indirect
