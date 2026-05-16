@@ -1437,11 +1437,16 @@ type workersList struct {
 	Workers []*informerV1.ProcessState
 }
 
-const informerWorkersAddr = "127.0.0.1:30301"
+const (
+	informerWorkersAddr = "127.0.0.1:30301"
+	informerRPCTimeout  = 5 * time.Second
+)
 
 func workers() (*workersList, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), informerRPCTimeout)
+	defer cancel()
 	client := helpers.RPCInformerClient(informerWorkersAddr)
-	resp, err := client.GetWorkers(context.Background(), connect.NewRequest(&informerV1.GetWorkersRequest{Plugin: httpPlugin.PluginName}))
+	resp, err := client.GetWorkers(ctx, connect.NewRequest(&informerV1.GetWorkersRequest{Plugin: httpPlugin.PluginName}))
 	if err != nil {
 		return nil, err
 	}
@@ -1449,13 +1454,17 @@ func workers() (*workersList, error) {
 }
 
 func addWorker() error {
+	ctx, cancel := context.WithTimeout(context.Background(), informerRPCTimeout)
+	defer cancel()
 	client := helpers.RPCInformerClient(informerWorkersAddr)
-	_, err := client.AddWorker(context.Background(), connect.NewRequest(&informerV1.AddWorkerRequest{Plugin: httpPlugin.PluginName}))
+	_, err := client.AddWorker(ctx, connect.NewRequest(&informerV1.AddWorkerRequest{Plugin: httpPlugin.PluginName}))
 	return err
 }
 
 func removeWorker() error {
+	ctx, cancel := context.WithTimeout(context.Background(), informerRPCTimeout)
+	defer cancel()
 	client := helpers.RPCInformerClient(informerWorkersAddr)
-	_, err := client.RemoveWorker(context.Background(), connect.NewRequest(&informerV1.RemoveWorkerRequest{Plugin: httpPlugin.PluginName}))
+	_, err := client.RemoveWorker(ctx, connect.NewRequest(&informerV1.RemoveWorkerRequest{Plugin: httpPlugin.PluginName}))
 	return err
 }

@@ -157,6 +157,15 @@ func (c *Config) Valid() error {
 		return errors.E(op, "malformed pool config")
 	}
 
+	if c.Proxy != nil {
+		if c.Proxy.RequestTimeout < 0 {
+			return errors.E(op, errors.Str("proxy.request_timeout must be >= 0"))
+		}
+		if c.Proxy.InboxSize < 0 {
+			return errors.E(op, errors.Str("proxy.inbox_size must be >= 0"))
+		}
+	}
+
 	if !c.EnableHTTP() && !c.EnableTLS() && !c.EnableFCGI() {
 		return errors.E(op, errors.Str("unable to run http service, no method has been specified (http, https, http/2 or FastCGI)"))
 	}

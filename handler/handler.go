@@ -94,9 +94,14 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Envelopes are returned to the pool ONLY on the happy path after we've
+	// received a response — at that point ConnectRPC has finished writing the
+	// request to the wire and no worker still references the pointer. On
+	// timeout / disconnect / submit error paths a worker may still hold the
+	// pointer (it could still be parked in the inbox, or be mid-marshal in
+	// FetchRequest's response), so we leak the envelope to GC instead of
+	// Reset()-corrupting it.
 	req := h.getReq()
-	defer h.putReq(req)
-
 	req.Id = id.String()
 	req.Method = r.Method
 	req.Uri = URI(r)
@@ -142,6 +147,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	select {
 	case resp := <-respCh:
 		h.writeResponse(w, resp, start, reqID)
+		h.putReq(req)
 	case <-r.Context().Done():
 		h.queue.Cancel(reqID)
 		h.log.Debug("client disconnected",
@@ -192,6 +198,11 @@ func (h *Handler) writeResponse(w http.ResponseWriter, resp *httpV2.HttpHandlerR
 	}
 
 	for k, v := range headers {
+		// Http2-Push is plugin-internal control metadata — already consumed
+		// for the push above. Don't echo it back to the client.
+		if k == HTTP2Push {
+			continue
+		}
 		for _, vv := range v.GetValues() {
 			w.Header().Add(k, vv)
 		}
@@ -252,6 +263,8 @@ func (h *Handler) handleRequestErr(w http.ResponseWriter, r *http.Request, ups *
 	case isMaxBytesError(err):
 		status = http.StatusRequestEntityTooLarge
 	case stderr.Is(err, io.EOF), stderr.Is(err, io.ErrUnexpectedEOF):
+		status = http.StatusBadRequest
+	case stderr.Is(err, ErrMaxLevelExceeded):
 		status = http.StatusBadRequest
 	}
 

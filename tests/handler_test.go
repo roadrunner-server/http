@@ -518,7 +518,7 @@ func TestHandler_Error(t *testing.T) {
 // TestHandler_Error2 originally tested PHP's `exit()` mid-request, which
 // crashed the in-process worker. Workers are external now, so the equivalent
 // failure mode is "worker never responds" — RequestTimeout fires and the
-// client gets 504. We assert non-2xx, matching the original test's intent.
+// client should get exactly 504 Gateway Timeout.
 func TestHandler_Error2(t *testing.T) {
 	cfg := defaultCfg()
 	cfg.Proxy.RequestTimeout = 2 * time.Second // keep the test snappy
@@ -529,7 +529,7 @@ func TestHandler_Error2(t *testing.T) {
 	_, r, err := helpers.Get("http://127.0.0.1:8178/?hello=world")
 	require.NoError(t, err)
 	defer func() { _ = r.Body.Close() }()
-	assert.GreaterOrEqual(t, r.StatusCode, 500)
+	assert.Equal(t, http.StatusGatewayTimeout, r.StatusCode)
 }
 
 func TestHandler_ResponseDuration(t *testing.T) {

@@ -188,13 +188,16 @@ func (p *Plugin) Stop(ctx context.Context) error {
 			}
 		}
 
+		// Close the queue BEFORE shutting down proxyServer: any FetchRequest
+		// handler parked in queue.Next(ctx) needs the queue closed to unblock
+		// — http.Shutdown otherwise waits for those handlers up to ctx deadline.
+		if p.queue != nil {
+			p.queue.Close()
+		}
 		if p.proxyServer != nil {
 			if err := p.proxyServer.Stop(ctx); err != nil {
 				p.log.Warn("proxy server shutdown", "error", err)
 			}
-		}
-		if p.queue != nil {
-			p.queue.Close()
 		}
 
 		if p.pool != nil {

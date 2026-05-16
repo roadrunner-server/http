@@ -129,10 +129,8 @@ func (s *Server) FetchRequests(ctx context.Context, req *connect.Request[httpV2.
 	}
 
 	out := &httpV2.HttpHandlerRequests{
-		Requests: make([]*httpV2.HttpHandlerRequest, 0, batch),
+		Requests: []*httpV2.HttpHandlerRequest{first},
 	}
-	out.Requests = append(out.Requests, first)
-
 	for range batch - 1 {
 		r := s.queue.TryNext()
 		if r == nil {

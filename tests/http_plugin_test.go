@@ -2616,10 +2616,8 @@ func resetTest(address string) func(t *testing.T) {
 
 		listResp, err := rc.ListPlugins(t.Context(), connect.NewRequest(&resetterV1.ListPluginsRequest{}))
 		require.NoError(t, err)
-		require.NotEmpty(t, listResp.Msg.GetPlugins())
-		if listResp.Msg.GetPlugins()[0] != httpPlugin.PluginName {
-			t.Fatal("no enough services")
-		}
+		// Order isn't part of the ListPlugins contract — assert membership.
+		assert.Contains(t, listResp.Msg.GetPlugins(), httpPlugin.PluginName, "expected resetter list to include the http plugin")
 	}
 }
 

@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/roadrunner-server/api-go/v6/informer/v1/informerV1connect"
 	"github.com/roadrunner-server/api-go/v6/resetter/v1/resetterV1connect"
@@ -16,6 +17,9 @@ import (
 // RoadRunner's RPC server (which serves HTTP/1 + cleartext HTTP/2).
 func rpcH2CClient() *http.Client {
 	return &http.Client{
+		// Defensive ceiling so an unreachable RPC endpoint doesn't hang a
+		// test for the full -timeout flag. Per-call ctx still applies on top.
+		Timeout: 10 * time.Second,
 		Transport: &http2.Transport{
 			AllowHTTP: true,
 			DialTLSContext: func(ctx context.Context, network, addr string, _ *tls.Config) (net.Conn, error) {
