@@ -315,6 +315,25 @@ func TestDataTreePush(t *testing.T) {
 	}
 }
 
+func TestPush_MaxLevelExceeded(t *testing.T) {
+	// MaxLevel+2 segments: one base key plus MaxLevel+1 nested brackets.
+	var b strings.Builder
+	b.WriteString("k")
+	for range MaxLevel + 1 {
+		b.WriteString("[a]")
+	}
+
+	dt := make(dataTree)
+	if err := dt.push(b.String(), []string{"v"}); !errors.Is(err, ErrMaxLevelExceeded) {
+		t.Fatalf("dataTree push: err = %v, want ErrMaxLevelExceeded", err)
+	}
+
+	ft := make(fileTree)
+	if err := ft.push(b.String(), []*FileUpload{{Name: "f"}}); !errors.Is(err, ErrMaxLevelExceeded) {
+		t.Fatalf("fileTree push: err = %v, want ErrMaxLevelExceeded", err)
+	}
+}
+
 func TestFileTreePush(t *testing.T) {
 	type orderedData []struct {
 		key   string

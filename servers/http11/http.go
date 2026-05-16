@@ -15,8 +15,6 @@ import (
 	"github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/http/v6/config"
 	"github.com/roadrunner-server/http/v6/middleware"
-	"golang.org/x/net/http2"
-	"golang.org/x/net/http2/h2c"
 )
 
 type Server struct {
@@ -37,16 +35,17 @@ func NewHTTPServer(handler http.Handler, cfg *config.Config, errLog *log.Logger,
 	}
 
 	if cfg.HTTP2Config != nil && cfg.HTTP2Config.H2C {
+		protocols := new(http.Protocols)
+		protocols.SetHTTP1(true)
+		protocols.SetUnencryptedHTTP2(true)
 		return &Server{
 			log:          log,
 			redirect:     redirect,
 			redirectPort: redirectPort,
 			address:      cfg.Address,
 			http: &http.Server{
-				Handler: h2c.NewHandler(handler, &http2.Server{
-					MaxConcurrentStreams:         cfg.HTTP2Config.MaxConcurrentStreams,
-					PermitProhibitedCipherSuites: false,
-				}),
+				Handler:           handler,
+				Protocols:         protocols,
 				ReadTimeout:       time.Minute * 5,
 				WriteTimeout:      time.Minute * 5,
 				IdleTimeout:       time.Hour,

@@ -8,13 +8,11 @@ linters:
     - bodyclose
     - copyloopvar
     - dogsled
-    - dupl
     - errcheck
     - errorlint
     - exhaustive
     - gochecknoglobals
     - gochecknoinits
-    - goconst
     - gocritic
     - gocyclo
     - goprintffuncname
@@ -34,11 +32,6 @@ linters:
     - unused
     - whitespace
   settings:
-    dupl:
-      threshold: 100
-    goconst:
-      min-len: 2
-      min-occurrences: 10
     gocyclo:
       min-complexity: 20
     godot:

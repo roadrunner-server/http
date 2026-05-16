@@ -14,12 +14,12 @@ import (
 
 	rrcontext "github.com/roadrunner-server/context"
 
-	"github.com/roadrunner-server/config/v5"
+	"github.com/roadrunner-server/config/v6"
 	"github.com/roadrunner-server/endure/v2"
 	"github.com/roadrunner-server/gzip/v6"
 	httpPlugin "github.com/roadrunner-server/http/v6"
 	"github.com/roadrunner-server/logger/v6"
-	"github.com/roadrunner-server/server/v5"
+	"github.com/roadrunner-server/server/v6"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"

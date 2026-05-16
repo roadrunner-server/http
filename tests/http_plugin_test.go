@@ -11,7 +11,6 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
-	"net/rpc"
 	"net/url"
 	"os"
 	"os/signal"
@@ -26,20 +25,21 @@ import (
 	mocklogger "tests/mock"
 	http3 "tests/test_plugins"
 
-	"github.com/roadrunner-server/config/v5"
+	"connectrpc.com/connect"
+	informerV1 "github.com/roadrunner-server/api-go/v6/informer/v1"
+	resetterV1 "github.com/roadrunner-server/api-go/v6/resetter/v1"
+	"github.com/roadrunner-server/config/v6"
 	"github.com/roadrunner-server/endure/v2"
-	goridgeRpc "github.com/roadrunner-server/goridge/v4/pkg/rpc"
 	"github.com/roadrunner-server/gzip/v6"
-	"github.com/roadrunner-server/headers/v5"
+	"github.com/roadrunner-server/headers/v6"
 	httpPlugin "github.com/roadrunner-server/http/v6"
-	"github.com/roadrunner-server/informer/v5"
+	"github.com/roadrunner-server/informer/v6"
 	"github.com/roadrunner-server/logger/v6"
-	"github.com/roadrunner-server/pool/v2/state/process"
-	"github.com/roadrunner-server/resetter/v5"
-	rpcPlugin "github.com/roadrunner-server/rpc/v5"
-	"github.com/roadrunner-server/send/v5"
-	"github.com/roadrunner-server/server/v5"
-	"github.com/roadrunner-server/static/v5"
+	"github.com/roadrunner-server/resetter/v6"
+	rpcPlugin "github.com/roadrunner-server/rpc/v6"
+	"github.com/roadrunner-server/send/v6"
+	"github.com/roadrunner-server/server/v6"
+	"github.com/roadrunner-server/static/v6"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/yookoala/gofast"
@@ -172,7 +172,7 @@ func TestHTTPAccessLogs(t *testing.T) {
 }
 
 func echoAccessLogs(t *testing.T) {
-	req, err := http.NewRequest("GET", "http://127.0.0.1:58332", nil)
+	req, err := http.NewRequestWithContext(t.Context(), "GET", "http://127.0.0.1:58332", nil)
 	assert.NoError(t, err)
 
 	r, err := http.DefaultClient.Do(req)
@@ -485,7 +485,7 @@ func sslNoRedirect(t *testing.T) {
 		},
 	}
 
-	req, err := http.NewRequest("GET", "http://127.0.0.1:8085?hello=world", nil)
+	req, err := http.NewRequestWithContext(t.Context(), "GET", "http://127.0.0.1:8085?hello=world", nil)
 	assert.NoError(t, err)
 
 	r, err := client.Do(req)
@@ -519,7 +519,7 @@ func sslEcho(t *testing.T) {
 		},
 	}
 
-	req, err := http.NewRequest(http.MethodGet, "https://127.0.0.1:8893?hello=world", nil) //nolint:noctx
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, "https://127.0.0.1:8893?hello=world", nil)
 	assert.NoError(t, err)
 
 	r, err := client.Do(req)
@@ -551,7 +551,7 @@ func fcgiEcho(t *testing.T) {
 	req := httptest.NewRequestWithContext(t.Context(), "GET", "http://site.local/?hello=world", nil)
 	fcgiHandler.ServeHTTP(w, req)
 
-	body, err := io.ReadAll(w.Result().Body) //nolint:bodyclose
+	body, err := io.ReadAll(w.Result().Body)
 
 	defer func() {
 		_ = w.Result().Body.Close()
@@ -559,7 +559,7 @@ func fcgiEcho(t *testing.T) {
 	}()
 
 	assert.NoError(t, err)
-	assert.Equal(t, 201, w.Result().StatusCode) //nolint:bodyclose
+	assert.Equal(t, 201, w.Result().StatusCode)
 	assert.Equal(t, "WORLD", string(body))
 }
 
@@ -840,9 +840,9 @@ func fcgiEcho1(t *testing.T) {
 	req := httptest.NewRequestWithContext(t.Context(), "GET", "http://site.local/hello-world", nil)
 	fcgiHandler.ServeHTTP(w, req)
 
-	_, err := io.ReadAll(w.Result().Body) //nolint:bodyclose
+	_, err := io.ReadAll(w.Result().Body)
 	assert.NoError(t, err)
-	assert.Equal(t, 200, w.Result().StatusCode) //nolint:bodyclose
+	assert.Equal(t, 200, w.Result().StatusCode)
 }
 
 func TestFastCGI_EchoUnix(t *testing.T) {
@@ -926,9 +926,9 @@ func fcgiEchoUnix(t *testing.T) {
 	req := httptest.NewRequestWithContext(t.Context(), "GET", "http://site.local/hello-world", nil)
 	fcgiHandler.ServeHTTP(w, req)
 
-	_, err := io.ReadAll(w.Result().Body) //nolint:bodyclose
+	_, err := io.ReadAll(w.Result().Body)
 	assert.NoError(t, err)
-	assert.Equal(t, 200, w.Result().StatusCode) //nolint:bodyclose
+	assert.Equal(t, 200, w.Result().StatusCode)
 }
 
 func TestFastCGI_RequestUri(t *testing.T) {
@@ -1007,9 +1007,9 @@ func fcgiReqURI(t *testing.T) {
 	req := httptest.NewRequestWithContext(t.Context(), "GET", "http://site.local/hello-world", nil)
 	fcgiHandler.ServeHTTP(w, req)
 
-	body, err := io.ReadAll(w.Result().Body) //nolint:bodyclose
+	body, err := io.ReadAll(w.Result().Body)
 	assert.NoError(t, err)
-	assert.Equal(t, 200, w.Result().StatusCode) //nolint:bodyclose
+	assert.Equal(t, 200, w.Result().StatusCode)
 	assert.Contains(t, string(body), "ddddd")
 }
 
@@ -1090,7 +1090,7 @@ func TestHTTP2Req(t *testing.T) {
 		Timeout:       0,
 	}
 
-	req, err := http.NewRequest(http.MethodGet, "https://127.0.0.1:23452?hello=world", nil) //nolint:noctx
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, "https://127.0.0.1:23452?hello=world", nil)
 	require.NoError(t, err)
 
 	r, err := client.Do(req)
@@ -1263,16 +1263,15 @@ func TestH2C(t *testing.T) {
 
 	tr := &http2.Transport{
 		AllowHTTP: true,
-		DialTLSContext: func(_ context.Context, network, addr string, _ *tls.Config) (net.Conn, error) {
-			// use the http dial (w/o tls)
-			return net.Dial(network, addr)
+		DialTLSContext: func(ctx context.Context, network, addr string, _ *tls.Config) (net.Conn, error) {
+			return (&net.Dialer{}).DialContext(ctx, network, addr)
 		},
 	}
 	client := &http.Client{
 		Transport: tr,
 	}
 
-	req, err := http.NewRequest(http.MethodGet, "http://127.0.0.1:8083?hello=world", nil) //nolint:noctx
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, "http://127.0.0.1:8083?hello=world", nil)
 	require.NoError(t, err)
 
 	r, err := client.Do(req)
@@ -1360,7 +1359,7 @@ func TestHttpMiddleware(t *testing.T) {
 }
 
 func middleware(t *testing.T) {
-	req, err := http.NewRequest(http.MethodGet, "http://127.0.0.1:18903?hello=world", nil)
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, "http://127.0.0.1:18903?hello=world", nil)
 	assert.NoError(t, err)
 
 	r, err := http.DefaultClient.Do(req)
@@ -1375,7 +1374,7 @@ func middleware(t *testing.T) {
 	err = r.Body.Close()
 	assert.NoError(t, err)
 
-	req, err = http.NewRequest(http.MethodGet, "http://127.0.0.1:18903/halt", nil) //nolint:noctx
+	req, err = http.NewRequestWithContext(t.Context(), http.MethodGet, "http://127.0.0.1:18903/halt", nil)
 	assert.NoError(t, err)
 
 	r, err = http.DefaultClient.Do(req)
@@ -1487,7 +1486,7 @@ logs:
 }
 
 func echoError(t *testing.T) {
-	req, err := http.NewRequest("GET", "http://127.0.0.1:34999?hello=world", nil)
+	req, err := http.NewRequestWithContext(t.Context(), "GET", "http://127.0.0.1:34999?hello=world", nil)
 	assert.NoError(t, err)
 
 	r, err := http.DefaultClient.Do(req)
@@ -1602,7 +1601,7 @@ func TestHTTPSupervisedPool(t *testing.T) {
 }
 
 func echoHTTP2(t *testing.T) {
-	req, err := http.NewRequest("GET", "http://127.0.0.1:18888?hello=world", nil)
+	req, err := http.NewRequestWithContext(t.Context(), "GET", "http://127.0.0.1:18888?hello=world", nil)
 	assert.NoError(t, err)
 
 	r, err := http.DefaultClient.Do(req)
@@ -1623,40 +1622,22 @@ func echoHTTP2(t *testing.T) {
 var workerPid = 0 //nolint:gochecknoglobals
 
 func informerTestBefore(t *testing.T) {
-	conn, err := net.Dial("tcp", "127.0.0.1:15432")
-	assert.NoError(t, err)
-	client := rpc.NewClientWithCodec(goridgeRpc.NewClientCodec(conn))
-	// WorkerList contains list of workers.
-	list := struct {
-		// Workers is list of workers.
-		Workers []process.State `json:"workers"`
-	}{}
-
-	err = client.Call("informer.Workers", "http", &list)
-	assert.NoError(t, err)
-	assert.Len(t, list.Workers, 1)
-	// save the pid
-	workerPid = int(list.Workers[0].Pid)
+	client := helpers.RPCInformerClient("127.0.0.1:15432")
+	resp, err := client.GetWorkers(t.Context(), connect.NewRequest(&informerV1.GetWorkersRequest{Plugin: httpPlugin.PluginName}))
+	require.NoError(t, err)
+	assert.Len(t, resp.Msg.GetWorkers(), 1)
+	workerPid = int(resp.Msg.GetWorkers()[0].GetPid())
 }
 
 func informerTestAfter(t *testing.T) {
-	conn, err := net.Dial("tcp", "127.0.0.1:15432")
-	assert.NoError(t, err)
-	client := rpc.NewClientWithCodec(goridgeRpc.NewClientCodec(conn))
-	// WorkerList contains list of workers.
-	list := struct {
-		// Workers is list of workers.
-		Workers []process.State `json:"workers"`
-	}{}
-
 	assert.NotZero(t, workerPid)
-
 	time.Sleep(time.Second * 5)
 
-	err = client.Call("informer.Workers", "http", &list)
-	assert.NoError(t, err)
-	assert.Len(t, list.Workers, 1)
-	assert.NotEqual(t, workerPid, list.Workers[0].Pid)
+	client := helpers.RPCInformerClient("127.0.0.1:15432")
+	resp, err := client.GetWorkers(t.Context(), connect.NewRequest(&informerV1.GetWorkersRequest{Plugin: httpPlugin.PluginName}))
+	require.NoError(t, err)
+	assert.Len(t, resp.Msg.GetWorkers(), 1)
+	assert.NotEqual(t, int32(workerPid), resp.Msg.GetWorkers()[0].GetPid()) //nolint:gosec // G115: pid fits int32
 }
 
 func TestHTTPBigRequestSize(t *testing.T) {
@@ -1725,7 +1706,7 @@ func TestHTTPBigRequestSize(t *testing.T) {
 
 	bt := bytes.NewBuffer(buf)
 
-	req, err := http.NewRequest(http.MethodGet, "http://127.0.0.1:10085?hello=world", bt) //nolint:noctx
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, "http://127.0.0.1:10085?hello=world", bt)
 	assert.NoError(t, err)
 
 	r, err := http.DefaultClient.Do(req)
@@ -2132,7 +2113,7 @@ func TestStaticPlugin(t *testing.T) {
 
 func staticHeaders(port int) func(t *testing.T) {
 	return func(t *testing.T) {
-		req, err := http.NewRequest("GET", fmt.Sprintf("http://127.0.0.1:%d/php_test_files/client.php", port), nil)
+		req, err := http.NewRequestWithContext(t.Context(), "GET", fmt.Sprintf("http://127.0.0.1:%d/php_test_files/client.php", port), nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -2357,7 +2338,7 @@ func staticTestFilesDir(t *testing.T) {
 }
 
 func staticNotFound(t *testing.T) {
-	b, _, _ := helpers.Get("http://127.0.0.1:34653/client.XXX?hello=world") //nolint:bodyclose
+	b, _, _ := helpers.Get("http://127.0.0.1:34653/client.XXX?hello=world") //nolint:bodyclose // helpers.Get closes internally
 	assert.Equal(t, "WORLD", b)
 }
 
@@ -2566,7 +2547,7 @@ func TestHTTPIPv6Short(t *testing.T) {
 }
 
 func echoIssue659(t *testing.T) {
-	req, err := http.NewRequest(http.MethodGet, "http://127.0.0.1:32552", nil)
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, "http://127.0.0.1:32552", nil)
 	assert.NoError(t, err)
 
 	r, err := http.DefaultClient.Do(req)
@@ -2581,7 +2562,7 @@ func echoIssue659(t *testing.T) {
 }
 
 func echoHTTP(t *testing.T) {
-	req, err := http.NewRequest("GET", "http://127.0.0.1:10084?hello=world", nil)
+	req, err := http.NewRequestWithContext(t.Context(), "GET", "http://127.0.0.1:10084?hello=world", nil)
 	assert.NoError(t, err)
 
 	r, err := http.DefaultClient.Do(req)
@@ -2596,7 +2577,7 @@ func echoHTTP(t *testing.T) {
 }
 
 func echoHTTPIPv6Long(t *testing.T) {
-	req, err := http.NewRequest("GET", "http://[0:0:0:0:0:0:0:1]:10684?hello=world", nil)
+	req, err := http.NewRequestWithContext(t.Context(), "GET", "http://[0:0:0:0:0:0:0:1]:10684?hello=world", nil)
 	assert.NoError(t, err)
 
 	r, err := http.DefaultClient.Do(req)
@@ -2611,7 +2592,7 @@ func echoHTTPIPv6Long(t *testing.T) {
 }
 
 func echoHTTPIPv6Short(t *testing.T) {
-	req, err := http.NewRequest("GET", "http://[::1]:10784?hello=world", nil)
+	req, err := http.NewRequestWithContext(t.Context(), "GET", "http://[::1]:10784?hello=world", nil)
 	assert.NoError(t, err)
 
 	r, err := http.DefaultClient.Do(req)
@@ -2627,21 +2608,16 @@ func echoHTTPIPv6Short(t *testing.T) {
 
 func resetTest(address string) func(t *testing.T) {
 	return func(t *testing.T) {
-		conn, err := net.Dial("tcp", address)
-		assert.NoError(t, err)
-		client := rpc.NewClientWithCodec(goridgeRpc.NewClientCodec(conn))
-		// WorkerList contains list of workers.
+		rc := helpers.RPCResetterClient(address)
 
-		var ret bool
-		err = client.Call("resetter.Reset", "http", &ret)
-		assert.NoError(t, err)
-		assert.True(t, ret)
-		ret = false
+		resp, err := rc.Reset(t.Context(), connect.NewRequest(&resetterV1.ResetRequest{Plugin: httpPlugin.PluginName}))
+		require.NoError(t, err)
+		assert.True(t, resp.Msg.GetOk())
 
-		var services []string
-		err = client.Call("resetter.List", nil, &services)
-		assert.NoError(t, err)
-		if services[0] != "http" {
+		listResp, err := rc.ListPlugins(t.Context(), connect.NewRequest(&resetterV1.ListPluginsRequest{}))
+		require.NoError(t, err)
+		require.NotEmpty(t, listResp.Msg.GetPlugins())
+		if listResp.Msg.GetPlugins()[0] != httpPlugin.PluginName {
 			t.Fatal("no enough services")
 		}
 	}
@@ -2649,17 +2625,9 @@ func resetTest(address string) func(t *testing.T) {
 
 func informerTest(address string) func(t *testing.T) {
 	return func(t *testing.T) {
-		conn, err := net.Dial("tcp", address)
-		assert.NoError(t, err)
-		client := rpc.NewClientWithCodec(goridgeRpc.NewClientCodec(conn))
-		// WorkerList contains list of workers.
-		list := struct {
-			// Workers is list of workers.
-			Workers []process.State `json:"workers"`
-		}{}
-
-		err = client.Call("informer.Workers", "http", &list)
-		assert.NoError(t, err)
-		assert.Len(t, list.Workers, 2)
+		client := helpers.RPCInformerClient(address)
+		resp, err := client.GetWorkers(t.Context(), connect.NewRequest(&informerV1.GetWorkersRequest{Plugin: httpPlugin.PluginName}))
+		require.NoError(t, err)
+		assert.Len(t, resp.Msg.GetWorkers(), 2)
 	}
 }

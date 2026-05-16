@@ -15,6 +15,7 @@ import (
 	"github.com/roadrunner-server/http/v6/api"
 	"github.com/roadrunner-server/http/v6/config"
 	"github.com/roadrunner-server/http/v6/handler"
+	"github.com/roadrunner-server/http/v6/proxy"
 	"github.com/roadrunner-server/http/v6/servers"
 	"github.com/roadrunner-server/pool/v2/pool/static_pool"
 	"github.com/roadrunner-server/pool/v2/state/process"
@@ -60,8 +61,13 @@ type Plugin struct {
 
 	// middlewares to chain
 	mdwr map[string]api.Middleware
-	// Pool which attached to all servers
+	// pool owns worker-process lifecycle (start/stop/scale/Reset). HTTP
+	// requests are routed through queue, not pool.Exec.
 	pool api.Pool
+	// queue brokers HTTP requests to PHP workers; workers pull via ConnectRPC.
+	queue *proxy.Queue
+	// proxyServer hosts the ConnectRPC service workers connect into.
+	proxyServer *proxy.Server
 	// servers RR handler
 	handler *handler.Handler
 	// metrics
@@ -129,15 +135,20 @@ func (p *Plugin) Serve() chan error {
 		return errCh
 	}
 
-	p.handler, err = handler.NewHandler(
-		p.cfg,
-		p.pool,
+	// request queue + worker-facing ConnectRPC server
+	p.queue = proxy.NewQueue(p.cfg.Proxy.InboxSize)
+	p.proxyServer = proxy.NewServer(
+		proxy.Config{Address: p.cfg.Proxy.Address},
+		p.queue,
 		p.log,
 	)
-	if err != nil {
-		errCh <- err
-		return errCh
-	}
+	go func() {
+		if pErr := p.proxyServer.Serve(); pErr != nil {
+			errCh <- pErr
+		}
+	}()
+
+	p.handler = handler.NewHandler(p.cfg, p.queue, p.log)
 
 	// initialize servers based on the configuration
 	err = p.initServers()
@@ -175,6 +186,15 @@ func (p *Plugin) Stop(ctx context.Context) error {
 			if srv != nil {
 				srv.Stop()
 			}
+		}
+
+		if p.proxyServer != nil {
+			if err := p.proxyServer.Stop(ctx); err != nil {
+				p.log.Warn("proxy server shutdown", "error", err)
+			}
+		}
+		if p.queue != nil {
+			p.queue.Close()
 		}
 
 		if p.pool != nil {

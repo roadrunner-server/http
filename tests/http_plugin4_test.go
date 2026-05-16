@@ -17,12 +17,12 @@ import (
 	mocklogger "tests/mock"
 
 	"github.com/quic-go/quic-go/http3"
-	"github.com/roadrunner-server/config/v5"
+	"github.com/roadrunner-server/config/v6"
 	"github.com/roadrunner-server/endure/v2"
 	httpPlugin "github.com/roadrunner-server/http/v6"
 	"github.com/roadrunner-server/logger/v6"
-	rpcPlugin "github.com/roadrunner-server/rpc/v5"
-	"github.com/roadrunner-server/server/v5"
+	rpcPlugin "github.com/roadrunner-server/rpc/v6"
+	"github.com/roadrunner-server/server/v6"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -157,7 +157,7 @@ func TestBug1843(t *testing.T) {
 
 	client := &http.Client{}
 
-	req, err := http.NewRequest(http.MethodGet, "http://127.0.0.1:16322", nil)
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, "http://127.0.0.1:16322", nil)
 	require.NoError(t, err)
 
 	r, err := client.Do(req)

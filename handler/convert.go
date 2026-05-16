@@ -3,43 +3,41 @@ package handler
 import (
 	"net/http"
 
-	httpV2proto "github.com/roadrunner-server/api-go/v6/http/v2"
+	httpV2 "github.com/roadrunner-server/api-go/v6/http/v2"
 )
 
-func convert(headers http.Header) map[string]*httpV2proto.HttpHeaderValue {
+func convert(headers http.Header) map[string]*httpV2.HttpHeaderValue {
 	if len(headers) == 0 {
 		return nil
 	}
 
-	resp := make(map[string]*httpV2proto.HttpHeaderValue, len(headers))
-
+	resp := make(map[string]*httpV2.HttpHeaderValue, len(headers))
 	for k, v := range headers {
-		if resp[k] == nil {
-			resp[k] = &httpV2proto.HttpHeaderValue{}
-		}
-
-		for _, vv := range v {
-			resp[k].Values = append(resp[k].GetValues(), []byte(vv))
-		}
+		resp[k] = &httpV2.HttpHeaderValue{Values: v}
 	}
-
 	return resp
 }
 
-func convertCookies(headers map[string]string) map[string]*httpV2proto.HttpHeaderValue {
-	if len(headers) == 0 {
+func convertCookies(cookies map[string]string) map[string]*httpV2.HttpHeaderValue {
+	if len(cookies) == 0 {
 		return nil
 	}
 
-	resp := make(map[string]*httpV2proto.HttpHeaderValue, len(headers))
+	resp := make(map[string]*httpV2.HttpHeaderValue, len(cookies))
+	for k, v := range cookies {
+		resp[k] = &httpV2.HttpHeaderValue{Values: []string{v}}
+	}
+	return resp
+}
 
-	for k, v := range headers {
-		if resp[k] == nil {
-			resp[k] = &httpV2proto.HttpHeaderValue{}
-		}
-
-		resp[k].Values = append(resp[k].GetValues(), []byte(v))
+func convertAttributes(attrs map[string][]string) map[string]*httpV2.HttpHeaderValue {
+	if len(attrs) == 0 {
+		return nil
 	}
 
+	resp := make(map[string]*httpV2.HttpHeaderValue, len(attrs))
+	for k, v := range attrs {
+		resp[k] = &httpV2.HttpHeaderValue{Values: v}
+	}
 	return resp
 }
