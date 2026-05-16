@@ -59,7 +59,9 @@ func (u *Uploads) Open(log *slog.Logger, dir string, forbid, allow map[string]st
 func (u *Uploads) Clear(log *slog.Logger) {
 	for _, f := range u.list {
 		if f.TempFilename != "" && exists(f.TempFilename) {
-			err := os.Remove(f.TempFilename)
+			// TempFilename was produced by os.CreateTemp inside the configured
+			// uploads dir — not user-controlled.
+			err := os.Remove(f.TempFilename) //nolint:gosec // G703: path is RR-generated
 			if err != nil && log != nil {
 				log.Error("error removing the file", "error", err)
 			}
@@ -163,7 +165,8 @@ func (f *FileUpload) Open(dir string, forbid, allow map[string]struct{}) error {
 
 // exists if file exists.
 func exists(path string) bool {
-	if _, err := os.Stat(path); os.IsNotExist(err) {
+	// path is RR-generated TempFilename, not user-controlled.
+	if _, err := os.Stat(path); os.IsNotExist(err) { //nolint:gosec // G703
 		return false
 	}
 	return true

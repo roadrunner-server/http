@@ -3,15 +3,14 @@ package tests
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"crypto/rand"
 	"crypto/tls"
 	"fmt"
 	"io"
 	"log/slog"
 	"mime/multipart"
-	"net"
 	"net/http"
-	"net/rpc"
 	"net/url"
 	"os"
 	"os/signal"
@@ -22,14 +21,16 @@ import (
 	"testing"
 	"time"
 
+	"tests/helpers"
+
+	"connectrpc.com/connect"
+	informerV1 "github.com/roadrunner-server/api-go/v6/informer/v1"
 	"github.com/roadrunner-server/config/v6"
 	"github.com/roadrunner-server/endure/v2"
-	goridgeRpc "github.com/roadrunner-server/goridge/v4/pkg/rpc"
 	"github.com/roadrunner-server/gzip/v6"
 	httpPlugin "github.com/roadrunner-server/http/v6"
 	"github.com/roadrunner-server/informer/v6"
 	"github.com/roadrunner-server/logger/v6"
-	"github.com/roadrunner-server/pool/v2/state/process"
 	rpcPlugin "github.com/roadrunner-server/rpc/v6"
 	"github.com/roadrunner-server/server/v6"
 	"github.com/stretchr/testify/assert"
@@ -96,7 +97,7 @@ func TestDebugModeResponse(t *testing.T) {
 
 	time.Sleep(time.Second * 2)
 
-	req, err := http.NewRequest("GET", "http://127.0.0.1:19995", nil)
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, "http://127.0.0.1:19995", nil)
 	assert.NoError(t, err)
 
 	r, err := http.DefaultClient.Do(req)
@@ -178,7 +179,7 @@ func TestStreamFail(t *testing.T) {
 
 	time.Sleep(time.Second * 2)
 
-	req, err := http.NewRequest("GET", "http://127.0.0.1:19993", nil)
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, "http://127.0.0.1:19993", nil)
 	assert.NoError(t, err)
 
 	r, err := http.DefaultClient.Do(req)
@@ -269,7 +270,7 @@ func TestStreamResponse(t *testing.T) {
 
 	time.Sleep(time.Second * 2)
 
-	req, err := http.NewRequest("GET", "http://127.0.0.1:19993", nil)
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, "http://127.0.0.1:19993", nil)
 	assert.NoError(t, err)
 
 	r, err := http.DefaultClient.Do(req)
@@ -360,7 +361,7 @@ func TestStream103(t *testing.T) {
 
 	time.Sleep(time.Second * 2)
 
-	req, err := http.NewRequest("GET", "http://127.0.0.1:19983", nil)
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, "http://127.0.0.1:19983", nil)
 	assert.NoError(t, err)
 
 	r, err := http.DefaultClient.Do(req)
@@ -464,7 +465,7 @@ func TestHTTPNonExistingHTTPCode(t *testing.T) {
 
 	time.Sleep(time.Second * 2)
 
-	req, err := http.NewRequest("GET", "http://127.0.0.1:44555", nil)
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, "http://127.0.0.1:44555", nil)
 	assert.NoError(t, err)
 
 	r, err := http.DefaultClient.Do(req)
@@ -577,7 +578,7 @@ func TestHTTPMultipartFormTmpFiles(t *testing.T) {
 
 	// Close multipart writer.
 	_ = writer.Close()
-	req, err := http.NewRequest("POST", "http://localhost:55667/employee", bytes.NewReader(body.Bytes()))
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodPost, "http://localhost:55667/employee", bytes.NewReader(body.Bytes()))
 	require.NoError(t, err)
 
 	req.Header.Set("Content-Type", writer.FormDataContentType())
@@ -759,7 +760,7 @@ func TestMTLS2(t *testing.T) {
 
 	time.Sleep(time.Second * 1)
 
-	req, err := http.NewRequest("GET", "https://127.0.0.1:8896?hello=world", nil)
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, "https://127.0.0.1:8896?hello=world", nil)
 	assert.NoError(t, err)
 
 	cert, err := tls.LoadX509KeyPair("test-certs/localhost+2-client.pem", "test-certs/localhost+2-client-key.pem")
@@ -850,7 +851,7 @@ func TestMTLS3(t *testing.T) {
 
 	time.Sleep(time.Second * 1)
 
-	req, err := http.NewRequest("GET", "https://127.0.0.1:8897?hello=world", nil)
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, "https://127.0.0.1:8897?hello=world", nil)
 	assert.NoError(t, err)
 
 	cert, err := tls.LoadX509KeyPair("test-certs/localhost+2-client.pem", "test-certs/localhost+2-client-key.pem")
@@ -1373,28 +1374,28 @@ func TestHTTPAddWorkers(t *testing.T) {
 
 	time.Sleep(time.Second * 2)
 
-	wl, err := workers("127.0.0.1:30301")
+	wl, err := workers()
 	require.NoError(t, err)
 	require.Equal(t, 2, len(wl.Workers))
 
-	err = addWorker("127.0.0.1:30301")
+	err = addWorker()
 	require.NoError(t, err)
 
-	wl, err = workers("127.0.0.1:30301")
+	wl, err = workers()
 	require.NoError(t, err)
 	require.Equal(t, 3, len(wl.Workers))
 
 	for range 3 {
-		err = removeWorker("127.0.0.1:30301")
+		err = removeWorker()
 		require.NoError(t, err)
 	}
 
-	wl, err = workers("127.0.0.1:30301")
+	wl, err = workers()
 	require.NoError(t, err)
 	require.Equal(t, 1, len(wl.Workers))
 
 	time.Sleep(time.Second)
-	err = addWorker("127.0.0.1:30301")
+	err = addWorker()
 	require.NoError(t, err)
 
 	req, err := http.NewRequest(http.MethodGet, "http://127.0.0.1:44556", nil) //nolint:noctx
@@ -1410,10 +1411,10 @@ func TestHTTPAddWorkers(t *testing.T) {
 
 	go func() {
 		time.Sleep(time.Second * 2)
-		err2 := addWorker("127.0.0.1:30301")
+		err2 := addWorker()
 		require.NoError(t, err2)
 
-		wl2, err2 := workers("127.0.0.1:30301")
+		wl2, err2 := workers()
 		require.NoError(t, err2)
 		require.Equal(t, 3, len(wl2.Workers))
 	}()
@@ -1433,53 +1434,37 @@ func TestHTTPAddWorkers(t *testing.T) {
 }
 
 type workersList struct {
-	Workers []process.State `json:"workers"`
+	Workers []*informerV1.ProcessState
 }
 
-func workers(address string) (*workersList, error) {
-	conn, err := net.Dial("tcp", address)
+const (
+	informerWorkersAddr = "127.0.0.1:30301"
+	informerRPCTimeout  = 5 * time.Second
+)
+
+func workers() (*workersList, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), informerRPCTimeout)
+	defer cancel()
+	client := helpers.RPCInformerClient(informerWorkersAddr)
+	resp, err := client.GetWorkers(ctx, connect.NewRequest(&informerV1.GetWorkersRequest{Plugin: httpPlugin.PluginName}))
 	if err != nil {
 		return nil, err
 	}
-
-	wl := &workersList{}
-	client := rpc.NewClientWithCodec(goridgeRpc.NewClientCodec(conn))
-	err = client.Call("informer.Workers", "http", wl)
-	if err != nil {
-		return nil, err
-	}
-
-	return wl, nil
+	return &workersList{Workers: resp.Msg.GetWorkers()}, nil
 }
 
-func addWorker(address string) error {
-	conn, err := net.Dial("tcp", address)
-	if err != nil {
-		return err
-	}
-
-	res := true
-	client := rpc.NewClientWithCodec(goridgeRpc.NewClientCodec(conn))
-	err = client.Call("informer.AddWorker", "http", &res)
-	if err != nil {
-		return err
-	}
-
-	return nil
+func addWorker() error {
+	ctx, cancel := context.WithTimeout(context.Background(), informerRPCTimeout)
+	defer cancel()
+	client := helpers.RPCInformerClient(informerWorkersAddr)
+	_, err := client.AddWorker(ctx, connect.NewRequest(&informerV1.AddWorkerRequest{Plugin: httpPlugin.PluginName}))
+	return err
 }
 
-func removeWorker(address string) error {
-	conn, err := net.Dial("tcp", address)
-	if err != nil {
-		return err
-	}
-
-	res := true
-	client := rpc.NewClientWithCodec(goridgeRpc.NewClientCodec(conn))
-	err = client.Call("informer.RemoveWorker", "http", &res)
-	if err != nil {
-		return err
-	}
-
-	return nil
+func removeWorker() error {
+	ctx, cancel := context.WithTimeout(context.Background(), informerRPCTimeout)
+	defer cancel()
+	client := helpers.RPCInformerClient(informerWorkersAddr)
+	_, err := client.RemoveWorker(ctx, connect.NewRequest(&informerV1.RemoveWorkerRequest{Plugin: httpPlugin.PluginName}))
+	return err
 }

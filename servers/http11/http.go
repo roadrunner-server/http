@@ -35,10 +35,9 @@ func NewHTTPServer(handler http.Handler, cfg *config.Config, errLog *log.Logger,
 	}
 
 	if cfg.HTTP2Config != nil && cfg.HTTP2Config.H2C {
-		proto := new(http.Protocols)
-		proto.SetHTTP1(true)
-		proto.SetUnencryptedHTTP2(true)
-
+		protocols := new(http.Protocols)
+		protocols.SetHTTP1(true)
+		protocols.SetUnencryptedHTTP2(true)
 		return &Server{
 			log:          log,
 			redirect:     redirect,
@@ -46,8 +45,7 @@ func NewHTTPServer(handler http.Handler, cfg *config.Config, errLog *log.Logger,
 			address:      cfg.Address,
 			http: &http.Server{
 				Handler:           handler,
-				Protocols:         proto,
-				HTTP2:             &http.HTTP2Config{MaxConcurrentStreams: int(cfg.HTTP2Config.MaxConcurrentStreams)},
+				Protocols:         protocols,
 				ReadTimeout:       time.Minute * 5,
 				WriteTimeout:      time.Minute * 5,
 				IdleTimeout:       time.Hour,

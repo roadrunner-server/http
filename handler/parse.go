@@ -6,27 +6,16 @@ import (
 	"strings"
 )
 
-// MaxLevel defines maximum tree depth for incoming request data and files.
+// MaxLevel caps tree depth for incoming form keys to protect against
+// pathological inputs like "a[a][a]...[a]".
 const MaxLevel = 127
+
+// ErrMaxLevelExceeded is returned by push when a key's bracket-notation
+// depth exceeds MaxLevel.
+var ErrMaxLevelExceeded = fmt.Errorf("form key depth exceeds MaxLevel (%d)", MaxLevel)
 
 type dataTree map[string]any
 type fileTree map[string]any
-
-// parsePostForm parses incoming request body into data tree.
-func parsePostForm(r *http.Request) (dataTree, error) {
-	data := make(dataTree, 2)
-
-	if r.PostForm != nil {
-		for k, v := range r.PostForm {
-			err := data.push(k, v)
-			if err != nil {
-				return nil, err
-			}
-		}
-	}
-
-	return data, nil
-}
 
 // parseMultipartData parses incoming request body into data tree.
 func parseMultipartData(r *http.Request) (dataTree, error) {
@@ -47,11 +36,10 @@ func parseMultipartData(r *http.Request) (dataTree, error) {
 // pushes value into data tree.
 func (dt dataTree) push(k string, v []string) error {
 	keys := fetchIndexes(k)
-	if len(keys) <= MaxLevel {
-		return mount(dt, keys, v, dataLeaf)
+	if len(keys) > MaxLevel {
+		return ErrMaxLevelExceeded
 	}
-
-	return nil
+	return mount(dt, keys, v, lastValue)
 }
 
 func invalidMultipleValuesErr(key string) error {
@@ -61,16 +49,18 @@ func invalidMultipleValuesErr(key string) error {
 	)
 }
 
-func dataLeaf(v []string) any      { return v[len(v)-1] }
-func fileLeaf(v []*FileUpload) any { return v[0] }
+// lastValue picks the final string value for a leaf. PHP's $_POST semantics:
+// when the same key arrives more than once (e.g., "a=1&a=2"), the last wins.
+func lastValue(v []string) any { return v[len(v)-1] }
+
+// firstFile picks the first file for a scalar leaf. PHP's $_FILES doesn't
+// permit multiple files at the same scalar key — multi-file uploads must use
+// "name[]" notation, which lands in mount's non-associative branch instead.
+func firstFile(v []*FileUpload) any { return v[0] }
 
 // mount walks the key path iteratively, creating intermediate nodes as needed,
-// and stores the value at the terminal position.
-//
-// This handles the edge case where a bare key like "options" arrives with an
-// empty value alongside "options[0][name]" with real data. Without ignoring
-// the empty value, the whole nested array would be lost. See prepareTreeNode
-// for the conflict-resolution logic.
+// and stores the value at the terminal position. Conflict resolution between
+// existing and incoming nodes is handled by prepareTreeNode.
 func mount[T dataTree | fileTree, V []string | []*FileUpload](
 	tree T, keys []string, v V, leafVal func(V) any,
 ) error {
@@ -110,6 +100,10 @@ func mount[T dataTree | fileTree, V []string | []*FileUpload](
 	return nil
 }
 
+// prepareTreeNode resolves the collision when a key already exists in the
+// tree. Notable edge case: a bare key like "options" arriving with an empty
+// value alongside "options[0][name]" with real data — without ignoring the
+// empty leaf, the whole nested array would be lost.
 func prepareTreeNode[T dataTree | fileTree, V []string | []*FileUpload](
 	tree T, keys []string, v V,
 ) (done bool, err error) {
@@ -135,12 +129,13 @@ func prepareTreeNode[T dataTree | fileTree, V []string | []*FileUpload](
 	case !isBranch && !existingEmpty && incomingEmpty:
 		// non-empty leaf vs empty incoming: keep existing
 		return true, nil
-	case isBranch && isLeaf && !incomingEmpty:
-		// branch vs incoming non-empty scalar: conflict
+	case isBranch && isLeaf:
+		// existing branch vs incoming scalar at the terminal level: empty
+		// incoming is ignored (keeps the branch), non-empty is a conflict.
+		if incomingEmpty {
+			return true, nil
+		}
 		return true, invalidMultipleValuesErr(keys[0])
-	case isBranch && isLeaf && incomingEmpty:
-		// branch vs empty incoming leaf: ignore
-		return true, nil
 	default:
 		// continue descent (branch→branch, empty→empty, or leaf overwrite)
 		return false, nil
@@ -186,10 +181,10 @@ func parseUploads(r *http.Request, uid, gid int) (*Uploads, error) {
 // pushes new file upload into its proper place.
 func (ft fileTree) push(k string, v []*FileUpload) error {
 	keys := fetchIndexes(k)
-	if len(keys) <= MaxLevel {
-		return mount(ft, keys, v, fileLeaf)
+	if len(keys) > MaxLevel {
+		return ErrMaxLevelExceeded
 	}
-	return nil
+	return mount(ft, keys, v, firstFile)
 }
 
 // fetchIndexes parses a PHP-style bracket-notation field name into key segments.

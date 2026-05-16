@@ -32,8 +32,6 @@ linters:
     - unused
     - whitespace
   settings:
-    dupl:
-      threshold: 100
     gocyclo:
       min-complexity: 20
     godot:
