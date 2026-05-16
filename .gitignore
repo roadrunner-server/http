@@ -21,3 +21,5 @@ vendor/
 **/tests/test-certs/**
 **/tests/php_test_files/.composer.lock
 **/composer.lock
+**/.claude/settings.local.json
+servers/buf/
