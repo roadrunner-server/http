@@ -3,7 +3,7 @@ module github.com/roadrunner-server/http/v6
 go 1.26
 
 require (
-	connectrpc.com/connect v1.19.2
+	connectrpc.com/connect v1.20.0
 	github.com/caddyserver/certmagic v0.25.3
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
