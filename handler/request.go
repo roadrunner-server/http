@@ -110,7 +110,7 @@ func populateBody(r *http.Request, req *httpV2.HttpHandlerRequest, uid, gid int)
 		// plugin level (plugin.applyBundledMiddleware), so gosec's
 		// "unbounded form parsing" warning is a false positive here.
 		if err := r.ParseMultipartForm(defaultMaxMemory); err != nil { //nolint:gosec // G120: bounded upstream
-			return nil, err
+			return nil, classifyParseErr(err)
 		}
 		ups, err := parseUploads(r, uid, gid)
 		if err != nil {
@@ -129,8 +129,12 @@ func populateBody(r *http.Request, req *httpV2.HttpHandlerRequest, uid, gid int)
 		return ups, nil
 
 	default:
+		// r.Body is wrapped by middleware/maxRequest.go's MaxBytesReader, so
+		// ReadAll can fail with *http.MaxBytesError on payload overflow —
+		// classifyParseErr promotes that to 413 (otherwise it would fall to
+		// handleRequestErr's 400 default).
 		var err error
 		req.Body, err = io.ReadAll(r.Body)
-		return nil, err
+		return nil, classifyParseErr(err)
 	}
 }

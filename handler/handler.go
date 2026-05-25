@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	stderr "errors"
 	"fmt"
-	"html/template"
-	"io"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -122,7 +120,15 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// marshal req.Uploads AFTER, not before, to capture the final state.
 		ups.Open(h.log, h.uploads.dir, h.uploads.forbid, h.uploads.allow)
 		if req.Uploads, err = json.Marshal(ups); err != nil {
-			h.handleRequestErr(w, r, ups, err, start)
+			// Marshaling our own Uploads struct is a server-side bug, not
+			// client input — keep the 5xx semantics rather than letting it
+			// fall through handleRequestErr's 4xx default.
+			clearUploads(h.log, r, ups)
+			h.handleError(w, err)
+			h.log.Error("marshal uploads",
+				"elapsed", time.Since(start).Milliseconds(),
+				"error", err,
+			)
 			return
 		}
 	}
@@ -247,6 +253,13 @@ func handleProtoTrailers(h map[string]*httpV2.HttpHeaderValue) {
 	delete(h, Trailer)
 }
 
+// handleRequestErr writes the response for an error produced while parsing the
+// client's request. Such errors are 4xx by construction — populateBody only
+// touches client-supplied bytes (multipart form, body, query). The default is
+// http.StatusBadRequest; call sites that know a more specific code (e.g. 413
+// for size limits) wrap the error with withStatus, which wins here via
+// errors.As. Server-internal failures must not flow through this path — see
+// handleError instead.
 func (h *Handler) handleRequestErr(w http.ResponseWriter, r *http.Request, ups *Uploads, err error, start time.Time) {
 	clearUploads(h.log, r, ups)
 
@@ -258,14 +271,9 @@ func (h *Handler) handleRequestErr(w http.ResponseWriter, r *http.Request, ups *
 		return
 	}
 
-	status := http.StatusInternalServerError
-	switch {
-	case isMaxBytesError(err):
-		status = http.StatusRequestEntityTooLarge
-	case stderr.Is(err, io.EOF), stderr.Is(err, io.ErrUnexpectedEOF):
-		status = http.StatusBadRequest
-	case stderr.Is(err, ErrMaxLevelExceeded):
-		status = http.StatusBadRequest
+	status := http.StatusBadRequest
+	if sErr, ok := stderr.AsType[*statusError](err); ok {
+		status = sErr.Status()
 	}
 
 	http.Error(w, err.Error(), status)
@@ -286,15 +294,15 @@ func (h *Handler) handleSubmitErr(w http.ResponseWriter, err error) {
 func (h *Handler) handleError(w http.ResponseWriter, err error) {
 	// internalHTTPCode is a config-provided HTTP status, defaulted to 500 and
 	// always within [100, 599] in practice. The cast is safe.
-	w.WriteHeader(int(h.internalHTTPCode)) //nolint:gosec // G115: bounded HTTP status code
+	status := int(h.internalHTTPCode) //nolint:gosec // G115: bounded HTTP status code
+	msg := http.StatusText(status)
 	if h.debugMode {
-		template.HTMLEscape(w, []byte(err.Error()))
+		msg = err.Error()
 	}
-}
-
-func isMaxBytesError(err error) bool {
-	_, ok := stderr.AsType[*http.MaxBytesError](err)
-	return ok
+	// http.Error sets Content-Type and X-Content-Type-Options: nosniff and
+	// writes msg as the body — keeps the response well-formed even when the
+	// configured internalHTTPCode is a 5xx and we're not in debug mode.
+	http.Error(w, msg, status)
 }
 
 func clearUploads(log *slog.Logger, r *http.Request, ups *Uploads) {
