@@ -17,6 +17,7 @@ import (
 	httpV2 "github.com/roadrunner-server/api-go/v6/http/v2"
 	"github.com/roadrunner-server/http/v6/config"
 	"github.com/roadrunner-server/http/v6/handler"
+	httpMw "github.com/roadrunner-server/http/v6/middleware"
 	"github.com/roadrunner-server/http/v6/proxy"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -467,6 +468,70 @@ func TestHandler_Multipart_PATCH(t *testing.T) {
 
 	res := doMultipartFormPost(t, http.MethodPatch, "http://127.0.0.1:34432")
 	assertStandardFormTree(t, res, "value")
+}
+
+// TestHandler_NonMultipart_OversizeBody guards against the regression where a
+// non-multipart body exceeding MaxRequestSize returned 400 instead of 413,
+// because the original handleRequestErr's explicit MaxBytesError case had
+// been collapsed into the 400 default. classifyParseErr now promotes the
+// MaxBytesError on the io.ReadAll path back to 413.
+func TestHandler_NonMultipart_OversizeBody(t *testing.T) {
+	const maxBytes = 64
+	cfg := defaultCfg()
+	q := proxy.NewQueue(cfg.Proxy.InboxSize)
+	stop := helpers.StartFakeWorker(t.Context(), q, multipartEchoResponder)
+	t.Cleanup(stop)
+
+	h := handler.NewHandler(cfg, q, testLog.SlogLogger())
+	// Wrap with the same MaxRequestSize middleware the plugin applies in
+	// production (init.go) — without it ReadAll never sees MaxBytesError.
+	hs := &http.Server{
+		Addr:              "127.0.0.1:8190",
+		Handler:           httpMw.MaxRequestSize(h, maxBytes),
+		ReadHeaderTimeout: time.Minute,
+	}
+	go func() {
+		if err := hs.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			t.Errorf("listen: %v", err)
+		}
+	}()
+	t.Cleanup(func() { _ = hs.Shutdown(context.Background()) })
+	time.Sleep(10 * time.Millisecond)
+
+	body := strings.Repeat("x", int(maxBytes)*4)
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodPost, "http://127.0.0.1:8190/", strings.NewReader(body))
+	require.NoError(t, err)
+	req.Header.Set("Content-Type", "application/json")
+
+	r, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer func() { _ = r.Body.Close() }()
+
+	assert.Equal(t, http.StatusRequestEntityTooLarge, r.StatusCode)
+}
+
+// TestHandler_Multipart_SemicolonInQuery covers issue #2353: a malformed
+// query string causes ParseMultipartForm (which internally parses the URL
+// query) to fail with "invalid semicolon separator in query". The response
+// must be 400 Bad Request, not the historical 500.
+func TestHandler_Multipart_SemicolonInQuery(t *testing.T) {
+	env := newHandlerEnv(t, "127.0.0.1:8189", defaultCfg(), multipartEchoResponder)
+	defer env.close(t)
+
+	var mb bytes.Buffer
+	w := multipart.NewWriter(&mb)
+	require.NoError(t, w.WriteField("key", "value"))
+	require.NoError(t, w.Close())
+
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodPost, "http://127.0.0.1:8189/?a=b;c", &mb)
+	require.NoError(t, err)
+	req.Header.Set("Content-Type", w.FormDataContentType())
+
+	r, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer func() { _ = r.Body.Close() }()
+
+	assert.Equal(t, http.StatusBadRequest, r.StatusCode)
 }
 
 func doMultipartFormPost(t *testing.T, method, urlStr string) map[string]any {
