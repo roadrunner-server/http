@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -204,8 +205,7 @@ func tlsAddr(host string, forcePort bool, sslPort int) string {
 }
 
 func applyMiddleware(server *http.Server, middleware map[string]api.Middleware, order []string, log *slog.Logger) {
-	for i := len(order) - 1; i >= 0; i-- {
-		name := order[i]
+	for _, name := range slices.Backward(order) {
 		if mdwr, ok := middleware[name]; ok {
 			server.Handler = mdwr.Middleware(server.Handler)
 		} else {

@@ -3,6 +3,7 @@ package http3
 import (
 	"log/slog"
 	"net/http"
+	"slices"
 
 	"github.com/quic-go/quic-go"
 	"github.com/quic-go/quic-go/http3"
@@ -85,8 +86,7 @@ func (s *Server) Stop() {
 }
 
 func applyMiddleware(server *http3.Server, middleware map[string]api.Middleware, order []string, log *slog.Logger) {
-	for i := len(order) - 1; i >= 0; i-- {
-		name := order[i]
+	for _, name := range slices.Backward(order) {
 		if mdwr, ok := middleware[name]; ok {
 			server.Handler = mdwr.Middleware(server.Handler)
 		} else {
