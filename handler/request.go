@@ -37,12 +37,10 @@ func FetchIP(pair string, log *slog.Logger) string {
 	return ip.String()
 }
 
-var crlfReplacer = strings.NewReplacer("\n", "", "\r", "") //nolint:gochecknoglobals
-
 // URI returns the fully-qualified request URI, stripping CR/LF to prevent
 // header smuggling via the URL.
 func URI(r *http.Request) string {
-	uri := crlfReplacer.Replace(r.URL.String())
+	uri := strings.ReplaceAll(strings.ReplaceAll(r.URL.String(), "\n", ""), "\r", "")
 
 	if r.URL.Host != "" {
 		return uri
@@ -84,7 +82,7 @@ func extractCookies(r *http.Request) map[string]string {
 
 // cleanRawQuery strips CR/LF from the URL raw query before exposing it to PHP.
 func cleanRawQuery(q string) string {
-	return crlfReplacer.Replace(q)
+	return strings.ReplaceAll(strings.ReplaceAll(q, "\n", ""), "\r", "")
 }
 
 // populateBody fills req.Body / req.Parsed based on the request content-type.

@@ -16,7 +16,10 @@ import (
 var _ io.ReadCloser = (*wrapper)(nil)
 var _ http.ResponseWriter = (*wrapper)(nil)
 
-var crlfReplacer = strings.NewReplacer("\n", "", "\r", "") //nolint:gochecknoglobals
+// stripCRLF removes CR/LF to prevent log injection (CWE-117).
+func stripCRLF(s string) string {
+	return strings.ReplaceAll(strings.ReplaceAll(s, "\n", ""), "\r", "")
+}
 
 type wrapper struct {
 	io.ReadCloser
@@ -143,9 +146,9 @@ func (l *lm) writeLog(accessLog bool, r *http.Request, bw *wrapper, start time.T
 	}
 
 	// external/cwe/cwe-117
-	usrA := crlfReplacer.Replace(r.UserAgent())
-	rfr := crlfReplacer.Replace(r.Referer())
-	rq := crlfReplacer.Replace(r.URL.RawQuery)
+	usrA := stripCRLF(r.UserAgent())
+	rfr := stripCRLF(r.Referer())
+	rq := stripCRLF(r.URL.RawQuery)
 
 	l.log.Info("http access log",
 		"read_bytes", bw.read,
