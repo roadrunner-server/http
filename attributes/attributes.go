@@ -89,7 +89,7 @@ func Set(r *http.Request, key string, value string) error {
 
 	a, ok := v.(attrs)
 	if !ok {
-		return errors.New("unable to find `psr:attributes` context key")
+		return errors.New("unexpected type stored under `psr:attributes` context key")
 	}
 	a.set(key, value)
 	return nil

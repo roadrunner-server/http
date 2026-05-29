@@ -127,11 +127,17 @@ func (p *Plugin) Serve() chan error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	var err error
-	p.pool, err = p.server.NewPool(context.Background(), p.cfg.Pool, map[string]string{RrMode: RrModeHTTP}, p.log)
+	// NewPool returns a concrete *static_pool.Pool; assign it to the api.Pool
+	// interface field only when non-nil so p.pool never holds a typed nil
+	// (which would make the p.pool != nil guard in Stop spuriously true and
+	// panic inside Destroy on a nil receiver).
+	np, err := p.server.NewPool(context.Background(), p.cfg.Pool, map[string]string{RrMode: RrModeHTTP}, p.log)
 	if err != nil {
 		errCh <- err
 		return errCh
+	}
+	if np != nil {
+		p.pool = np
 	}
 
 	// request queue + worker-facing ConnectRPC server
