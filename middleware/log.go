@@ -16,6 +16,8 @@ import (
 var _ io.ReadCloser = (*wrapper)(nil)
 var _ http.ResponseWriter = (*wrapper)(nil)
 
+var crlfReplacer = strings.NewReplacer("\n", "", "\r", "") //nolint:gochecknoglobals
+
 type wrapper struct {
 	io.ReadCloser
 	read  int
@@ -27,7 +29,6 @@ type wrapper struct {
 
 	w    http.ResponseWriter
 	code int
-	data []byte
 }
 
 func (w *wrapper) Read(b []byte) (int, error) {
@@ -85,7 +86,6 @@ func (w *wrapper) reset() {
 	w.wc = false
 	w.write = 0
 	w.w = nil
-	w.data = nil
 	w.ReadCloser = nil
 }
 
@@ -128,8 +128,7 @@ func (l *lm) Log(next http.Handler, accessLogs bool) http.Handler {
 }
 
 func (l *lm) writeLog(accessLog bool, r *http.Request, bw *wrapper, start time.Time) {
-	switch accessLog {
-	case false:
+	if !accessLog {
 		l.log.Info("http log",
 			"status", bw.code,
 			"method", r.Method,
@@ -140,38 +139,31 @@ func (l *lm) writeLog(accessLog bool, r *http.Request, bw *wrapper, start time.T
 			"write_bytes", bw.write,
 			"start", start,
 			"elapsed", time.Since(start).Milliseconds())
-	case true:
-		// external/cwe/cwe-117
-		usrA := r.UserAgent()
-		usrA = strings.ReplaceAll(usrA, "\n", "")
-		usrA = strings.ReplaceAll(usrA, "\r", "")
-
-		rfr := r.Referer()
-		rfr = strings.ReplaceAll(rfr, "\n", "")
-		rfr = strings.ReplaceAll(rfr, "\r", "")
-
-		rq := r.URL.RawQuery
-		rq = strings.ReplaceAll(rq, "\n", "")
-		rq = strings.ReplaceAll(rq, "\r", "")
-
-		l.log.Info("http access log",
-			"read_bytes", bw.read,
-			"write_bytes", bw.write,
-			"status", bw.code,
-			"method", r.Method,
-			"URI", r.RequestURI,
-			"URL", r.URL.String(),
-			"remote_address", r.RemoteAddr,
-			"query", rq,
-			"content_len", r.ContentLength,
-			"host", r.Host,
-			"user_agent", usrA,
-			"referer", rfr,
-			"time_local", time.Now().Format("02/Jan/06:15:04:05 -0700"),
-			"request_time", time.Now(),
-			"start", start,
-			"elapsed", time.Since(start).Milliseconds())
+		return
 	}
+
+	// external/cwe/cwe-117
+	usrA := crlfReplacer.Replace(r.UserAgent())
+	rfr := crlfReplacer.Replace(r.Referer())
+	rq := crlfReplacer.Replace(r.URL.RawQuery)
+
+	l.log.Info("http access log",
+		"read_bytes", bw.read,
+		"write_bytes", bw.write,
+		"status", bw.code,
+		"method", r.Method,
+		"URI", r.RequestURI,
+		"URL", r.URL.String(),
+		"remote_address", r.RemoteAddr,
+		"query", rq,
+		"content_len", r.ContentLength,
+		"host", r.Host,
+		"user_agent", usrA,
+		"referer", rfr,
+		"time_local", start.Format("02/Jan/06:15:04:05 -0700"),
+		"request_time", start,
+		"start", start,
+		"elapsed", time.Since(start).Milliseconds())
 }
 
 func (l *lm) getW(w http.ResponseWriter) *wrapper {

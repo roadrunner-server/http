@@ -17,7 +17,6 @@ import (
 	"github.com/roadrunner-server/http/v6/handler"
 	"github.com/roadrunner-server/http/v6/proxy"
 	"github.com/roadrunner-server/http/v6/servers"
-	"github.com/roadrunner-server/pool/v2/pool/static_pool"
 	"github.com/roadrunner-server/pool/v2/state/process"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	jprop "go.opentelemetry.io/contrib/propagators/jaeger"
@@ -161,14 +160,12 @@ func (p *Plugin) Serve() chan error {
 	p.applyBundledMiddleware()
 
 	// start all servers
-	for i := range p.servers {
-		go func(idx int) {
-			errSt := p.servers[idx].Serve(p.mdwr, p.cfg.Middleware)
-			if errSt != nil {
+	for _, srv := range p.servers {
+		go func(s servers.InternalServer[any]) {
+			if errSt := s.Serve(p.mdwr, p.cfg.Middleware); errSt != nil {
 				errCh <- errSt
-				return
 			}
-		}(i)
+		}(srv)
 	}
 
 	return errCh
@@ -201,14 +198,7 @@ func (p *Plugin) Stop(ctx context.Context) error {
 		}
 
 		if p.pool != nil {
-			switch pp := p.pool.(type) {
-			case *static_pool.Pool:
-				if pp != nil {
-					pp.Destroy(ctx)
-				}
-			default:
-				// pool is nil, nothing to do
-			}
+			p.pool.Destroy(ctx)
 		}
 
 		doneCh <- struct{}{}
@@ -241,8 +231,6 @@ func (p *Plugin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	p.mu.RLock()
 	p.handler.ServeHTTP(w, r)
 	p.mu.RUnlock()
-
-	_ = r.Body.Close()
 
 	if span != nil {
 		span.End()

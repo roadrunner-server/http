@@ -2,7 +2,9 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
+	"io/fs"
 	"log/slog"
 	"mime/multipart"
 	"os"
@@ -166,8 +168,6 @@ func (f *FileUpload) Open(dir string, forbid, allow map[string]struct{}) error {
 // exists if file exists.
 func exists(path string) bool {
 	// path is RR-generated TempFilename, not user-controlled.
-	if _, err := os.Stat(path); os.IsNotExist(err) { //nolint:gosec // G703
-		return false
-	}
-	return true
+	_, err := os.Stat(path) //nolint:gosec // G703
+	return !errors.Is(err, fs.ErrNotExist)
 }
