@@ -20,36 +20,24 @@ func IssueCertificates(cacheDir, email, challengeType string, domains []string, 
 	cache := certmagic.NewCache(certmagic.CacheOptions{
 		GetConfigForCert: func(_ certmagic.Certificate) (*certmagic.Config, error) {
 			return &certmagic.Config{
-				RenewalWindowRatio: 0,
-				MustStaple:         false,
-				OCSP:               certmagic.OCSPConfig{},
-				Storage:            &certmagic.FileStorage{Path: cacheDir},
+				Storage: &certmagic.FileStorage{Path: cacheDir},
 			}, nil
 		},
-		OCSPCheckInterval:  0,
-		RenewCheckInterval: 0,
-		Capacity:           0,
 	})
 
 	cfg := certmagic.New(cache, certmagic.Config{
-		RenewalWindowRatio: 0,
-		MustStaple:         false,
-		OCSP:               certmagic.OCSPConfig{},
-		Storage:            &certmagic.FileStorage{Path: cacheDir},
+		Storage: &certmagic.FileStorage{Path: cacheDir},
 	})
 
 	myAcme := certmagic.NewACMEIssuer(cfg, certmagic.ACMEIssuer{
-		CA:                      certmagic.LetsEncryptProductionCA,
-		TestCA:                  certmagic.LetsEncryptStagingCA,
-		Email:                   email,
-		Agreed:                  true,
-		DisableHTTPChallenge:    false,
-		DisableTLSALPNChallenge: false,
-		ListenHost:              "0.0.0.0",
-		AltHTTPPort:             altHTTPPort,
-		AltTLSALPNPort:          altTLSAlpnPort,
-		CertObtainTimeout:       time.Second * 240,
-		PreferredChains:         certmagic.ChainPreference{},
+		CA:                certmagic.LetsEncryptProductionCA,
+		TestCA:            certmagic.LetsEncryptStagingCA,
+		Email:             email,
+		Agreed:            true,
+		ListenHost:        "0.0.0.0",
+		AltHTTPPort:       altHTTPPort,
+		AltTLSALPNPort:    altTLSAlpnPort,
+		CertObtainTimeout: time.Second * 240,
 	})
 
 	if !useProduction {

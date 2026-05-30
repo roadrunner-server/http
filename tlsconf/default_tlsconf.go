@@ -7,9 +7,6 @@ import (
 )
 
 func DefaultTLSConfig() *tls.Config {
-	var topCipherSuites []uint16
-	var defaultCipherSuitesTLS13 []uint16
-
 	hasGCMAsmAMD64 := cpu.X86.HasAES && cpu.X86.HasPCLMULQDQ
 	hasGCMAsmARM64 := cpu.ARM64.HasAES && cpu.ARM64.HasPMULL
 	// Keep in sync with crypto/aes/cipher_s390x.go.
@@ -17,26 +14,24 @@ func DefaultTLSConfig() *tls.Config {
 
 	hasGCMAsm := hasGCMAsmAMD64 || hasGCMAsmARM64 || hasGCMAsmS390X
 
+	// CipherSuites only controls TLS 1.0–1.2 suites; Go selects TLS 1.3 suites
+	// automatically (adding them here is silently ignored).
+	var cipherSuites []uint16
 	if hasGCMAsm {
 		// If AES-GCM hardware is provided then priorities AES-GCM
 		// cipher suites.
-		topCipherSuites = []uint16{
+		cipherSuites = []uint16{
 			tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
 			tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
 			tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
 			tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
 			tls.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,
 			tls.TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,
-		}
-		defaultCipherSuitesTLS13 = []uint16{
-			tls.TLS_AES_128_GCM_SHA256,
-			tls.TLS_CHACHA20_POLY1305_SHA256,
-			tls.TLS_AES_256_GCM_SHA384,
 		}
 	} else {
 		// Without AES-GCM hardware, we put the ChaCha20-Poly1305
 		// cipher suites first.
-		topCipherSuites = []uint16{
+		cipherSuites = []uint16{
 			tls.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,
 			tls.TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,
 			tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
@@ -44,16 +39,7 @@ func DefaultTLSConfig() *tls.Config {
 			tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
 			tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
 		}
-		defaultCipherSuitesTLS13 = []uint16{
-			tls.TLS_CHACHA20_POLY1305_SHA256,
-			tls.TLS_AES_128_GCM_SHA256,
-			tls.TLS_AES_256_GCM_SHA384,
-		}
 	}
-
-	defaultCipherSuites := make([]uint16, 0, 22)
-	defaultCipherSuites = append(defaultCipherSuites, topCipherSuites...)
-	defaultCipherSuites = append(defaultCipherSuites, defaultCipherSuitesTLS13...)
 
 	return &tls.Config{
 		CurvePreferences: []tls.CurveID{
@@ -62,7 +48,7 @@ func DefaultTLSConfig() *tls.Config {
 			tls.CurveP384,
 			tls.CurveP521,
 		},
-		CipherSuites: defaultCipherSuites,
+		CipherSuites: cipherSuites,
 		MinVersion:   tls.VersionTLS12,
 	}
 }

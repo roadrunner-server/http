@@ -72,7 +72,11 @@ func Get(r *http.Request, key string) any {
 		return nil
 	}
 
-	return v.(attrs).get(key)
+	a, ok := v.(attrs)
+	if !ok {
+		return nil
+	}
+	return a.get(key)
 }
 
 // Set sets the key to value. It replaces any existing
@@ -83,7 +87,11 @@ func Set(r *http.Request, key string, value string) error {
 		return errors.New("unable to find `psr:attributes` context key")
 	}
 
-	v.(attrs).set(key, value)
+	a, ok := v.(attrs)
+	if !ok {
+		return errors.New("unexpected type stored under `psr:attributes` context key")
+	}
+	a.set(key, value)
 	return nil
 }
 

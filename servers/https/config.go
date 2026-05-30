@@ -1,11 +1,13 @@
 package https
 
 import (
+	"errors"
+	"io/fs"
 	"net"
 	"os"
 	"strconv"
 
-	"github.com/roadrunner-server/errors"
+	rrerrors "github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/http/v6/acme"
 )
 
@@ -95,11 +97,11 @@ func (s *SSL) EnableACME() bool {
 }
 
 func (s *SSL) Valid() error {
-	const op = errors.Op("ssl_valid")
+	const op = rrerrors.Op("ssl_valid")
 
 	host, portStr, err := net.SplitHostPort(s.Address)
 	if err != nil {
-		return errors.E(op, err)
+		return rrerrors.E(op, err)
 	}
 	if host == "" {
 		s.host = "127.0.0.1"
@@ -108,23 +110,23 @@ func (s *SSL) Valid() error {
 	}
 	port, err := strconv.ParseUint(portStr, 10, 16)
 	if err != nil {
-		return errors.E(op, err)
+		return rrerrors.E(op, err)
 	}
 	s.Port = int(port)
 
 	// the user use they own certificates
 	if s.Acme == nil {
 		if _, err := os.Stat(s.Key); err != nil {
-			if os.IsNotExist(err) {
-				return errors.E(op, errors.Errorf("key file '%s' does not exists", s.Key))
+			if errors.Is(err, fs.ErrNotExist) {
+				return rrerrors.E(op, rrerrors.Errorf("key file '%s' does not exists", s.Key))
 			}
 
 			return err
 		}
 
 		if _, err := os.Stat(s.Cert); err != nil {
-			if os.IsNotExist(err) {
-				return errors.E(op, errors.Errorf("cert file '%s' does not exists", s.Cert))
+			if errors.Is(err, fs.ErrNotExist) {
+				return rrerrors.E(op, rrerrors.Errorf("cert file '%s' does not exists", s.Cert))
 			}
 
 			return err
@@ -134,8 +136,8 @@ func (s *SSL) Valid() error {
 	// RootCA is optional, but if provided - check it
 	if s.RootCA != "" {
 		if _, err := os.Stat(s.RootCA); err != nil {
-			if os.IsNotExist(err) {
-				return errors.E(op, errors.Errorf("root ca path provided, but path '%s' does not exists", s.RootCA))
+			if errors.Is(err, fs.ErrNotExist) {
+				return rrerrors.E(op, rrerrors.Errorf("root ca path provided, but path '%s' does not exists", s.RootCA))
 			}
 			return err
 		}

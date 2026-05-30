@@ -24,10 +24,6 @@ const (
 // FetchIP extracts the client IP from net/http's RemoteAddr ("host:port"
 // or a bare IP). Returns the empty string for unparseable input.
 func FetchIP(pair string, log *slog.Logger) string {
-	if !strings.ContainsRune(pair, ':') {
-		return pair
-	}
-
 	addr, _, err := net.SplitHostPort(pair)
 	if err == nil {
 		return addr
@@ -44,9 +40,7 @@ func FetchIP(pair string, log *slog.Logger) string {
 // URI returns the fully-qualified request URI, stripping CR/LF to prevent
 // header smuggling via the URL.
 func URI(r *http.Request) string {
-	uri := r.URL.String()
-	uri = strings.ReplaceAll(uri, "\n", "")
-	uri = strings.ReplaceAll(uri, "\r", "")
+	uri := strings.ReplaceAll(strings.ReplaceAll(r.URL.String(), "\n", ""), "\r", "")
 
 	if r.URL.Host != "" {
 		return uri
@@ -88,9 +82,7 @@ func extractCookies(r *http.Request) map[string]string {
 
 // cleanRawQuery strips CR/LF from the URL raw query before exposing it to PHP.
 func cleanRawQuery(q string) string {
-	q = strings.ReplaceAll(q, "\n", "")
-	q = strings.ReplaceAll(q, "\r", "")
-	return q
+	return strings.ReplaceAll(strings.ReplaceAll(q, "\n", ""), "\r", "")
 }
 
 // populateBody fills req.Body / req.Parsed based on the request content-type.

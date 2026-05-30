@@ -17,7 +17,6 @@ import (
 	"github.com/roadrunner-server/http/v6/handler"
 	"github.com/roadrunner-server/http/v6/proxy"
 	"github.com/roadrunner-server/http/v6/servers"
-	"github.com/roadrunner-server/pool/v2/pool/static_pool"
 	"github.com/roadrunner-server/pool/v2/state/process"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	jprop "go.opentelemetry.io/contrib/propagators/jaeger"
@@ -128,11 +127,17 @@ func (p *Plugin) Serve() chan error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	var err error
-	p.pool, err = p.server.NewPool(context.Background(), p.cfg.Pool, map[string]string{RrMode: RrModeHTTP}, p.log)
+	// NewPool returns a concrete *static_pool.Pool; assign it to the api.Pool
+	// interface field only when non-nil so p.pool never holds a typed nil
+	// (which would make the p.pool != nil guard in Stop spuriously true and
+	// panic inside Destroy on a nil receiver).
+	np, err := p.server.NewPool(context.Background(), p.cfg.Pool, map[string]string{RrMode: RrModeHTTP}, p.log)
 	if err != nil {
 		errCh <- err
 		return errCh
+	}
+	if np != nil {
+		p.pool = np
 	}
 
 	// request queue + worker-facing ConnectRPC server
@@ -161,14 +166,12 @@ func (p *Plugin) Serve() chan error {
 	p.applyBundledMiddleware()
 
 	// start all servers
-	for i := range p.servers {
-		go func(idx int) {
-			errSt := p.servers[idx].Serve(p.mdwr, p.cfg.Middleware)
-			if errSt != nil {
+	for _, srv := range p.servers {
+		go func(s servers.InternalServer[any]) {
+			if errSt := s.Serve(p.mdwr, p.cfg.Middleware); errSt != nil {
 				errCh <- errSt
-				return
 			}
-		}(i)
+		}(srv)
 	}
 
 	return errCh
@@ -201,14 +204,7 @@ func (p *Plugin) Stop(ctx context.Context) error {
 		}
 
 		if p.pool != nil {
-			switch pp := p.pool.(type) {
-			case *static_pool.Pool:
-				if pp != nil {
-					pp.Destroy(ctx)
-				}
-			default:
-				// pool is nil, nothing to do
-			}
+			p.pool.Destroy(ctx)
 		}
 
 		doneCh <- struct{}{}
@@ -241,8 +237,6 @@ func (p *Plugin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	p.mu.RLock()
 	p.handler.ServeHTTP(w, r)
 	p.mu.RUnlock()
-
-	_ = r.Body.Close()
 
 	if span != nil {
 		span.End()
