@@ -6,7 +6,7 @@ toolchain go1.26.3
 
 require (
 	connectrpc.com/connect v1.20.0
-	github.com/quic-go/quic-go v0.59.1
+	github.com/quic-go/quic-go v0.60.0
 	github.com/roadrunner-server/config/v6 v6.0.0-beta.3
 	github.com/roadrunner-server/endure/v2 v2.6.2
 	github.com/roadrunner-server/fileserver/v6 v6.0.0-beta.5

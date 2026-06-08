@@ -11,7 +11,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/mholt/acmez v1.2.0
 	github.com/prometheus/client_golang v1.23.2
-	github.com/quic-go/quic-go v0.59.1
+	github.com/quic-go/quic-go v0.60.0
 	github.com/roadrunner-server/api-go/v6 v6.0.0-beta.12
 	github.com/roadrunner-server/api-plugins/v6 v6.0.0-beta.2
 	github.com/roadrunner-server/context v1.3.0
