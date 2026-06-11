@@ -1,0 +1,19 @@
+version: "3"
+
+# RPC plugin: the SDK talks to RoadRunner plugins (KV, Lock, Services, ...) through it.
+rpc:
+    listen: tcp://127.0.0.1:6001
+
+# Application worker configuration.
+server:
+    command: "php worker-poc.php"
+
+# HTTP plugin: accepts incoming requests and forwards them to the PHP worker.
+http:
+    address: 127.0.0.1:8080
+    pool:
+        num_workers: 1
+
+logs:
+    mode: production
+    level: debug

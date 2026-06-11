@@ -1,0 +1,12 @@
+{
+  "name": "rr3/http",
+  "type": "project",
+  "minimum-stability": "dev",
+  "require": {
+    "roadrunner/sdk": "dev-master"
+  },
+  "require-dev": {
+    "roxblnfk/unpoly": "^1.8",
+    "buggregator/trap": "dev-master"
+  }
+}
