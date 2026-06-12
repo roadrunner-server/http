@@ -28,7 +28,7 @@ use Spiral\RoadRunner\GRPC\Context;
 
 /** Append a diagnostic line to worker-poc.log next to this file. */
 $log =
-// /*
+/*
     tr(...);
 /*/
 static function (string $message): void {
