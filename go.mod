@@ -6,7 +6,7 @@ toolchain go1.26.3
 
 require (
 	connectrpc.com/connect v1.20.0
-	github.com/caddyserver/certmagic v0.25.3
+	github.com/caddyserver/certmagic v0.25.4
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
 	github.com/mholt/acmez v1.2.0
