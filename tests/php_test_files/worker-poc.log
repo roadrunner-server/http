@@ -1,0 +1,12 @@
+[12:55:14] worker started pid=688343 address=127.0.0.1:6001 service=RoadRunner\HTTP\DTO\V2\HttpProxyServiceClient
+[12:55:14] error: failed to connect to all addresses; last error: UNKNOWN: ipv4:127.0.0.1:6001: Failed to connect to remote host: Connection refused (code: 14)
+[13:02:58] worker started pid=695134 address=127.0.0.1:7070 service=RoadRunner\HTTP\DTO\V2\HttpProxyServiceClient
+[13:02:58] error: failed to connect to all addresses; last error: UNKNOWN: ipv4:127.0.0.1:7070: Failed to connect to remote host: Connection refused (code: 14)
+[13:03:23] worker started pid=696095 address=127.0.0.1:7070 service=RoadRunner\HTTP\DTO\V2\HttpProxyServiceClient
+[13:03:23] error: failed to connect to all addresses; last error: UNKNOWN: ipv4:127.0.0.1:7070: Failed to connect to remote host: Connection refused (code: 14)
+[13:05:57] worker started pid=698711 address=127.0.0.1:7070 service=RoadRunner\HTTP\DTO\V2\HttpProxyServiceClient
+[13:06:57] error: Stream removed (Socket closed) (code: 14)
+[13:12:19] worker started pid=718405 address=127.0.0.1:7070 service=RoadRunner\HTTP\DTO\V2\HttpProxyServiceClient
+[13:12:53] error: Stream removed (Socket closed) (code: 14)
+[13:13:42] worker started pid=719257 address=127.0.0.1:7070 service=RoadRunner\HTTP\DTO\V2\HttpProxyServiceClient
+[13:14:42] error: Stream removed (Socket closed) (code: 14)
