@@ -13,11 +13,11 @@ require (
 	github.com/roadrunner-server/gzip/v6 v6.0.0-beta.2
 	github.com/roadrunner-server/headers/v6 v6.0.0-beta.2
 	github.com/roadrunner-server/http/v6 v6.0.0-beta.6
-	github.com/roadrunner-server/informer/v6 v6.0.0-beta.1
+	github.com/roadrunner-server/informer/v6 v6.0.0-beta.2.0.20260714201850-2854c943433a
 	github.com/roadrunner-server/logger/v6 v6.0.0-beta.3
 	github.com/roadrunner-server/memory/v6 v6.0.0-beta.3
 	github.com/roadrunner-server/pool/v2 v2.0.0-beta.1
-	github.com/roadrunner-server/resetter/v6 v6.0.0-beta.2
+	github.com/roadrunner-server/resetter/v6 v6.0.0-beta.3.0.20260714201533-91a174bb65d4
 	github.com/roadrunner-server/rpc/v6 v6.0.0-beta.4.0.20260714200548-15b82bc47898
 	github.com/roadrunner-server/send/v6 v6.0.0-beta.4
 	github.com/roadrunner-server/server/v6 v6.0.0-beta.5
@@ -81,8 +81,8 @@ require (
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/spf13/viper v1.21.0 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
-	github.com/tklauser/go-sysconf v0.3.16 // indirect
-	github.com/tklauser/numcpus v0.11.0 // indirect
+	github.com/tklauser/go-sysconf v0.4.0 // indirect
+	github.com/tklauser/numcpus v0.12.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.71.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
@@ -101,7 +101,7 @@ require (
 	golang.org/x/crypto v0.51.0 // indirect
 	golang.org/x/mod v0.36.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
-	golang.org/x/sys v0.44.0 // indirect
+	golang.org/x/sys v0.46.0 // indirect
 	golang.org/x/text v0.37.0 // indirect
 	golang.org/x/tools v0.45.0 // indirect
 	golang.org/x/tools/godoc v0.1.0-deprecated // indirect
