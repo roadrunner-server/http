@@ -47,6 +47,7 @@ func NewHTTPServer(handler http.Handler, cfg *config.Config, errLog *log.Logger,
 			http: &http.Server{
 				Handler:           handler,
 				Protocols:         protocols,
+				HTTP2:             &http.HTTP2Config{MaxConcurrentStreams: int(cfg.HTTP2Config.MaxConcurrentStreams)},
 				ReadTimeout:       time.Minute * 5,
 				WriteTimeout:      time.Minute * 5,
 				IdleTimeout:       time.Hour,

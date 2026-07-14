@@ -10,20 +10,51 @@ import (
 	"net/url"
 	"strings"
 
-	httpV2 "github.com/roadrunner-server/api-go/v6/http/v2"
+	httpV2proto "github.com/roadrunner-server/api-go/v6/http/v2"
+	"github.com/roadrunner-server/errors"
+	"github.com/roadrunner-server/pool/v2/payload"
+	"google.golang.org/protobuf/proto"
 )
 
 const (
 	defaultMaxMemory = 32 << 20 // 32 MB
-
-	contentNone = iota + 900
+	contentNone      = iota + 900
+	contentStream
 	contentMultipart
-	contentOther
+	contentURLEncoded
 )
 
-// FetchIP extracts the client IP from net/http's RemoteAddr ("host:port"
-// or a bare IP). Returns the empty string for unparseable input.
+// Request maps net/http requests to PSR7 compatible structure and managed state of temporary uploaded files.
+type Request struct {
+	// RemoteAddr contains ip address of a client, make sure to check X-Real-Ip and X-Forwarded-For for real client address.
+	RemoteAddr string `json:"remoteAddr"`
+	// Protocol includes HTTP protocol version.
+	Protocol string `json:"protocol"`
+	// Method contains the name of HTTP method used for the request.
+	Method string `json:"method"`
+	// URI contains full request URI with a scheme and query.
+	URI string `json:"uri"`
+	// Header contains list of request headers.
+	Header http.Header `json:"headers"`
+	// Cookies contains list of request cookies.
+	Cookies map[string]string `json:"cookies"`
+	// RawQuery contains non-parsed query string (to be parsed on php end).
+	RawQuery string `json:"rawQuery"`
+	// Parsed indicates that request body has been parsed on RR end.
+	Parsed bool `json:"parsed"`
+	// Uploads contain a list of uploaded files, their names, sized and associations with temporary files.
+	Uploads *Uploads `json:"uploads"`
+	// Attributes can be set by chained mdwr to safely pass value from Golang to PHP. See: GetAttribute, SetAttribute functions.
+	Attributes map[string][]string `json:"attributes"`
+	// request body can be parsedData or []byte
+	body any
+}
+
 func FetchIP(pair string, log *slog.Logger) string {
+	if !strings.ContainsRune(pair, ':') {
+		return pair
+	}
+
 	addr, _, err := net.SplitHostPort(pair)
 	if err == nil {
 		return addr
@@ -31,16 +62,210 @@ func FetchIP(pair string, log *slog.Logger) string {
 
 	ip := net.ParseIP(pair)
 	if ip == nil {
-		log.Warn("remote address parsing failure", "error", err)
+		log.Warn("remote address parsing failure", "error", err) // error from the SplitHostPort
 		return ""
 	}
+
 	return ip.String()
 }
 
-// URI returns the fully-qualified request URI, stripping CR/LF to prevent
-// header smuggling via the URL.
+func request(r *http.Request, req *Request, uid, gid int, sendRawBody bool) error {
+	for _, c := range r.Cookies() {
+		if v, err := url.QueryUnescape(c.Value); err == nil {
+			req.Cookies[c.Name] = v
+		}
+	}
+
+	switch req.contentType() {
+	case contentNone:
+		return nil
+
+	case contentStream:
+		var err error
+		req.body, err = io.ReadAll(r.Body)
+		if err != nil {
+			return err
+		}
+
+		return nil
+
+	case contentMultipart:
+		if sendRawBody {
+			var err error
+			req.body, err = io.ReadAll(r.Body)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		}
+
+		err := r.ParseMultipartForm(defaultMaxMemory)
+		if err != nil {
+			return err
+		}
+
+		req.Uploads, err = parseUploads(r, uid, gid)
+		if err != nil {
+			return err
+		}
+
+		req.body, err = parseMultipartData(r)
+		if err != nil {
+			return err
+		}
+
+		req.Parsed = true
+	case contentURLEncoded:
+		if sendRawBody {
+			var err error
+			req.body, err = io.ReadAll(r.Body)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		}
+
+		err := r.ParseForm()
+		if err != nil {
+			return err
+		}
+
+		req.body, err = parsePostForm(r)
+		if err != nil {
+			return err
+		}
+	default:
+	}
+
+	req.Parsed = true
+	return nil
+}
+
+// Open moves all uploaded files to temporary directory so it can be given to php later.
+func (r *Request) Open(log *slog.Logger, dir string, forbid, allow map[string]struct{}) {
+	if r.Uploads == nil {
+		return
+	}
+
+	r.Uploads.Open(log, dir, forbid, allow)
+}
+
+// Close clears all temp file uploads
+func (r *Request) Close(log *slog.Logger, hr *http.Request) {
+	if r.Uploads == nil {
+		return
+	}
+
+	r.Uploads.Clear(log)
+	if hr.MultipartForm != nil {
+		_ = hr.MultipartForm.RemoveAll()
+	}
+}
+
+// Payload request marshaled RoadRunner payload based on PSR7 data. values encode method is JSON. Make sure to open
+// files prior to calling this method.
+func (r *Request) Payload(p *payload.Payload, sendRawBody bool, req *httpV2proto.HttpHandlerRequest) error {
+	const op = errors.Op("marshal_payload")
+
+	if r.Uploads != nil {
+		data, err := json.Marshal(r.Uploads)
+		if err != nil {
+			return errors.E(op, err)
+		}
+
+		req.Uploads = data
+	}
+
+	var err error
+	p.Context, err = proto.Marshal(req)
+	if err != nil {
+		return errors.E(op, err)
+	}
+
+	// if user wanted to get a raw body, just send it
+	if sendRawBody {
+		if r.body == nil {
+			return nil
+		}
+
+		// should always
+		switch raw := r.body.(type) {
+		case []byte:
+			p.Body = raw
+
+			return nil
+		case nil:
+			return nil
+		default:
+			return errors.E(op, errors.Errorf("type is not []byte: %T", raw))
+		}
+	}
+
+	// check if body was already parsed
+	if r.Parsed {
+		switch bdy := r.body.(type) {
+		case []byte:
+			p.Body = bdy
+
+			return nil
+		case dataTree:
+			err = packDataTree(bdy, p)
+			if err != nil {
+				return errors.E(op, err)
+			}
+
+			return nil
+		default:
+			return errors.E(op, errors.Errorf("unknown body type: %T", bdy))
+		}
+	}
+
+	// assume raw, but check
+	if r.body != nil {
+		switch t := r.body.(type) {
+		case []byte:
+			p.Body = t
+		case dataTree:
+			err = packDataTree(t, p)
+			if err != nil {
+				return errors.E(op, err)
+			}
+
+			return nil
+		default:
+			return errors.Errorf("unknown body type: %T", t)
+		}
+	}
+
+	return nil
+}
+
+// contentType returns the payload content type.
+func (r *Request) contentType() int {
+	if r.Method == "HEAD" || r.Method == "OPTIONS" {
+		return contentNone
+	}
+
+	ct := r.Header.Get("Content-Type")
+	if strings.Contains(ct, "application/x-www-form-urlencoded") {
+		return contentURLEncoded
+	}
+
+	if strings.Contains(ct, "multipart/form-data") {
+		return contentMultipart
+	}
+
+	return contentStream
+}
+
+// URI fetches full uri from request in a form of string (including https scheme if TLS connection is enabled).
 func URI(r *http.Request) string {
-	uri := strings.ReplaceAll(strings.ReplaceAll(r.URL.String(), "\n", ""), "\r", "")
+	// CWE: https://github.com/spiral/roadrunner-plugins/pull/184/checks?check_run_id=4635904339
+	uri := r.URL.String()
+	uri = strings.ReplaceAll(uri, "\n", "")
+	uri = strings.ReplaceAll(uri, "\r", "")
 
 	if r.URL.Host != "" {
 		return uri
@@ -49,84 +274,20 @@ func URI(r *http.Request) string {
 	if r.TLS != nil {
 		return fmt.Sprintf("https://%s%s", r.Host, uri)
 	}
+
 	return fmt.Sprintf("http://%s%s", r.Host, uri)
 }
 
-// requestKind classifies r by content-type for the body-handling switch.
-// HEAD/OPTIONS get a "none" kind because they never carry a meaningful body.
-func requestKind(r *http.Request) int {
-	if r.Method == http.MethodHead || r.Method == http.MethodOptions {
-		return contentNone
-	}
-	if strings.Contains(r.Header.Get("Content-Type"), "multipart/form-data") {
-		return contentMultipart
-	}
-	return contentOther
-}
-
-// extractCookies builds a flat map of cookies (name → URL-unescaped value).
-// Used by convertCookies to populate HttpHandlerRequest.Cookies.
-func extractCookies(r *http.Request) map[string]string {
-	cookies := r.Cookies()
-	if len(cookies) == 0 {
+func packDataTree(t dataTree, p *payload.Payload) error {
+	if len(t) == 0 {
 		return nil
 	}
-	out := make(map[string]string, len(cookies))
-	for _, c := range cookies {
-		if v, err := url.QueryUnescape(c.Value); err == nil {
-			out[c.Name] = v
-		}
+
+	var err error
+	p.Body, err = json.Marshal(t)
+	if err != nil {
+		return err
 	}
-	return out
-}
 
-// cleanRawQuery strips CR/LF from the URL raw query before exposing it to PHP.
-func cleanRawQuery(q string) string {
-	return strings.ReplaceAll(strings.ReplaceAll(q, "\n", ""), "\r", "")
-}
-
-// populateBody fills req.Body / req.Parsed based on the request content-type.
-// For multipart requests, it parses uploads and form fields; the returned
-// *Uploads must be Open'd by the caller (which writes files to tmpdir and
-// populates each FileUpload's Error/Size/TempFilename fields). The caller
-// is then responsible for marshaling req.Uploads — *after* Open — so the
-// serialized bytes reflect the final per-file state. For everything else,
-// the raw body bytes go straight into req.Body.
-func populateBody(r *http.Request, req *httpV2.HttpHandlerRequest, uid, gid int) (*Uploads, error) {
-	switch requestKind(r) {
-	case contentNone:
-		return nil, nil
-
-	case contentMultipart:
-		// Bounded by the bundled MaxRequestSize middleware applied at the
-		// plugin level (plugin.applyBundledMiddleware), so gosec's
-		// "unbounded form parsing" warning is a false positive here.
-		if err := r.ParseMultipartForm(defaultMaxMemory); err != nil { //nolint:gosec // G120: bounded upstream
-			return nil, classifyParseErr(err)
-		}
-		ups, err := parseUploads(r, uid, gid)
-		if err != nil {
-			return nil, err
-		}
-		tree, err := parseMultipartData(r)
-		if err != nil {
-			return ups, err
-		}
-		if len(tree) > 0 {
-			if req.Body, err = json.Marshal(tree); err != nil {
-				return ups, err
-			}
-		}
-		req.Parsed = true
-		return ups, nil
-
-	default:
-		// r.Body is wrapped by middleware/maxRequest.go's MaxBytesReader, so
-		// ReadAll can fail with *http.MaxBytesError on payload overflow —
-		// classifyParseErr promotes that to 413 (otherwise it would fall to
-		// handleRequestErr's 400 default).
-		var err error
-		req.Body, err = io.ReadAll(r.Body)
-		return nil, classifyParseErr(err)
-	}
+	return nil
 }

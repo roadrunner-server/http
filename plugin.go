@@ -15,8 +15,8 @@ import (
 	"github.com/roadrunner-server/http/v6/api"
 	"github.com/roadrunner-server/http/v6/config"
 	"github.com/roadrunner-server/http/v6/handler"
-	"github.com/roadrunner-server/http/v6/proxy"
 	"github.com/roadrunner-server/http/v6/servers"
+	"github.com/roadrunner-server/pool/v2/pool/static_pool"
 	"github.com/roadrunner-server/pool/v2/state/process"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	jprop "go.opentelemetry.io/contrib/propagators/jaeger"
@@ -60,13 +60,8 @@ type Plugin struct {
 
 	// middlewares to chain
 	mdwr map[string]api.Middleware
-	// pool owns worker-process lifecycle (start/stop/scale/Reset). HTTP
-	// requests are routed through queue, not pool.Exec.
+	// Pool which attached to all servers
 	pool api.Pool
-	// queue brokers HTTP requests to PHP workers; workers pull via ConnectRPC.
-	queue *proxy.Queue
-	// proxyServer hosts the ConnectRPC service workers connect into.
-	proxyServer *proxy.Server
 	// servers RR handler
 	handler *handler.Handler
 	// metrics
@@ -127,33 +122,22 @@ func (p *Plugin) Serve() chan error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	// NewPool returns a concrete *static_pool.Pool; assign it to the api.Pool
-	// interface field only when non-nil so p.pool never holds a typed nil
-	// (which would make the p.pool != nil guard in Stop spuriously true and
-	// panic inside Destroy on a nil receiver).
-	np, err := p.server.NewPool(context.Background(), p.cfg.Pool, map[string]string{RrMode: RrModeHTTP}, p.log)
+	var err error
+	p.pool, err = p.server.NewPool(context.Background(), p.cfg.Pool, map[string]string{RrMode: RrModeHTTP}, p.log)
 	if err != nil {
 		errCh <- err
 		return errCh
 	}
-	if np != nil {
-		p.pool = np
-	}
 
-	// request queue + worker-facing ConnectRPC server
-	p.queue = proxy.NewQueue(p.cfg.Proxy.InboxSize)
-	p.proxyServer = proxy.NewServer(
-		proxy.Config{Address: p.cfg.Proxy.Address},
-		p.queue,
+	p.handler, err = handler.NewHandler(
+		p.cfg,
+		p.pool,
 		p.log,
 	)
-	go func() {
-		if pErr := p.proxyServer.Serve(); pErr != nil {
-			errCh <- pErr
-		}
-	}()
-
-	p.handler = handler.NewHandler(p.cfg, p.queue, p.log)
+	if err != nil {
+		errCh <- err
+		return errCh
+	}
 
 	// initialize servers based on the configuration
 	err = p.initServers()
@@ -166,12 +150,14 @@ func (p *Plugin) Serve() chan error {
 	p.applyBundledMiddleware()
 
 	// start all servers
-	for _, srv := range p.servers {
-		go func(s servers.InternalServer[any]) {
-			if errSt := s.Serve(p.mdwr, p.cfg.Middleware); errSt != nil {
+	for i := range p.servers {
+		go func(idx int) {
+			errSt := p.servers[idx].Serve(p.mdwr, p.cfg.Middleware)
+			if errSt != nil {
 				errCh <- errSt
+				return
 			}
-		}(srv)
+		}(i)
 	}
 
 	return errCh
@@ -191,20 +177,15 @@ func (p *Plugin) Stop(ctx context.Context) error {
 			}
 		}
 
-		// Close the queue BEFORE shutting down proxyServer: any FetchRequest
-		// handler parked in queue.Next(ctx) needs the queue closed to unblock
-		// — http.Shutdown otherwise waits for those handlers up to ctx deadline.
-		if p.queue != nil {
-			p.queue.Close()
-		}
-		if p.proxyServer != nil {
-			if err := p.proxyServer.Stop(ctx); err != nil {
-				p.log.Warn("proxy server shutdown", "error", err)
-			}
-		}
-
 		if p.pool != nil {
-			p.pool.Destroy(ctx)
+			switch pp := p.pool.(type) {
+			case *static_pool.Pool:
+				if pp != nil {
+					pp.Destroy(ctx)
+				}
+			default:
+				// pool is nil, nothing to do
+			}
 		}
 
 		doneCh <- struct{}{}
@@ -237,6 +218,8 @@ func (p *Plugin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	p.mu.RLock()
 	p.handler.ServeHTTP(w, r)
 	p.mu.RUnlock()
+
+	_ = r.Body.Close()
 
 	if span != nil {
 		span.End()

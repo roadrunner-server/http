@@ -157,7 +157,7 @@ func TestBug1843(t *testing.T) {
 
 	client := &http.Client{}
 
-	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, "http://127.0.0.1:16322", nil)
+	req, err := http.NewRequest(http.MethodGet, "http://127.0.0.1:16322", nil)
 	require.NoError(t, err)
 
 	r, err := client.Do(req)

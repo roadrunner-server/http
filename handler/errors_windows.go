@@ -2,8 +2,11 @@
 
 package handler
 
-import "syscall"
+import (
+	"errors"
+)
 
-// errEPIPE is the Windows analogue of EPIPE — a connection aborted by the
-// software in the host computer (data-transmission timeout or protocol error).
-var errEPIPE = syscall.WSAECONNABORTED
+// Software caused connection abort.
+// An established connection was aborted by the software in your host computer,
+// possibly due to a data transmission time-out or protocol error.
+var errEPIPE = errors.New("WSAECONNABORTED (10053) ->  an established connection was aborted by peer")

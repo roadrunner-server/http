@@ -2,9 +2,7 @@ package handler
 
 import (
 	"encoding/json"
-	"errors"
 	"io"
-	"io/fs"
 	"log/slog"
 	"mime/multipart"
 	"os"
@@ -61,9 +59,7 @@ func (u *Uploads) Open(log *slog.Logger, dir string, forbid, allow map[string]st
 func (u *Uploads) Clear(log *slog.Logger) {
 	for _, f := range u.list {
 		if f.TempFilename != "" && exists(f.TempFilename) {
-			// TempFilename was produced by os.CreateTemp inside the configured
-			// uploads dir — not user-controlled.
-			err := os.Remove(f.TempFilename) //nolint:gosec // G703: path is RR-generated
+			err := os.Remove(f.TempFilename)
 			if err != nil && log != nil {
 				log.Error("error removing the file", "error", err)
 			}
@@ -167,7 +163,8 @@ func (f *FileUpload) Open(dir string, forbid, allow map[string]struct{}) error {
 
 // exists if file exists.
 func exists(path string) bool {
-	// path is RR-generated TempFilename, not user-controlled.
-	_, err := os.Stat(path) //nolint:gosec // G703
-	return !errors.Is(err, fs.ErrNotExist)
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return false
+	}
+	return true
 }

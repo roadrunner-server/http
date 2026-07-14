@@ -1,0 +1,115 @@
+package handler
+
+import (
+	"fmt"
+	"net/http"
+	"strings"
+
+	httpV2proto "github.com/roadrunner-server/api-go/v6/http/v2"
+	"github.com/roadrunner-server/errors"
+	"github.com/roadrunner-server/goridge/v4/pkg/frame"
+	"github.com/roadrunner-server/pool/v2/payload"
+	"google.golang.org/protobuf/proto"
+)
+
+const (
+	Trailer   string = "Trailer"
+	HTTP2Push string = "Http2-Push"
+)
+
+// Response handles PSR7 response logic.
+type Response struct {
+	// Status contains response status.
+	Status int `json:"status"`
+	// Header contains a list of response headers.
+	Headers map[string][]string `json:"headers"`
+}
+
+// Write writes response headers, status and body into ResponseWriter.
+func (h *Handler) Write(pld *payload.Payload, w http.ResponseWriter) error {
+	switch pld.Codec {
+	case frame.CodecProto:
+		return h.handlePROTOresponse(pld, w)
+	case frame.CodecJSON:
+		return errors.Str("JSON codec is not supported")
+	default:
+		return errors.Errorf("unknown payload type: %d", pld.Codec)
+	}
+}
+
+func (h *Handler) handlePROTOresponse(pld *payload.Payload, w http.ResponseWriter) error {
+	rsp := h.getProtoRsp()
+	defer h.putProtoRsp(rsp)
+
+	if len(pld.Context) != 0 {
+		// unmarshal context into response
+		err := proto.Unmarshal(pld.Context, rsp)
+		if err != nil {
+			return err
+		}
+
+		// handle push headers
+		if rsp.GetHeaders() != nil && rsp.GetHeaders()[HTTP2Push] != nil {
+			push := rsp.GetHeaders()[HTTP2Push].GetValues()
+
+			if pusher, ok := w.(http.Pusher); ok {
+				for _, pushVal := range push {
+					err = pusher.Push(pushVal, nil)
+					if err != nil {
+						return err
+					}
+				}
+			}
+		}
+
+		if rsp.GetHeaders() != nil && rsp.GetHeaders()[Trailer] != nil {
+			handleProtoTrailers(rsp.GetHeaders())
+		}
+
+		// write all headers from the response to the writer
+		for k, hv := range rsp.GetHeaders() {
+			for _, v := range hv.GetValues() {
+				w.Header().Add(k, v)
+			}
+		}
+
+		// The provided code must be a valid HTTP 1xx-5xx status code.
+		if rsp.Status < 100 || rsp.Status >= 600 {
+			http.Error(w, fmt.Sprintf("unknown status code from worker: %d", rsp.Status), http.StatusInternalServerError)
+			return errors.Errorf("unknown status code from worker: %d", rsp.Status)
+		}
+
+		w.WriteHeader(int(rsp.Status))
+	}
+
+	// do not write body if it is empty
+	if len(pld.Body) == 0 {
+		return nil
+	}
+
+	_, err := w.Write(pld.Body)
+	if err != nil {
+		return err
+	}
+
+	if fl, ok := w.(http.Flusher); ok {
+		fl.Flush()
+	}
+
+	return nil
+}
+
+func handleProtoTrailers(h map[string]*httpV2proto.HttpHeaderValue) {
+	for _, tr := range h[Trailer].GetValues() {
+		for n := range strings.SplitSeq(tr, ",") {
+			n = strings.Trim(n, "\t ")
+			if v, ok := h[n]; ok {
+				h["Trailer:"+n] = v
+
+				delete(h, n)
+			}
+		}
+	}
+
+	delete(h, Trailer)
+}
