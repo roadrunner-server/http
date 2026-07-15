@@ -15,9 +15,6 @@ import (
 	"testing"
 	"time"
 
-	"tests/helpers"
-	mocklogger "tests/mock"
-
 	"github.com/roadrunner-server/config/v6"
 	"github.com/roadrunner-server/endure/v2"
 	"github.com/roadrunner-server/fileserver/v6"
@@ -29,6 +26,8 @@ import (
 	"github.com/roadrunner-server/server/v6"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"tests/helpers"
+	mocklogger "tests/mock"
 )
 
 func TestHTTPPost(t *testing.T) {
@@ -224,7 +223,7 @@ func sslEcho2(t *testing.T) {
 		},
 	}
 
-	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, "https://127.0.0.1:4455?hello=world", nil)
+	req, err := http.NewRequest("GET", "https://127.0.0.1:4455?hello=world", nil)
 	assert.NoError(t, err)
 
 	r, err := client.Do(req)
@@ -400,7 +399,7 @@ func TestHTTPBigResp(t *testing.T) {
 	wg2.Add(2)
 	go func() {
 		defer wg2.Done()
-		req, err1 := http.NewRequestWithContext(t.Context(), http.MethodGet, "http://127.0.0.1:15399", nil)
+		req, err1 := http.NewRequest(http.MethodGet, "http://127.0.0.1:15399", nil)
 		require.NoError(t, err1)
 
 		r, err1 := http.DefaultClient.Do(req)

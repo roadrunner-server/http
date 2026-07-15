@@ -2,7 +2,6 @@ package config
 
 import (
 	"strings"
-	"time"
 
 	"github.com/roadrunner-server/http/v6/servers/fcgi"
 	"github.com/roadrunner-server/http/v6/servers/http3"
@@ -14,16 +13,16 @@ import (
 
 // Config configures RoadRunner HTTP server.
 type Config struct {
+	// RawBody if turned on, RR will not parse the incoming HTTP body and will send it as is
+	RawBody bool `mapstructure:"raw_body"`
 	// Host and port to handle as http server.
 	Address string `mapstructure:"address"`
 	// AccessLogs turn on/off, logged at Info log level, default: false
 	AccessLogs bool `mapstructure:"access_logs"`
 	// List of the middleware names (order will be preserved)
 	Middleware []string `mapstructure:"middleware"`
-	// Pool configures worker pool (lifecycle only; requests are delivered via Proxy).
+	// Pool configures worker pool.
 	Pool *pool.Config `mapstructure:"pool"`
-	// Proxy configures the worker-facing ConnectRPC server.
-	Proxy *Proxy `mapstructure:"proxy"`
 	// InternalErrorCode used to override default 500 (InternalServerError) http code
 	InternalErrorCode uint64 `mapstructure:"internal_error_code"`
 	// MaxRequestSize specified max size for payload body in megabytes. 0 = 1GB.
@@ -41,33 +40,6 @@ type Config struct {
 	// private
 	UID int
 	GID int
-}
-
-// Proxy configures the ConnectRPC server that PHP workers connect into.
-type Proxy struct {
-	// Address is the TCP address the proxy server listens on, e.g. ":7070".
-	Address string `mapstructure:"address"`
-	// RequestTimeout caps how long a single request can sit waiting for a
-	// worker to produce a response. Defaults to 60s.
-	RequestTimeout time.Duration `mapstructure:"request_timeout"`
-	// InboxSize bounds the in-process request queue. Submits beyond this
-	// return 503 to the client. Defaults to 1024.
-	InboxSize int `mapstructure:"inbox_size"`
-	// DebugMode flips the handler into debug mode (verbose error bodies on 5xx).
-	DebugMode bool `mapstructure:"debug"`
-}
-
-func (p *Proxy) InitDefaults() {
-	if p.Address == "" {
-		// Bind to loopback by default
-		p.Address = "127.0.0.1:7070"
-	}
-	if p.RequestTimeout == 0 {
-		p.RequestTimeout = time.Minute
-	}
-	if p.InboxSize == 0 {
-		p.InboxSize = 1024
-	}
 }
 
 // EnableHTTP is true when http server must run.
@@ -105,11 +77,6 @@ func (c *Config) InitDefaults() error {
 		c.Pool = &pool.Config{}
 	}
 	c.Pool.InitDefaults()
-
-	if c.Proxy == nil {
-		c.Proxy = &Proxy{}
-	}
-	c.Proxy.InitDefaults()
 
 	if c.InternalErrorCode == 0 {
 		c.InternalErrorCode = 500
@@ -155,15 +122,6 @@ func (c *Config) Valid() error {
 
 	if c.Pool == nil {
 		return errors.E(op, "malformed pool config")
-	}
-
-	if c.Proxy != nil {
-		if c.Proxy.RequestTimeout < 0 {
-			return errors.E(op, errors.Str("proxy.request_timeout must be >= 0"))
-		}
-		if c.Proxy.InboxSize < 0 {
-			return errors.E(op, errors.Str("proxy.inbox_size must be >= 0"))
-		}
 	}
 
 	if !c.EnableHTTP() && !c.EnableTLS() && !c.EnableFCGI() {

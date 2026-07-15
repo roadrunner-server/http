@@ -1,315 +1,241 @@
 package handler
 
 import (
-	"encoding/json"
+	"context"
 	stderr "errors"
-	"fmt"
+	"html/template"
 	"log/slog"
 	"net/http"
-	"strings"
 	"sync"
 	"time"
 
-	"github.com/google/uuid"
-	httpV2 "github.com/roadrunner-server/api-go/v6/http/v2"
+	"github.com/roadrunner-server/http/v6/api"
+
+	httpV2proto "github.com/roadrunner-server/api-go/v6/http/v2"
 	"github.com/roadrunner-server/errors"
-	"github.com/roadrunner-server/http/v6/attributes"
+	"github.com/roadrunner-server/goridge/v4/pkg/frame"
 	"github.com/roadrunner-server/http/v6/config"
-	"github.com/roadrunner-server/http/v6/proxy"
+	"github.com/roadrunner-server/pool/v2/payload"
 )
 
 const (
-	Trailer   = "Trailer"
-	HTTP2Push = "Http2-Push"
+	noWorkers string = "No-Workers"
+	trueStr   string = "true"
 )
 
-type uploadsCfg struct {
+var _ http.Handler = (*Handler)(nil)
+
+type uploads struct {
 	dir    string
 	allow  map[string]struct{}
 	forbid map[string]struct{}
 }
 
-// Handler serves HTTP requests by handing them off to PHP workers connected
-// over ConnectRPC (via proxy.Queue). It does not own worker lifecycle.
+// Handler serves http connections to underlying PHP application using PSR-7 protocol. Context will include request headers,
+// parsed files and query, payload will include parsed form dataTree (if any).
 type Handler struct {
-	queue   *proxy.Queue
-	uploads *uploadsCfg
-	log     *slog.Logger
+	uploads     *uploads
+	log         *slog.Logger
+	pool        api.Pool
+	internalCtx context.Context
 
 	internalHTTPCode uint64
-	requestTimeout   time.Duration
+	sendRawBody      bool
 	debugMode        bool
 
+	// permissions
 	uid int
 	gid int
 
-	// reqPool reuses *HttpHandlerRequest envelopes across requests.
-	reqPool sync.Pool
+	// internal
+	reqPool       sync.Pool
+	protoRespPool sync.Pool
+	protoReqPool  sync.Pool
+	pldPool       sync.Pool
+	stopChPool    sync.Pool
 }
 
-var _ http.Handler = (*Handler)(nil)
-
-func NewHandler(cfg *config.Config, queue *proxy.Queue, log *slog.Logger) *Handler {
+// NewHandler return 'handler' interface implementation
+func NewHandler(cfg *config.Config, pool api.Pool, log *slog.Logger) (*Handler, error) {
 	return &Handler{
-		queue: queue,
-		log:   log,
-		uploads: &uploadsCfg{
+		uploads: &uploads{
 			dir:    cfg.Uploads.Dir,
 			allow:  cfg.Uploads.Allowed,
 			forbid: cfg.Uploads.Forbidden,
 		},
+		pool:             pool,
+		debugMode:        checkDebug(cfg),
+		log:              log,
 		internalHTTPCode: cfg.InternalErrorCode,
-		requestTimeout:   cfg.Proxy.RequestTimeout,
-		debugMode:        cfg.Proxy.DebugMode,
-		uid:              cfg.UID,
-		gid:              cfg.GID,
-		reqPool: sync.Pool{
-			New: func() any { return &httpV2.HttpHandlerRequest{} },
+		sendRawBody:      cfg.RawBody,
+		internalCtx:      context.Background(),
+
+		// permissions
+		uid: cfg.UID,
+		gid: cfg.GID,
+
+		stopChPool: sync.Pool{
+			New: func() any {
+				return make(chan struct{}, 1)
+			},
 		},
-	}
+		reqPool: sync.Pool{
+			New: func() any {
+				return &Request{
+					Attributes: make(map[string][]string),
+					Cookies:    make(map[string]string),
+					body:       nil,
+				}
+			},
+		},
+		protoRespPool: sync.Pool{
+			New: func() any {
+				return &httpV2proto.HttpHandlerResponse{
+					Headers: make(map[string]*httpV2proto.HttpHeaderValue),
+					Status:  -1,
+				}
+			},
+		},
+		protoReqPool: sync.Pool{
+			New: func() any {
+				return &httpV2proto.HttpHandlerRequest{}
+			},
+		},
+		pldPool: sync.Pool{
+			New: func() any {
+				return &payload.Payload{
+					Body:    make([]byte, 0, 100),
+					Context: make([]byte, 0, 100),
+					Codec:   frame.CodecProto,
+				}
+			},
+		},
+	}, nil
 }
 
-func (h *Handler) getReq() *httpV2.HttpHandlerRequest {
-	return h.reqPool.Get().(*httpV2.HttpHandlerRequest)
-}
-
-func (h *Handler) putReq(req *httpV2.HttpHandlerRequest) {
-	req.Reset()
-	h.reqPool.Put(req)
-}
-
-// ServeHTTP builds a HttpHandlerRequest, submits it to the queue, and blocks
-// on the per-request response channel. Multipart uploads are extracted to the
-// configured tmpdir; everything else has its body passed through raw.
+// ServeHTTP transform the original request to the PSR-7 passed then to the underlying application. Attempts to serve static files first if enabled.
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	const op = errors.Op("serve_http")
 	start := time.Now()
 
-	id, err := uuid.NewV7()
+	req := h.getReq(r)
+	err := request(r, req, h.uid, h.gid, h.sendRawBody)
 	if err != nil {
-		h.handleError(w, errors.E(op, err))
-		h.log.Error("uuid", "elapsed", time.Since(start).Milliseconds(), "error", err)
-		return
-	}
-
-	// Envelopes are returned to the pool ONLY on the happy path after we've
-	// received a response — at that point ConnectRPC has finished writing the
-	// request to the wire and no worker still references the pointer. On
-	// timeout / disconnect / submit error paths a worker may still hold the
-	// pointer (it could still be parked in the inbox, or be mid-marshal in
-	// FetchRequest's response), so we leak the envelope to GC instead of
-	// Reset()-corrupting it.
-	req := h.getReq()
-	req.Id = id.String()
-	req.Method = r.Method
-	req.Uri = URI(r)
-	req.Protocol = r.Proto
-	req.RemoteAddr = FetchIP(r.RemoteAddr, h.log)
-	req.Header = convert(r.Header)
-	req.Cookies = convertCookies(extractCookies(r))
-	req.RawQuery = cleanRawQuery(r.URL.RawQuery)
-	req.Attributes = convertAttributes(attributes.All(r))
-
-	ups, err := populateBody(r, req, h.uid, h.gid)
-	if err != nil {
-		h.handleRequestErr(w, r, ups, err, start)
-		return
-	}
-	if ups != nil {
-		// Open mutates each FileUpload (Error / Size / TempFilename) — so we
-		// marshal req.Uploads AFTER, not before, to capture the final state.
-		ups.Open(h.log, h.uploads.dir, h.uploads.forbid, h.uploads.allow)
-		if req.Uploads, err = json.Marshal(ups); err != nil {
-			// Marshaling our own Uploads struct is a server-side bug, not
-			// client input — keep the 5xx semantics rather than letting it
-			// fall through handleRequestErr's 4xx default.
-			clearUploads(h.log, r, ups)
-			h.handleError(w, err)
-			h.log.Error("marshal uploads",
+		// if the pipe is broken, there is no sense to write the header
+		// in this case, we just report about error
+		if stderr.Is(err, errEPIPE) {
+			req.Close(h.log, r)
+			h.putReq(req)
+			h.log.Error(
+				"write response error",
+				"start", start,
 				"elapsed", time.Since(start).Milliseconds(),
 				"error", err,
 			)
 			return
 		}
-	}
 
-	respCh, err := h.queue.Submit(req)
-	if err != nil {
-		clearUploads(h.log, r, ups)
-		h.handleSubmitErr(w, err)
-		h.log.Error("queue submit",
-			"id", req.GetId(),
+		req.Close(h.log, r)
+		h.putReq(req)
+		// a request-forming error is a bad request, not a server fault:
+		// request() only touches client-supplied bytes. Default to 400 and let
+		// the size-limit branch bump it to 413.
+		status := http.StatusBadRequest
+		if _, ok := stderr.AsType[*http.MaxBytesError](err); ok {
+			status = http.StatusRequestEntityTooLarge
+		}
+		http.Error(w, errors.E(op, err).Error(), status)
+		h.log.Error(
+			"request forming error",
+			"start", start,
 			"elapsed", time.Since(start).Milliseconds(),
 			"error", err,
 		)
 		return
 	}
 
-	timeout := time.NewTimer(h.requestTimeout)
-	defer timeout.Stop()
-
-	reqID := req.GetId()
-
-	select {
-	case resp := <-respCh:
-		h.writeResponse(w, resp, start, reqID)
+	req.Open(h.log, h.uploads.dir, h.uploads.forbid, h.uploads.allow)
+	// get payload from the pool
+	pld := h.getPld()
+	// get proto request from the pool
+	reqproto := h.getProtoReq(req)
+	err = req.Payload(pld, h.sendRawBody, reqproto)
+	h.putProtoReq(reqproto)
+	if err != nil {
+		req.Close(h.log, r)
 		h.putReq(req)
-	case <-r.Context().Done():
-		h.queue.Cancel(reqID)
-		h.log.Debug("client disconnected",
-			"id", reqID,
+		h.putPld(pld)
+		h.handleError(w, err)
+		h.log.Error(
+			"payload forming error",
+			"start", start,
 			"elapsed", time.Since(start).Milliseconds(),
-		)
-	case <-timeout.C:
-		h.queue.Cancel(reqID)
-		http.Error(w, "gateway timeout", http.StatusGatewayTimeout)
-		h.log.Warn("request timeout",
-			"id", reqID,
-			"elapsed", time.Since(start).Milliseconds(),
-		)
-	}
-
-	clearUploads(h.log, r, ups)
-}
-
-func (h *Handler) writeResponse(w http.ResponseWriter, resp *httpV2.HttpHandlerResponse, start time.Time, id string) {
-	status := int(resp.GetStatus())
-	if status < 100 || status >= 600 {
-		// Validate status BEFORE writing any worker-supplied headers — otherwise
-		// the 500 we serve here would carry Set-Cookie / Location / etc. from
-		// the bogus response.
-		http.Error(w, fmt.Sprintf("unknown status code from worker: %d", status), http.StatusInternalServerError)
-		h.log.Error("invalid worker status",
-			"id", id,
-			"status", status,
-			"elapsed", time.Since(start).Milliseconds(),
+			"error", err,
 		)
 		return
 	}
 
-	headers := resp.GetHeaders()
-
-	if push := headers[HTTP2Push]; push != nil {
-		if pusher, ok := w.(http.Pusher); ok {
-			for _, target := range push.GetValues() {
-				if err := pusher.Push(target, nil); err != nil {
-					h.log.Warn("http/2 push", "id", id, "target", target, "error", err)
-				}
-			}
-		}
-	}
-
-	if headers[Trailer] != nil {
-		handleProtoTrailers(headers)
-	}
-
-	for k, v := range headers {
-		// Http2-Push is plugin-internal control metadata — already consumed
-		// for the push above. Don't echo it back to the client.
-		if k == HTTP2Push {
-			continue
-		}
-		for _, vv := range v.GetValues() {
-			w.Header().Add(k, vv)
-		}
-	}
-
-	w.WriteHeader(status)
-
-	body := resp.GetBody()
-	if len(body) == 0 {
+	stopCh := h.getCh()
+	wResp, err := h.pool.Exec(h.internalCtx, pld, stopCh)
+	if err != nil {
+		req.Close(h.log, r)
+		h.putReq(req)
+		h.putPld(pld)
+		h.putCh(stopCh)
+		h.handleError(w, err)
+		h.log.Error("execute", "start", start, "elapsed", time.Since(start).Milliseconds(), "error", err)
 		return
 	}
-	if _, err := w.Write(body); err != nil {
-		if stderr.Is(err, errEPIPE) {
-			h.log.Debug("response write: broken pipe",
-				"id", id,
+	// return payload to the pool
+	h.putPld(pld)
+
+	for recv := range wResp {
+		if recv.Error() != nil {
+			req.Close(h.log, r)
+			h.putReq(req)
+			h.putCh(stopCh)
+			w.WriteHeader(int(h.internalHTTPCode)) //nolint:gosec
+			h.log.Error("read stream",
+				"start", start,
 				"elapsed", time.Since(start).Milliseconds(),
-			)
+				"error", recv.Error())
 			return
 		}
-		h.log.Error("response write",
-			"id", id,
-			"elapsed", time.Since(start).Milliseconds(),
-			"error", err,
-		)
-	}
 
-	if fl, ok := w.(http.Flusher); ok {
-		fl.Flush()
-	}
-}
-
-func handleProtoTrailers(h map[string]*httpV2.HttpHeaderValue) {
-	for _, tr := range h[Trailer].GetValues() {
-		for n := range strings.SplitSeq(tr, ",") {
-			n = strings.Trim(n, "\t ")
-			if v, ok := h[n]; ok {
-				h["Trailer:"+n] = v
-				delete(h, n)
+		err = h.Write(recv.Payload(), w)
+		if err != nil {
+			// send a stop signal to the worker pool
+			select {
+			case stopCh <- struct{}{}:
+			default:
 			}
+
+			// we should not exit from the loop here, since after sending close signal, it should be closed from the SDK side
+			h.log.Error("write response (chunk) error",
+				"start", start,
+				"elapsed", time.Since(start).Milliseconds(),
+				"error", err)
 		}
 	}
-	delete(h, Trailer)
+
+	req.Close(h.log, r)
+	h.putReq(req)
+	h.putCh(stopCh)
 }
 
-// handleRequestErr writes the response for an error produced while parsing the
-// client's request. Such errors are 4xx by construction — populateBody only
-// touches client-supplied bytes (multipart form, body, query). The default is
-// http.StatusBadRequest; call sites that know a more specific code (e.g. 413
-// for size limits) wrap the error with withStatus, which wins here via
-// errors.As. Server-internal failures must not flow through this path — see
-// handleError instead.
-func (h *Handler) handleRequestErr(w http.ResponseWriter, r *http.Request, ups *Uploads, err error, start time.Time) {
-	clearUploads(h.log, r, ups)
-
-	if stderr.Is(err, errEPIPE) {
-		h.log.Error("request decode: broken pipe",
-			"elapsed", time.Since(start).Milliseconds(),
-			"error", err,
-		)
-		return
-	}
-
-	status := http.StatusBadRequest
-	if sErr, ok := stderr.AsType[*statusError](err); ok {
-		status = sErr.Status()
-	}
-
-	http.Error(w, err.Error(), status)
-	h.log.Error("request decode",
-		"elapsed", time.Since(start).Milliseconds(),
-		"error", err,
-	)
-}
-
-func (h *Handler) handleSubmitErr(w http.ResponseWriter, err error) {
-	if stderr.Is(err, proxy.ErrInboxFull) {
-		http.Error(w, "service unavailable", http.StatusServiceUnavailable)
-		return
-	}
-	h.handleError(w, err)
-}
-
+// handleError will handle internal RR errors and return 500
 func (h *Handler) handleError(w http.ResponseWriter, err error) {
-	// internalHTTPCode is a config-provided HTTP status, defaulted to 500 and
-	// always within [100, 599] in practice. The cast is safe.
-	status := int(h.internalHTTPCode) //nolint:gosec // G115: bounded HTTP status code
-	msg := http.StatusText(status)
-	if h.debugMode {
-		msg = err.Error()
+	// if there are no free workers -> write a special header
+	if errors.Is(errors.NoFreeWorkers, err) {
+		// set header for the prometheus
+		w.Header().Set(noWorkers, trueStr)
 	}
-	// http.Error sets Content-Type and X-Content-Type-Options: nosniff and
-	// writes msg as the body — keeps the response well-formed even when the
-	// configured internalHTTPCode is a 5xx and we're not in debug mode.
-	http.Error(w, msg, status)
-}
 
-func clearUploads(log *slog.Logger, r *http.Request, ups *Uploads) {
-	if ups != nil {
-		ups.Clear(log)
-	}
-	if r.MultipartForm != nil {
-		_ = r.MultipartForm.RemoveAll()
+	// write an internal server error
+	w.WriteHeader(int(h.internalHTTPCode)) //nolint:gosec
+
+	// in debug mode, write all output into the browser/curl/any_tool
+	if h.debugMode {
+		template.HTMLEscape(w, []byte(err.Error()))
 	}
 }
