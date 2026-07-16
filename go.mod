@@ -2,6 +2,8 @@ module github.com/roadrunner-server/http/v6
 
 go 1.26
 
+toolchain go1.26.5
+
 require (
 	github.com/caddyserver/certmagic v0.25.4
 	github.com/google/go-cmp v0.7.0
