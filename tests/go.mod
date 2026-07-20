@@ -25,7 +25,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/yookoala/gofast v0.8.0
 	golang.org/x/net v0.57.0
-	google.golang.org/genproto v0.0.0-20260715232425-e75dac1f907d
+	google.golang.org/genproto v0.0.0-20260720155508-bb71a54f79dc
 )
 
 require go.uber.org/zap v1.28.0 // indirect
@@ -50,7 +50,7 @@ require (
 	github.com/gofiber/fiber/v2 v2.52.14 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
-	github.com/klauspost/compress v1.19.0 // indirect
+	github.com/klauspost/compress v1.19.1 // indirect
 	github.com/klauspost/cpuid/v2 v2.4.0 // indirect
 	github.com/libdns/libdns v1.1.1 // indirect
 	github.com/mattn/go-colorable v0.1.15 // indirect
@@ -62,7 +62,7 @@ require (
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/pelletier/go-toml/v2 v2.4.3 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
-	github.com/prometheus/client_golang v1.23.2 // indirect
+	github.com/prometheus/client_golang v1.24.0 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.70.0 // indirect
 	github.com/prometheus/procfs v0.21.1 // indirect
