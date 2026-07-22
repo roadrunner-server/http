@@ -25,7 +25,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.44.0
 	golang.org/x/net v0.57.0
 	golang.org/x/sys v0.47.0
-	google.golang.org/genproto v0.0.0-20260720155508-bb71a54f79dc
+	google.golang.org/genproto v0.0.0-20260720211330-0afa2a65878a
 	google.golang.org/protobuf v1.36.11
 )
 
@@ -36,7 +36,7 @@ require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/felixge/httpsnoop v1.1.0 // indirect
 	github.com/go-jose/go-jose/v4 v4.1.4 // indirect
-	github.com/go-logr/logr v1.4.3 // indirect
+	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
@@ -47,7 +47,7 @@ require (
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
-	github.com/prometheus/common v0.70.0 // indirect
+	github.com/prometheus/common v0.70.1 // indirect
 	github.com/prometheus/procfs v0.21.1 // indirect
 	github.com/quic-go/qpack v0.6.0 // indirect
 	github.com/roadrunner-server/events v1.0.1 // indirect
