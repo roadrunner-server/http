@@ -25,7 +25,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/yookoala/gofast v0.8.0
 	golang.org/x/net v0.57.0
-	google.golang.org/genproto v0.0.0-20260807164820-c8921c73eeea
+	google.golang.org/genproto v0.0.0-20260810153831-ec0a7760b754
 )
 
 require go.uber.org/zap v1.28.0 // indirect
@@ -98,7 +98,7 @@ require (
 	go.uber.org/zap/exp v0.3.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/crypto v0.54.0 // indirect
-	golang.org/x/mod v0.38.0 // indirect
+	golang.org/x/mod v0.39.0 // indirect
 	golang.org/x/sync v0.22.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/text v0.40.0 // indirect
