@@ -82,7 +82,7 @@ func TestSSL(t *testing.T) {
 
 	// redirect is off, so the plain address serves the worker instead of bouncing to tls
 	t.Run("plainNotRedirected", func(t *testing.T) {
-		waitListener(t, "tcp", "127.0.0.1:8085")
+		helpers.WaitListener(t, "tcp", "127.0.0.1:8085")
 
 		res := clientGet(t, client, "http://127.0.0.1:8085?hello=world")
 		require.Nil(t, res.TLS)
@@ -107,7 +107,7 @@ func TestSSLRedirect(t *testing.T) {
 		&httpPlugin.Plugin{},
 	}, helpers.WithTCPProbe("127.0.0.1:8087"))
 
-	waitListener(t, "tcp", "127.0.0.1:8895")
+	helpers.WaitListener(t, "tcp", "127.0.0.1:8895")
 
 	res := clientGet(t, helpers.MTLSClient(t), "http://127.0.0.1:8087?hello=world")
 	require.NotNil(t, res.TLS)

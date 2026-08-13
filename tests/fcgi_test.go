@@ -2,12 +2,10 @@ package tests
 
 import (
 	"io"
-	"net"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
-	"time"
 
 	"tests/helpers"
 
@@ -16,11 +14,6 @@ import (
 	"github.com/roadrunner-server/static/v6"
 	"github.com/stretchr/testify/require"
 	"github.com/yookoala/gofast"
-)
-
-const (
-	listenerTimeout = time.Second * 15
-	listenerTick    = time.Millisecond * 20
 )
 
 // The fastcgi frontend answers over tcp and over a unix socket, and passes the
@@ -65,7 +58,7 @@ func TestFastCGI(t *testing.T) {
 func fcgiGet(t *testing.T, network, addr, url string) (int, string) {
 	t.Helper()
 
-	waitListener(t, network, addr)
+	helpers.WaitListener(t, network, addr)
 
 	fcgiHandler := gofast.NewHandler(
 		gofast.BasicParamsMap(gofast.BasicSession),
@@ -85,22 +78,4 @@ func fcgiGet(t *testing.T, network, addr, url string) (int, string) {
 	require.NoError(t, err)
 
 	return resp.StatusCode, string(body)
-}
-
-// waitListener waits until addr accepts a connection. The plain, tls and fastcgi
-// frontends of one config bind in parallel, so the readiness of the one Start
-// probed says nothing about the others.
-func waitListener(t *testing.T, network, addr string) {
-	t.Helper()
-
-	require.Eventually(t, func() bool {
-		var d net.Dialer
-
-		conn, err := d.DialContext(t.Context(), network, addr)
-		if err != nil {
-			return false
-		}
-
-		return conn.Close() == nil
-	}, listenerTimeout, listenerTick, "listener %s did not start", addr)
 }

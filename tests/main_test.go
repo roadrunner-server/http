@@ -12,13 +12,13 @@ import (
 const bigFixtureSize = 40528576
 
 // Fixtures generated instead of tracked: 80 MB of blobs backing one length
-// comparison (TestHTTPXSendFile) and one substring check (TestStaticBigFilePlugin).
+// comparison (TestHTTPXSendFile) and one substring check (TestStaticBigFile).
 var bigFixtures = []struct {
 	path   string
 	prefix string
 	fill   byte
 }{
-	// Served by the static middleware; serveStaticSample asserts the body contains "sample".
+	// Served by the static middleware; requireSampleServed asserts the body contains "sample".
 	{path: "sample-big.txt", prefix: "sample\n", fill: 0},
 	// Streamed via the X-Sendfile header; TestHTTPXSendFile compares the response
 	// length against this file, so only its size matters.

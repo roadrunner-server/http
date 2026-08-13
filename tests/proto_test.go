@@ -146,7 +146,7 @@ func TestHttp3(t *testing.T) {
 		code, body = resp.StatusCode, string(b)
 
 		return true
-	}, listenerTimeout, listenerTick, "http3 server did not answer")
+	}, helpers.ListenerTimeout, helpers.ListenerTick, "http3 server did not answer")
 
 	require.Equal(t, 201, code)
 	require.Equal(t, "WORLD", body)
