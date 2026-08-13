@@ -2,8 +2,16 @@ package https
 
 import (
 	"bytes"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
 	"crypto/tls"
+	"crypto/x509"
+	"crypto/x509/pkix"
+	"encoding/pem"
 	"log/slog"
+	"math/big"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -16,7 +24,106 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const rootCAPath = "../../tests/test-certs/rootCA.pem"
+// testChain is a throwaway certificate chain: a self-signed CA and a leaf signed
+// by it. Keeping the fixtures in-process means the package has no dependency on
+// files generated outside the module.
+type testChain struct {
+	caPEM   []byte
+	certPEM []byte
+	keyPEM  []byte
+}
+
+// chainPaths locates the PEM files of a chain written to disk.
+type chainPaths struct {
+	rootCA string
+	cert   string
+	key    string
+}
+
+func newTestChain() (*testChain, error) {
+	notBefore := time.Now().Add(-time.Hour)
+	notAfter := time.Now().Add(time.Hour)
+
+	caKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		return nil, err
+	}
+
+	caTemplate := &x509.Certificate{
+		SerialNumber:          big.NewInt(1),
+		Subject:               pkix.Name{CommonName: "roadrunner http test root"},
+		NotBefore:             notBefore,
+		NotAfter:              notAfter,
+		KeyUsage:              x509.KeyUsageCertSign | x509.KeyUsageDigitalSignature,
+		BasicConstraintsValid: true,
+		IsCA:                  true,
+	}
+
+	caDER, err := x509.CreateCertificate(rand.Reader, caTemplate, caTemplate, &caKey.PublicKey, caKey)
+	if err != nil {
+		return nil, err
+	}
+
+	caCert, err := x509.ParseCertificate(caDER)
+	if err != nil {
+		return nil, err
+	}
+
+	leafKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		return nil, err
+	}
+
+	leafTemplate := &x509.Certificate{
+		SerialNumber: big.NewInt(2),
+		Subject:      pkix.Name{CommonName: "localhost"},
+		NotBefore:    notBefore,
+		NotAfter:     notAfter,
+		KeyUsage:     x509.KeyUsageDigitalSignature,
+		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+		DNSNames:     []string{"localhost"},
+		IPAddresses:  []net.IP{net.ParseIP("127.0.0.1")},
+	}
+
+	leafDER, err := x509.CreateCertificate(rand.Reader, leafTemplate, caCert, &leafKey.PublicKey, caKey)
+	if err != nil {
+		return nil, err
+	}
+
+	leafKeyDER, err := x509.MarshalPKCS8PrivateKey(leafKey)
+	if err != nil {
+		return nil, err
+	}
+
+	return &testChain{
+		caPEM:   pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: caDER}),
+		certPEM: pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: leafDER}),
+		keyPEM:  pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: leafKeyDER}),
+	}, nil
+}
+
+// writeTestChain generates a chain and materializes it in the test's own temp
+// dir. P-256 keygen is fast enough that caching it across tests is not worth a
+// package-level variable.
+func writeTestChain(t *testing.T) chainPaths {
+	t.Helper()
+
+	chain, err := newTestChain()
+	require.NoError(t, err)
+
+	dir := t.TempDir()
+	paths := chainPaths{
+		rootCA: filepath.Join(dir, "rootCA.pem"),
+		cert:   filepath.Join(dir, "server.pem"),
+		key:    filepath.Join(dir, "server-key.pem"),
+	}
+
+	require.NoError(t, os.WriteFile(paths.rootCA, chain.caPEM, 0o600))
+	require.NoError(t, os.WriteFile(paths.cert, chain.certPEM, 0o600))
+	require.NoError(t, os.WriteFile(paths.key, chain.keyPEM, 0o600))
+
+	return paths
+}
 
 // markerHandler is comparable by pointer, which http.HandlerFunc is not.
 type markerHandler struct{}
@@ -68,7 +175,7 @@ func TestNewHTTPSServerAuthType(t *testing.T) {
 			https := newTestServer(t, &SSL{
 				Address:  "127.0.0.1:8443",
 				Port:     8443,
-				RootCA:   rootCAPath,
+				RootCA:   writeTestChain(t).rootCA,
 				AuthType: tt.authType,
 			}, nil)
 

@@ -9,11 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const (
-	testKeyPath  = "../../tests/test-certs/localhost+2-key.pem"
-	testCertPath = "../../tests/test-certs/localhost+2.pem"
-)
-
 func TestSSL_Valid1(t *testing.T) {
 	conf := &SSL{
 		Address:  "",
@@ -220,7 +215,7 @@ func TestSSL_EnableACME(t *testing.T) {
 func TestSSL_ValidCertMissing(t *testing.T) {
 	conf := &SSL{
 		Address: "127.0.0.1:8443",
-		Key:     testKeyPath,
+		Key:     writeTestChain(t).key,
 		Cert:    filepath.Join(t.TempDir(), "absent.crt"),
 	}
 
@@ -231,10 +226,11 @@ func TestSSL_ValidCertMissing(t *testing.T) {
 }
 
 func TestSSL_ValidRootCAMissing(t *testing.T) {
+	chain := writeTestChain(t)
 	conf := &SSL{
 		Address: "127.0.0.1:8443",
-		Key:     testKeyPath,
-		Cert:    testCertPath,
+		Key:     chain.key,
+		Cert:    chain.cert,
 		RootCA:  filepath.Join(t.TempDir(), "absent.pem"),
 	}
 
@@ -244,11 +240,12 @@ func TestSSL_ValidRootCAMissing(t *testing.T) {
 }
 
 func TestSSL_ValidFullChain(t *testing.T) {
+	chain := writeTestChain(t)
 	conf := &SSL{
 		Address: "127.0.0.1:8443",
-		Key:     testKeyPath,
-		Cert:    testCertPath,
-		RootCA:  rootCAPath,
+		Key:     chain.key,
+		Cert:    chain.cert,
+		RootCA:  chain.rootCA,
 	}
 
 	require.NoError(t, conf.Valid())
