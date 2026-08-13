@@ -337,7 +337,7 @@ func TestHTTPBigResp(t *testing.T) {
 
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
-		Path:    "configs/.rr-init-big-resp.yaml",
+		Path:    "configs/.rr-http-big-resp.yaml",
 	}
 
 	err := cont.RegisterAll(
@@ -431,7 +431,7 @@ func TestHTTPExecTTL(t *testing.T) {
 
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
-		Path:    "configs/.rr-http-exec_ttl.yaml",
+		Path:    "configs/.rr-http-exec-ttl.yaml",
 	}
 
 	l, oLogger := mocklogger.SlogTestLogger(slog.LevelDebug)
@@ -507,7 +507,7 @@ func TestHTTPBigRespMaxReqSize(t *testing.T) {
 
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
-		Path:    "configs/.rr-init-big-resp-max-req-size.yaml",
+		Path:    "configs/.rr-http-big-resp-max-req-size.yaml",
 	}
 
 	err := cont.RegisterAll(

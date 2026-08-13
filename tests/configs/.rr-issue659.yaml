@@ -4,7 +4,7 @@ rpc:
   listen: tcp://127.0.0.1:6009
 
 server:
-  command: "php php_test_files/issue659.php"
+  command: "php php_test_files/workers/issue659.php"
   relay: "pipes"
   relay_timeout: "20s"
 
@@ -17,6 +17,7 @@ http:
     forbid: [".php", ".exe", ".bat"]
   pool:
     num_workers: 1
+    destroy_timeout: 100ms
 
 logs:
   mode: development

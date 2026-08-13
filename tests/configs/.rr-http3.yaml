@@ -10,6 +10,8 @@ server:
 
 http:
   address: "0.0.0.0:34554"
+  pool:
+    destroy_timeout: 100ms
   http3:
     address: 127.0.0.1:34555
     key: "test-certs/localhost+2-key.pem"

@@ -15,7 +15,7 @@ http:
     num_workers: 2
     max_jobs: 0
     allocate_timeout: 60s
-    destroy_timeout: 1s
+    destroy_timeout: 100ms
 logs:
   mode: development
   level: error

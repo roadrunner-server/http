@@ -4,7 +4,7 @@ rpc:
   listen: tcp://127.0.0.1:6064
 
 server:
-  command: "php php_test_files/psr-103-http-code.php"
+  command: "php php_test_files/streams/psr-103-http-code.php"
   relay: "pipes"
 
 http:

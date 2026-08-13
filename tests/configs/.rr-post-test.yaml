@@ -4,7 +4,7 @@ rpc:
   listen: tcp://127.0.0.1:6008
 
 server:
-  command: "php php_test_files/psr-worker-post.php"
+  command: "php php_test_files/workers/psr-worker-post.php"
   relay: "pipes"
   relay_timeout: "20s"
 
@@ -16,7 +16,7 @@ http:
     num_workers: 2
     max_jobs: 0
     allocate_timeout: 60s
-    destroy_timeout: 1s
+    destroy_timeout: 100ms
 logs:
   mode: development
   level: error

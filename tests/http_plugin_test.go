@@ -877,7 +877,7 @@ func TestFastCGI_RequestUri(t *testing.T) {
 
 	cfg := &config.Plugin{
 		Version: "2023.3.5",
-		Path:    "configs/.rr-fcgi-reqUri.yaml",
+		Path:    "configs/.rr-fcgi-request-uri.yaml",
 	}
 
 	err := cont.RegisterAll(

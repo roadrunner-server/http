@@ -6,7 +6,7 @@ use Spiral\Goridge;
 use Spiral\RoadRunner;
 
 ini_set('display_errors', 'stderr');
-require __DIR__ . "/vendor/autoload.php";
+require dirname(__DIR__) . "/vendor/autoload.php";
 
 $worker = new RoadRunner\Worker(new Goridge\StreamRelay(STDIN, STDOUT));
 $httpWorker = new RoadRunner\Http\HttpWorker(

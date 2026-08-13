@@ -5,7 +5,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Spiral\RoadRunner\Http\PSR7Worker;
 use Spiral\RoadRunner\Worker;
 
-include __DIR__ . '/vendor/autoload.php';
+include dirname(__DIR__) . '/vendor/autoload.php';
 
 $factory = new Psr17Factory();
 $rrWorker = Worker::create();
@@ -14,7 +14,7 @@ $pdo = null;
 $log = $rrWorker->getLogger();
 $start = microtime(true);
 
-file_put_contents(__DIR__ . '/big-resp', str_repeat('R', 1024 * 1024 * 10), FILE_APPEND);
+file_put_contents(dirname(__DIR__) . '/big-resp', str_repeat('R', 1024 * 1024 * 10), FILE_APPEND);
 
 while (true) {
     $req = microtime(true);
@@ -35,7 +35,7 @@ while (true) {
                     'start' => microtime(true) - $start
                 ]);
             }
-            $buffer = file_get_contents(__DIR__ . '/well');
+            $buffer = file_get_contents(dirname(__DIR__) . '/well');
             $worker->respond(new \Nyholm\Psr7\Response(200, [], $buffer));
         } else {
             $log->info('empty', [

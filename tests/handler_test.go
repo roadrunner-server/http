@@ -550,7 +550,7 @@ func TestHandler_JsonPayload_PATCH(t *testing.T) {
 func TestHandler_UrlEncoded_POST_DELETE(t *testing.T) {
 	p, err := staticPool.NewPool(t.Context(),
 		func(_ []string) *exec.Cmd {
-			return exec.Command("php", "php_test_files/psr-worker-echo.php")
+			return exec.Command("php", "php_test_files/workers/psr-worker-echo.php")
 		},
 		pipe.NewPipeFactory(testLog.SlogLogger()),
 		&pool.Config{

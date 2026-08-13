@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 ini_set('display_errors', 'stderr');
-require __DIR__ . "/vendor/autoload.php";
+require dirname(__DIR__) . "/vendor/autoload.php";
 
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use Spiral\RoadRunner;
