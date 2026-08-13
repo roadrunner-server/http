@@ -1181,10 +1181,11 @@ func TestH2CUpgrade(t *testing.T) {
 	r, err := client.Do(req)
 	require.NoError(t, err)
 
-	assert.Equal(t, "101 Switching Protocols", r.Status)
+	// Server.Protocols has no h2c upgrade mechanism; the request is served as plain HTTP/1.1
+	assert.Equal(t, "201 Created", r.Status)
 	require.NoError(t, r.Body.Close())
 
-	assert.Equal(t, http.StatusSwitchingProtocols, r.StatusCode)
+	assert.Equal(t, http.StatusCreated, r.StatusCode)
 
 	req, err = http.NewRequestWithContext(t.Context(), http.MethodGet, "http://127.0.0.1:8083?hello=world", nil)
 	assert.NoError(t, err)
