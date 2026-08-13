@@ -91,6 +91,32 @@ func TestHandler_Error(t *testing.T) {
 	}
 }
 
+// A header the worker announces in Trailer travels behind the body, so the client
+// only sees it once the body is read out.
+func TestHandler_Trailers(t *testing.T) {
+	s := helpers.ServeHandler(t, []string{"php_test_files/http/client.php", "trailers", "pipes"}, nil, nil)
+
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, s.URL, nil)
+	require.NoError(t, err)
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+
+	defer func() {
+		_ = resp.Body.Close()
+	}()
+
+	// the announced header is neither a response header nor a trailer yet
+	assert.Empty(t, resp.Header.Get("X-Checksum"))
+	assert.Empty(t, resp.Trailer.Get("X-Checksum"))
+
+	b, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+	assert.Equal(t, "checksummed", string(b))
+
+	assert.Equal(t, "abc", resp.Trailer.Get("X-Checksum"))
+}
+
 // response is a finished response: the body is already read and closed.
 type response struct {
 	code    int

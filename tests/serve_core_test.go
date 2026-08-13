@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"strings"
 	"testing"
@@ -147,6 +148,68 @@ func postEcho(t *testing.T, url string, body []byte, contentType string) {
 
 	require.Equal(t, 200, resp.StatusCode)
 	require.Equal(t, body, b)
+}
+
+// raw_body hands the worker the body exactly as it arrived: nothing is parsed out
+// of it, uploads included.
+func TestHTTPRawBody(t *testing.T) {
+	helpers.Start(t, "configs/.rr-http-raw-body.yaml", []any{
+		&server.Plugin{},
+		&httpPlugin.Plugin{},
+	}, helpers.WithProbe("http://127.0.0.1:22377"))
+
+	envelope, multipartType := rawMultipartForm(t)
+
+	for _, tt := range []struct {
+		name        string
+		contentType string
+		body        string
+	}{
+		{"urlencoded arrives as a literal string", urlEncoded, "a=1&b=2"},
+		{"multipart arrives as its raw envelope", multipartType, envelope},
+		{"json passes through untouched", "application/json", `{"k":"v"}`},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			req, err := http.NewRequestWithContext(t.Context(), http.MethodPost, "http://127.0.0.1:22377", strings.NewReader(tt.body))
+			require.NoError(t, err)
+
+			req.Header.Set("Content-Type", tt.contentType)
+
+			resp, err := http.DefaultClient.Do(req)
+			require.NoError(t, err)
+
+			defer func() {
+				_ = resp.Body.Close()
+			}()
+
+			b, err := io.ReadAll(resp.Body)
+			require.NoError(t, err)
+
+			require.Equal(t, http.StatusOK, resp.StatusCode)
+			// the worker writes back the body it was given, byte for byte
+			require.Equal(t, tt.body, string(b))
+			require.Equal(t, "0", resp.Header.Get("X-Uploads"))
+		})
+	}
+}
+
+// rawMultipartForm builds a multipart body with a single file part and returns it
+// together with its content type.
+func rawMultipartForm(t *testing.T) (string, string) {
+	t.Helper()
+
+	var mb bytes.Buffer
+	w := multipart.NewWriter(&mb)
+
+	f, err := w.CreateFormFile("upload", "raw.txt")
+	require.NoError(t, err)
+
+	_, err = f.Write([]byte("file content"))
+	require.NoError(t, err)
+
+	require.NoError(t, w.Close())
+
+	return mb.String(), w.FormDataContentType()
 }
 
 func TestHTTPIPv6Long(t *testing.T) {

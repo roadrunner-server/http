@@ -42,6 +42,19 @@ func TestStreamFail(t *testing.T) {
 	requireStream(t, "http://127.0.0.1:19993", 2)
 }
 
+// A worker killed mid-stream leaves the client with the chunk it already sent;
+// the receive error ends the stream and is logged.
+func TestStreamDie(t *testing.T) {
+	rr, _ := helpers.Start(t, "configs/.rr-stream-die.yaml", []any{
+		&server.Plugin{},
+		&httpPlugin.Plugin{},
+	}, helpers.WithConfigVersion("2023.3.0"), helpers.WithObservedLogger(), helpers.WithTCPProbe("127.0.0.1:19973"))
+
+	requireStream(t, "http://127.0.0.1:19973", 1)
+
+	require.Equal(t, 1, rr.Logs.FilterMessageSnippet("read stream").Len())
+}
+
 // The worker sends four informational responses (100 to 103, the last one an
 // Early Hints with a Link header) before the 200 carrying the body; the headers
 // of all of them reach the client.
