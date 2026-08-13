@@ -500,7 +500,8 @@ func TestHTTPExecTTL(t *testing.T) {
 	stopCh <- struct{}{}
 	wg.Wait()
 
-	shouldBe1 := oLogger.FilterAttrKey("internal_event_name").Len()
+	// count only the execTTL kill; worker lifecycle events also carry internal_event_name
+	shouldBe1 := oLogger.FilterMessageSnippet("worker stopped, and will be restarted").Len()
 	require.Equal(t, 1, shouldBe1)
 }
 
