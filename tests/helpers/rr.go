@@ -28,12 +28,13 @@ const (
 
 // bootCfg holds the options applied to a container before it is started.
 type bootCfg struct {
-	version  string
-	inline   string
-	logLevel slog.Level
-	graceful time.Duration
-	logger   loggerKind
-	probe    func(ctx context.Context) bool
+	version      string
+	inline       string
+	logLevel     slog.Level
+	graceful     time.Duration
+	logger       loggerKind
+	probe        func(ctx context.Context) bool
+	experimental bool
 }
 
 // loggerKind selects which logger plugin Start registers.
@@ -56,6 +57,12 @@ func WithConfigVersion(v string) Option {
 // WithInlineConfig feeds the container YAML from memory; the cfgPath argument is ignored.
 func WithInlineConfig(yaml string) Option {
 	return func(b *bootCfg) { b.inline = yaml }
+}
+
+// WithExperimentalFeatures sets ExperimentalFeatures on the config plugin, which
+// gates the features still behind a flag, such as the http3 server.
+func WithExperimentalFeatures() Option {
+	return func(b *bootCfg) { b.experimental = true }
 }
 
 // WithLogLevel sets the endure container log level (debug by default).
@@ -233,7 +240,7 @@ func newContainer(t *testing.T, cfgPath string, plugins []any, opts []Option) (*
 		o(bc)
 	}
 
-	cfg := &config.Plugin{Version: bc.version}
+	cfg := &config.Plugin{Version: bc.version, ExperimentalFeatures: bc.experimental}
 	if bc.inline != "" {
 		cfg.Type = "yaml"
 		cfg.ReadInCfg = []byte(bc.inline)

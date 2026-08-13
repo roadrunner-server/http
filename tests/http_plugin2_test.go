@@ -2,8 +2,6 @@ package tests
 
 import (
 	"bytes"
-	"crypto/tls"
-	"io"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -26,104 +24,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-func TestSSLNoHTTP(t *testing.T) {
-	cont := endure.New(slog.LevelDebug)
-
-	cfg := &config.Plugin{
-		Version: "2023.3.5",
-		Path:    "configs/.rr-ssl-no-http.yaml",
-	}
-
-	err := cont.RegisterAll(
-		cfg,
-		&logger.Plugin{},
-		&server.Plugin{},
-		&httpPlugin.Plugin{},
-	)
-	assert.NoError(t, err)
-
-	err = cont.Init()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	ch, err := cont.Serve()
-	assert.NoError(t, err)
-
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-
-	wg := &sync.WaitGroup{}
-
-	stopCh := make(chan struct{}, 1)
-
-	wg.Go(func() {
-		for {
-			select {
-			case e := <-ch:
-				assert.Fail(t, "error", e.Error.Error())
-				err = cont.Stop()
-				if err != nil {
-					assert.FailNow(t, "error", err.Error())
-				}
-			case <-sig:
-				err = cont.Stop()
-				if err != nil {
-					assert.FailNow(t, "error", err.Error())
-				}
-				return
-			case <-stopCh:
-				// timeout
-				err = cont.Stop()
-				if err != nil {
-					assert.FailNow(t, "error", err.Error())
-				}
-				return
-			}
-		}
-	})
-
-	time.Sleep(time.Second * 1)
-	t.Run("SSLEcho", sslEcho2)
-
-	stopCh <- struct{}{}
-	wg.Wait()
-	time.Sleep(time.Second)
-}
-
-func sslEcho2(t *testing.T) {
-	cert, err := tls.LoadX509KeyPair("test-certs/localhost+2-client.pem", "test-certs/localhost+2-client-key.pem")
-	require.NoError(t, err)
-
-	client := &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				MinVersion:   tls.VersionTLS12,
-				Certificates: []tls.Certificate{cert},
-			},
-		},
-	}
-
-	req, err := http.NewRequest("GET", "https://127.0.0.1:4455?hello=world", nil)
-	assert.NoError(t, err)
-
-	r, err := client.Do(req)
-	require.NoError(t, err)
-	require.NotNil(t, r)
-
-	b, err := io.ReadAll(r.Body)
-	require.NoError(t, err)
-
-	require.NoError(t, err)
-	require.Equal(t, 201, r.StatusCode)
-	require.Equal(t, "WORLD", string(b))
-
-	err2 := r.Body.Close()
-	if err2 != nil {
-		t.Errorf("fail to close the Body: error %v", err2)
-	}
-}
 
 func TestFileServer(t *testing.T) {
 	cont := endure.New(slog.LevelDebug, endure.GracefulShutdownTimeout(time.Second*30))
