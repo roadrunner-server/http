@@ -257,20 +257,18 @@ func TestHTTPBigRequestSize(t *testing.T) {
 	require.Equal(t, "serve_http: http: request body too large\n", string(b))
 }
 
-// The same urlencoded body against three max_request_size settings.
+// Urlencoded bodies against three max_request_size settings.
 func TestHTTPBigURLEncoded(t *testing.T) {
-	// 11MB: over the limit of the first config, under the limit of the other two
-	body := "foo=" + strings.Repeat("a", 11*1024*1024)
-
 	for _, tt := range []struct {
 		name     string
 		cfg      string
 		addr     string
+		bodySize int
 		wantCode int
 	}{
-		{name: "limit1MB", cfg: "configs/.rr-http-urlencoded1.yaml", addr: "127.0.0.1:55777", wantCode: http.StatusRequestEntityTooLarge},
-		{name: "limit30MB", cfg: "configs/.rr-http-urlencoded2.yaml", addr: "127.0.0.1:55778", wantCode: http.StatusOK},
-		{name: "defaultLimit", cfg: "configs/.rr-http-urlencoded3.yaml", addr: "127.0.0.1:55779", wantCode: http.StatusOK},
+		{name: "limit1MB", cfg: "configs/.rr-http-urlencoded1.yaml", addr: "127.0.0.1:55777", bodySize: 11 * 1024 * 1024, wantCode: http.StatusRequestEntityTooLarge},
+		{name: "limit30MB", cfg: "configs/.rr-http-urlencoded2.yaml", addr: "127.0.0.1:55778", bodySize: 28 * 1024 * 1024, wantCode: http.StatusOK},
+		{name: "defaultLimit", cfg: "configs/.rr-http-urlencoded3.yaml", addr: "127.0.0.1:55779", bodySize: 11 * 1024 * 1024, wantCode: http.StatusOK},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			helpers.Start(t, tt.cfg, []any{
@@ -279,6 +277,7 @@ func TestHTTPBigURLEncoded(t *testing.T) {
 				&httpPlugin.Plugin{},
 			}, helpers.WithProbe("http://"+tt.addr))
 
+			body := "foo=" + strings.Repeat("a", tt.bodySize)
 			req, err := http.NewRequestWithContext(t.Context(), http.MethodPost, "http://"+tt.addr, strings.NewReader(body))
 			require.NoError(t, err)
 

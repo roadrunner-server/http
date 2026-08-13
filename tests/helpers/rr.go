@@ -43,7 +43,6 @@ type loggerKind int
 const (
 	realLogger loggerKind = iota
 	observedLogger
-	noLogger
 )
 
 // Option customizes the container built by Start and its error-path variants.
@@ -79,11 +78,6 @@ func WithGracefulTimeout(d time.Duration) Option {
 // plugin and exposes the captured records as RR.Logs.
 func WithObservedLogger() Option {
 	return func(b *bootCfg) { b.logger = observedLogger }
-}
-
-// WithoutLogger registers no logger plugin at all.
-func WithoutLogger() Option {
-	return func(b *bootCfg) { b.logger = noLogger }
 }
 
 // WithProbe makes Start return only once a GET to url gets a response. The probe
@@ -263,7 +257,6 @@ func newContainer(t *testing.T, cfgPath string, plugins []any, opts []Option) (*
 		l, obs := mocklogger.SlogTestLogger(slog.LevelDebug)
 		rr.Logs = obs
 		all = append(all, l)
-	case noLogger:
 	}
 
 	cont := endure.New(bc.logLevel, endureOpts...)
