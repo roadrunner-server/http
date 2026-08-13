@@ -501,8 +501,8 @@ func TestHTTPExecTTL(t *testing.T) {
 	wg.Wait()
 
 	// count the execTTL restart only, not other worker lifecycle events
-	shouldBe1 := oLogger.FilterMessageSnippet("worker stopped, and will be restarted").Len()
-	require.Equal(t, 1, shouldBe1)
+	workerStopped := oLogger.FilterMessageSnippet("worker stopped, and will be restarted").Len()
+	require.Equal(t, 1, workerStopped)
 }
 
 func TestHTTPBigRespMaxReqSize(t *testing.T) {
