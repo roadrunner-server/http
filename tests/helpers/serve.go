@@ -31,7 +31,7 @@ type Served struct {
 // ServeHandler runs `php argv...` as a worker pool, wraps it in the http handler
 // and serves it on an ephemeral port. The server and the pool are torn down by
 // t.Cleanup. A nil hcfg or pcfg means the default configuration.
-func ServeHandler(t *testing.T, argv []string, hcfg *config.Config, pcfg *pool.Config) *Served {
+func ServeHandler(t testing.TB, argv []string, hcfg *config.Config, pcfg *pool.Config) *Served {
 	t.Helper()
 
 	if pcfg == nil {
