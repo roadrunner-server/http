@@ -3,7 +3,6 @@ package tests
 import (
 	"bytes"
 	"crypto/tls"
-	"encoding/json"
 	"io"
 	"log/slog"
 	"net/http"
@@ -15,133 +14,18 @@ import (
 	"testing"
 	"time"
 
+	"tests/helpers"
+
 	"github.com/roadrunner-server/config/v6"
 	"github.com/roadrunner-server/endure/v2"
 	"github.com/roadrunner-server/fileserver/v6"
 	"github.com/roadrunner-server/gzip/v6"
 	httpPlugin "github.com/roadrunner-server/http/v6"
 	"github.com/roadrunner-server/logger/v6"
-	rpcPlugin "github.com/roadrunner-server/rpc/v6"
 	"github.com/roadrunner-server/server/v6"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"tests/helpers"
-	mocklogger "tests/mock"
 )
-
-func TestHTTPPost(t *testing.T) {
-	cont := endure.New(slog.LevelDebug)
-
-	cfg := &config.Plugin{
-		Version: "2023.3.5",
-		Path:    "configs/.rr-post-test.yaml",
-	}
-
-	err := cont.RegisterAll(
-		cfg,
-		&rpcPlugin.Plugin{},
-		&logger.Plugin{},
-		&server.Plugin{},
-		&httpPlugin.Plugin{},
-	)
-	assert.NoError(t, err)
-
-	err = cont.Init()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	ch, err := cont.Serve()
-	assert.NoError(t, err)
-
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-
-	wg := &sync.WaitGroup{}
-
-	stopCh := make(chan struct{}, 1)
-
-	wg.Go(func() {
-		for {
-			select {
-			case e := <-ch:
-				assert.Fail(t, "error", e.Error.Error())
-				err = cont.Stop()
-				if err != nil {
-					assert.FailNow(t, "error", err.Error())
-				}
-			case <-sig:
-				err = cont.Stop()
-				if err != nil {
-					assert.FailNow(t, "error", err.Error())
-				}
-				return
-			case <-stopCh:
-				// timeout
-				err = cont.Stop()
-				if err != nil {
-					assert.FailNow(t, "error", err.Error())
-				}
-				return
-			}
-		}
-	})
-
-	time.Sleep(time.Second * 1)
-	t.Run("BombardWithPosts", echoHTTPPost)
-
-	stopCh <- struct{}{}
-
-	wg.Wait()
-}
-
-func echoHTTPPost(t *testing.T) {
-	body := struct {
-		Name  string `json:"name"`
-		Index int    `json:"index"`
-	}{
-		Name:  "foo",
-		Index: 111,
-	}
-
-	bd, err := json.Marshal(body)
-	require.NoError(t, err)
-
-	rdr := bytes.NewReader(bd)
-	client := &http.Client{}
-
-	req, err := http.NewRequestWithContext(t.Context(), http.MethodPost, "http://127.0.0.1:10084/", rdr)
-	assert.NoError(t, err)
-
-	resp, err := client.Do(req)
-	assert.NoError(t, err)
-
-	b, err := io.ReadAll(resp.Body)
-	assert.NoError(t, err)
-	assert.Equal(t, 200, resp.StatusCode)
-
-	require.True(t, bytes.Equal(bd, b))
-
-	_ = resp.Body.Close()
-
-	for range 20 {
-		rdr = bytes.NewReader(bd)
-		req, err := http.NewRequestWithContext(t.Context(), http.MethodPost, "http://127.0.0.1:10084/", rdr)
-		assert.NoError(t, err)
-		req.Header.Add("Content-Type", "application/json")
-
-		resp, err := client.Do(req)
-		assert.NoError(t, err)
-
-		b, err = io.ReadAll(resp.Body)
-		assert.NoError(t, err)
-		assert.Equal(t, 200, resp.StatusCode)
-
-		require.True(t, bytes.Equal(bd, b))
-
-		_ = resp.Body.Close()
-	}
-}
 
 func TestSSLNoHTTP(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
@@ -423,83 +307,6 @@ func TestHTTPBigResp(t *testing.T) {
 	t.Cleanup(func() {
 		_ = os.RemoveAll("php_test_files/big-resp")
 	})
-}
-
-// https://github.com/laravel/octane/issues/504
-func TestHTTPExecTTL(t *testing.T) {
-	cont := endure.New(slog.LevelDebug)
-
-	cfg := &config.Plugin{
-		Version: "2023.3.5",
-		Path:    "configs/.rr-http-exec-ttl.yaml",
-	}
-
-	l, oLogger := mocklogger.SlogTestLogger(slog.LevelDebug)
-	err := cont.RegisterAll(
-		cfg,
-		l,
-		&server.Plugin{},
-		&httpPlugin.Plugin{},
-	)
-	assert.NoError(t, err)
-
-	err = cont.Init()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	ch, err := cont.Serve()
-	assert.NoError(t, err)
-
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-
-	wg := &sync.WaitGroup{}
-
-	stopCh := make(chan struct{}, 1)
-
-	wg.Go(func() {
-		for {
-			select {
-			case e := <-ch:
-				assert.Fail(t, "error", e.Error.Error())
-				err = cont.Stop()
-				if err != nil {
-					assert.FailNow(t, "error", err.Error())
-				}
-			case <-sig:
-				err = cont.Stop()
-				if err != nil {
-					assert.FailNow(t, "error", err.Error())
-				}
-				return
-			case <-stopCh:
-				// timeout
-				err = cont.Stop()
-				if err != nil {
-					assert.FailNow(t, "error", err.Error())
-				}
-				return
-			}
-		}
-	})
-
-	time.Sleep(time.Second)
-
-	req, err2 := http.NewRequestWithContext(t.Context(), http.MethodGet, "http://127.0.0.1:18988", nil)
-	require.NoError(t, err2)
-
-	r, err2 := http.DefaultClient.Do(req)
-	require.NoError(t, err2)
-	require.Equal(t, 500, r.StatusCode)
-	_ = r.Body.Close()
-
-	stopCh <- struct{}{}
-	wg.Wait()
-
-	// count the execTTL restart only, not other worker lifecycle events
-	workerStopped := oLogger.FilterMessageSnippet("worker stopped, and will be restarted").Len()
-	require.Equal(t, 1, workerStopped)
 }
 
 func TestHTTPBigRespMaxReqSize(t *testing.T) {

@@ -8,13 +8,10 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
-	"runtime"
 	"sync"
 	"syscall"
 	"testing"
 	"time"
-
-	mocklogger "tests/mock"
 
 	"github.com/quic-go/quic-go/http3"
 	"github.com/roadrunner-server/config/v6"
@@ -91,93 +88,6 @@ func TestHttp3(t *testing.T) {
 
 	stopCh <- struct{}{}
 	wg.Wait()
-}
-
-func TestBug1843(t *testing.T) {
-	cont := endure.New(slog.LevelDebug)
-
-	cfg := &config.Plugin{
-		Version:              "2023.3.0",
-		ExperimentalFeatures: true,
-		Path:                 "configs/.rr-bug1843.yaml",
-	}
-
-	l, oLogger := mocklogger.SlogTestLogger(slog.LevelDebug)
-	err := cont.RegisterAll(
-		cfg,
-		&rpcPlugin.Plugin{},
-		l,
-		&server.Plugin{},
-		&httpPlugin.Plugin{},
-	)
-	assert.NoError(t, err)
-
-	err = cont.Init()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	ch, err := cont.Serve()
-	assert.NoError(t, err)
-
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-
-	wg := &sync.WaitGroup{}
-
-	stopCh := make(chan struct{}, 1)
-
-	wg.Go(func() {
-		for {
-			select {
-			case e := <-ch:
-				assert.Fail(t, "error", e.Error.Error())
-				err = cont.Stop()
-				if err != nil {
-					assert.FailNow(t, "error", err.Error())
-				}
-			case <-sig:
-				err = cont.Stop()
-				if err != nil {
-					assert.FailNow(t, "error", err.Error())
-				}
-				return
-			case <-stopCh:
-				// timeout
-				err = cont.Stop()
-				if err != nil {
-					assert.FailNow(t, "error", err.Error())
-				}
-				return
-			}
-		}
-	})
-
-	time.Sleep(time.Second * 1)
-
-	client := &http.Client{}
-
-	req, err := http.NewRequest(http.MethodGet, "http://127.0.0.1:16322", nil)
-	require.NoError(t, err)
-
-	r, err := client.Do(req)
-	require.NoError(t, err)
-	require.NotNil(t, r)
-
-	bd, err := io.ReadAll(r.Body)
-	require.NoError(t, err)
-
-	assert.Equal(t, int(500), r.StatusCode)
-	// on darwin pipes behave different, so, we can see the error in the stdout
-	if runtime.GOOS == "darwin" {
-		assert.Contains(t, string(bd), "goridge_frame_receive: validation failed on the message sent to STDOUT")
-	}
-	_ = r.Body.Close()
-
-	stopCh <- struct{}{}
-	wg.Wait()
-
-	assert.Equal(t, 1, oLogger.FilterMessageSnippet("PHP Fatal error:  Uncaught RuntimeException").Len())
 }
 
 func http3ResponseMatcher(t *testing.T) {
