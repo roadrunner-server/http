@@ -1,10 +1,8 @@
 package helpers
 
 import (
-	"bytes"
 	"io"
 	"net/http"
-	"os"
 )
 
 func Get(url string) (string, *http.Response, error) {
@@ -24,24 +22,4 @@ func Get(url string) (string, *http.Response, error) {
 	}
 
 	return string(b), r, err
-}
-
-func All(fn string) string {
-	f, err := os.Open(fn)
-	if err != nil {
-		panic(err)
-	}
-
-	b := new(bytes.Buffer)
-	_, err = io.Copy(b, f)
-	if err != nil {
-		return ""
-	}
-
-	err = f.Close()
-	if err != nil {
-		return ""
-	}
-
-	return b.String()
 }

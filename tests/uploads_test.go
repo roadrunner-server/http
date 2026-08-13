@@ -16,61 +16,21 @@ import (
 	"testing"
 	"time"
 
+	"tests/helpers"
+	"tests/testLog"
+
 	"github.com/roadrunner-server/http/v6/config"
 	"github.com/roadrunner-server/http/v6/handler"
 	"github.com/roadrunner-server/pool/v2/ipc/pipe"
 	"github.com/roadrunner-server/pool/v2/pool"
 	staticPool "github.com/roadrunner-server/pool/v2/pool/static_pool"
 	"github.com/stretchr/testify/assert"
-	"tests/testLog"
 )
 
 const testFile = "uploads_test.go"
 
 func TestHandler_Upload_File(t *testing.T) {
-	pl, err := staticPool.NewPool(t.Context(),
-		func(_ []string) *exec.Cmd {
-			return exec.Command("php", "php_test_files/http/client.php", "upload", "pipes")
-		},
-		pipe.NewPipeFactory(testLog.SlogLogger()),
-		&pool.Config{
-			NumWorkers:      1,
-			AllocateTimeout: time.Second * 1000,
-			DestroyTimeout:  time.Second * 1000,
-		}, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	cfg := &config.Config{
-		MaxRequestSize:    1024,
-		InternalErrorCode: 500,
-		AccessLogs:        false,
-		Uploads: &config.Uploads{
-			Dir:       os.TempDir(),
-			Forbidden: map[string]struct{}{},
-			Allowed:   map[string]struct{}{},
-		},
-	}
-
-	h, err := handler.NewHandler(cfg, pl, testLog.SlogLogger())
-	assert.NoError(t, err)
-
-	hs := &http.Server{Addr: ":9021", Handler: h, ReadHeaderTimeout: time.Minute * 5}
-	defer func() {
-		errS := hs.Shutdown(context.Background())
-		if errS != nil {
-			t.Errorf("error during the shutdown: error %v", errS)
-		}
-	}()
-
-	go func() {
-		errL := hs.ListenAndServe()
-		if errL != nil && !errors.Is(errL, http.ErrServerClosed) {
-			t.Errorf("error listening the interface: error %v", errL)
-		}
-	}()
-	time.Sleep(time.Millisecond * 10)
+	s := helpers.ServeHandler(t, []string{"php_test_files/http/client.php", "upload", "pipes"}, nil, nil)
 
 	var mb bytes.Buffer
 	w := multipart.NewWriter(&mb)
@@ -95,7 +55,7 @@ func TestHandler_Upload_File(t *testing.T) {
 		t.Errorf("error closing the file: error %v", err)
 	}
 
-	req, err := http.NewRequest(http.MethodPost, "http://127.0.0.1"+hs.Addr, &mb) //nolint:noctx
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodPost, s.URL, &mb)
 	assert.NoError(t, err)
 
 	req.Header.Set("Content-Type", w.FormDataContentType())

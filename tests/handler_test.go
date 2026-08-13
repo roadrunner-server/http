@@ -16,6 +16,9 @@ import (
 	"testing"
 	"time"
 
+	"tests/helpers"
+	"tests/testLog"
+
 	"github.com/roadrunner-server/http/v6/config"
 	"github.com/roadrunner-server/http/v6/handler"
 	"github.com/roadrunner-server/pool/v2/ipc/pipe"
@@ -23,64 +26,12 @@ import (
 	staticPool "github.com/roadrunner-server/pool/v2/pool/static_pool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"tests/helpers"
-	"tests/testLog"
 )
 
 func TestHandler_Echo(t *testing.T) {
-	p, err := staticPool.NewPool(t.Context(),
-		func(_ []string) *exec.Cmd {
-			return exec.Command("php", "php_test_files/http/client.php", "echo", "pipes")
-		},
-		pipe.NewPipeFactory(testLog.SlogLogger()),
-		&pool.Config{
-			NumWorkers:      1,
-			AllocateTimeout: time.Second * 1000,
-			DestroyTimeout:  time.Second * 1000,
-		}, nil)
-	require.NoError(t, err)
+	s := helpers.ServeHandler(t, []string{"php_test_files/http/client.php", "echo", "pipes"}, nil, nil)
 
-	cfg := &config.Config{
-		MaxRequestSize:    1024,
-		InternalErrorCode: 500,
-		AccessLogs:        false,
-		Uploads: &config.Uploads{
-			Dir:       os.TempDir(),
-			Forbidden: map[string]struct{}{},
-			Allowed:   map[string]struct{}{},
-		},
-	}
-
-	h, err := handler.NewHandler(cfg, p, testLog.SlogLogger())
-	assert.NoError(t, err)
-
-	hs := &http.Server{
-		Addr:              ":19177",
-		ReadHeaderTimeout: time.Minute * 5,
-		Handler:           h,
-	}
-	defer func() {
-		errS := hs.Shutdown(context.Background())
-		if errS != nil {
-			t.Errorf("error during the shutdown: error %v", err)
-		}
-	}()
-	go func(server *http.Server) {
-		err = server.ListenAndServe()
-		if err != nil && !errors.Is(http.ErrServerClosed, err) {
-			t.Errorf("error listening the interface: error %v", err)
-		}
-	}(hs)
-	time.Sleep(time.Millisecond * 10)
-
-	body, r, err := helpers.Get("http://127.0.0.1:19177/?hello=world")
-	assert.NoError(t, err)
-	defer func() {
-		_ = r.Body.Close()
-	}()
-	assert.Equal(t, 201, r.StatusCode)
-	assert.Equal(t, "WORLD", body)
-	p.Destroy(t.Context())
+	helpers.AssertGet(t, s.URL+"/?hello=world", 201, "WORLD")
 }
 
 func TestHandler_Headers(t *testing.T) {

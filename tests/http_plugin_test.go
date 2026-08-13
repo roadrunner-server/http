@@ -45,64 +45,10 @@ import (
 )
 
 func TestHTTPInit(t *testing.T) {
-	cont := endure.New(slog.LevelDebug)
-
-	cfg := &config.Plugin{
-		Version: "2023.3.5",
-		Path:    "configs/.rr-http-init.yaml",
-	}
-
-	err := cont.RegisterAll(
-		cfg,
-		&logger.Plugin{},
+	helpers.Start(t, "configs/.rr-http-init.yaml", []any{
 		&server.Plugin{},
 		&httpPlugin.Plugin{},
-	)
-	assert.NoError(t, err)
-
-	err = cont.Init()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	ch, err := cont.Serve()
-	assert.NoError(t, err)
-
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-
-	wg := &sync.WaitGroup{}
-	stopCh := make(chan struct{}, 1)
-
-	wg.Go(func() {
-		for {
-			select {
-			case e := <-ch:
-				assert.Fail(t, "error", e.Error.Error())
-				err = cont.Stop()
-				if err != nil {
-					assert.FailNow(t, "error", err.Error())
-				}
-			case <-sig:
-				err = cont.Stop()
-				if err != nil {
-					assert.FailNow(t, "error", err.Error())
-				}
-				return
-			case <-stopCh:
-				// timeout
-				err = cont.Stop()
-				if err != nil {
-					assert.FailNow(t, "error", err.Error())
-				}
-				return
-			}
-		}
-	})
-
-	time.Sleep(time.Second)
-	stopCh <- struct{}{}
-	wg.Wait()
+	}, helpers.WithProbe("http://127.0.0.1:15395"))
 }
 
 func TestHTTPAccessLogs(t *testing.T) {
@@ -1496,30 +1442,12 @@ func echoError(t *testing.T) {
 }
 
 func TestHttpBrokenPipes(t *testing.T) {
-	cont := endure.New(slog.LevelDebug)
-
-	cfg := &config.Plugin{
-		Version: "2023.3.5",
-		Path:    "configs/.rr-broken-pipes.yaml",
-		Type:    "yaml",
-	}
-
-	err := cont.RegisterAll(
-		cfg,
-		&logger.Plugin{},
+	_ = helpers.StartExpectServeError(t, "configs/.rr-broken-pipes.yaml", []any{
 		&server.Plugin{},
 		&httpPlugin.Plugin{},
 		&testplugins.PluginMiddleware{},
 		&testplugins.PluginMiddleware2{},
-	)
-	assert.NoError(t, err)
-
-	err = cont.Init()
-	assert.NoError(t, err)
-
-	_, err = cont.Serve()
-	assert.Error(t, err)
-	_ = cont.Stop()
+	})
 }
 
 func TestHTTPSupervisedPool(t *testing.T) {
@@ -2146,7 +2074,9 @@ func staticHeaders(port int) func(t *testing.T) {
 			_ = resp.Body.Close()
 		}()
 
-		require.Equal(t, helpers.All("php_test_files/client.php"), string(b))
+		want, err := os.ReadFile("php_test_files/client.php")
+		require.NoError(t, err)
+		require.Equal(t, string(want), string(b))
 	}
 }
 
@@ -2154,7 +2084,9 @@ func staticNotForbid(port int) func(t *testing.T) {
 	return func(t *testing.T) {
 		b, r, err := helpers.Get(fmt.Sprintf("http://127.0.0.1:%d/php_test_files/client.php", port))
 		require.NoError(t, err)
-		require.Equal(t, helpers.All("php_test_files/client.php"), b)
+		want, err := os.ReadFile("php_test_files/client.php")
+		require.NoError(t, err)
+		require.Equal(t, string(want), b)
 		_ = r.Body.Close()
 	}
 }
@@ -2169,23 +2101,12 @@ func serveStaticSample(port int, filename string) func(t *testing.T) {
 }
 
 func TestStaticDisabled_Error(t *testing.T) {
-	cont := endure.New(slog.LevelDebug)
-
-	cfg := &config.Plugin{
-		Version: "2023.3.5",
-		Path:    "configs/.rr-http-static-disabled.yaml",
-	}
-
-	err := cont.RegisterAll(
-		cfg,
-		&logger.Plugin{},
+	_ = helpers.StartExpectInitError(t, "configs/.rr-http-static-disabled.yaml", []any{
 		&server.Plugin{},
 		&httpPlugin.Plugin{},
 		&gzip.Plugin{},
 		&static.Plugin{},
-	)
-	assert.NoError(t, err)
-	assert.Error(t, cont.Init())
+	})
 }
 
 func TestStaticFilesDisabled(t *testing.T) {
@@ -2263,79 +2184,23 @@ func staticFilesDisabled(t *testing.T) {
 }
 
 func TestStaticFilesForbid(t *testing.T) {
-	cont := endure.New(slog.LevelDebug)
-
-	cfg := &config.Plugin{
-		Version: "2023.3.5",
-		Path:    "configs/.rr-http-static-files.yaml",
-	}
-
-	l, oLogger := mocklogger.SlogTestLogger(slog.LevelDebug)
-	err := cont.RegisterAll(
-		cfg,
-		l,
+	// A TCP probe instead of a request one: a probe request would add an "http log" record.
+	rr, stop := helpers.Start(t, "configs/.rr-http-static-files.yaml", []any{
 		&server.Plugin{},
 		&httpPlugin.Plugin{},
 		&gzip.Plugin{},
 		&static.Plugin{},
-	)
-	assert.NoError(t, err)
+	}, helpers.WithObservedLogger(), helpers.WithTCPProbe("127.0.0.1:34653"))
 
-	err = cont.Init()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	ch, err := cont.Serve()
-	assert.NoError(t, err)
-
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-
-	wg := &sync.WaitGroup{}
-	stopCh := make(chan struct{}, 1)
-
-	wg.Go(func() {
-		for {
-			select {
-			case e := <-ch:
-				assert.Fail(t, "error", e.Error.Error())
-				err = cont.Stop()
-				if err != nil {
-					assert.FailNow(t, "error", err.Error())
-				}
-			case <-sig:
-				err = cont.Stop()
-				if err != nil {
-					assert.FailNow(t, "error", err.Error())
-				}
-				return
-			case <-stopCh:
-				// timeout
-				err = cont.Stop()
-				if err != nil {
-					assert.FailNow(t, "error", err.Error())
-				}
-				return
-			}
-		}
-	})
-
-	time.Sleep(time.Second)
 	t.Run("StaticTestFilesDir", staticTestFilesDir)
 	t.Run("StaticNotFound", staticNotFound)
 	t.Run("StaticFilesForbid", staticFilesForbid)
 
-	stopCh <- struct{}{}
-	wg.Wait()
-	time.Sleep(time.Second)
+	stop()
 
-	o1 := oLogger.FilterMessageSnippet("http server was started")
-	o3 := oLogger.FilterMessageSnippet("http log")
-
-	require.Equal(t, 1, o1.Len())
-	require.Equal(t, 3, o3.Len())
-	require.Equal(t, 1, oLogger.FilterMessageSnippet("file extension is forbidden").Len())
+	require.Equal(t, 1, rr.Logs.FilterMessageSnippet("http server was started").Len())
+	require.Equal(t, 3, rr.Logs.FilterMessageSnippet("http log").Len())
+	require.Equal(t, 1, rr.Logs.FilterMessageSnippet("file extension is forbidden").Len())
 }
 
 func staticTestFilesDir(t *testing.T) {
