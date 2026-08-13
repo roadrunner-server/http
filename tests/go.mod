@@ -15,7 +15,6 @@ require (
 	github.com/roadrunner-server/http/v6 v6.0.0-beta.8
 	github.com/roadrunner-server/informer/v6 v6.0.0-beta.3.0.20260812194959-55c516b2a365
 	github.com/roadrunner-server/logger/v6 v6.0.0-beta.3
-	github.com/roadrunner-server/memory/v6 v6.0.0-beta.4
 	github.com/roadrunner-server/pool/v2 v2.0.0-beta.1
 	github.com/roadrunner-server/resetter/v6 v6.0.0-beta.4.0.20260812195002-d8956d0fde3c
 	github.com/roadrunner-server/rpc/v6 v6.0.0-beta.5
@@ -25,10 +24,12 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/yookoala/gofast v0.8.0
 	golang.org/x/net v0.58.0
-	google.golang.org/genproto v0.0.0-20260810153831-ec0a7760b754
 )
 
-require go.uber.org/zap v1.28.0 // indirect
+require (
+	go.uber.org/zap v1.28.0 // indirect
+	google.golang.org/genproto v0.0.0-20260810153831-ec0a7760b754 // indirect
+)
 
 replace github.com/roadrunner-server/http/v6 => ../
 

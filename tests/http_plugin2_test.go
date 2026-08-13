@@ -21,7 +21,6 @@ import (
 	"github.com/roadrunner-server/gzip/v6"
 	httpPlugin "github.com/roadrunner-server/http/v6"
 	"github.com/roadrunner-server/logger/v6"
-	"github.com/roadrunner-server/memory/v6"
 	rpcPlugin "github.com/roadrunner-server/rpc/v6"
 	"github.com/roadrunner-server/server/v6"
 	"github.com/stretchr/testify/assert"
@@ -154,7 +153,6 @@ func TestSSLNoHTTP(t *testing.T) {
 
 	err := cont.RegisterAll(
 		cfg,
-		&rpcPlugin.Plugin{},
 		&logger.Plugin{},
 		&server.Plugin{},
 		&httpPlugin.Plugin{},
@@ -347,7 +345,6 @@ func TestHTTPBigResp(t *testing.T) {
 		&gzip.Plugin{},
 		&logger.Plugin{},
 		&server.Plugin{},
-		&memory.Plugin{},
 		&httpPlugin.Plugin{},
 	)
 	assert.NoError(t, err)
@@ -518,7 +515,6 @@ func TestHTTPBigRespMaxReqSize(t *testing.T) {
 		&gzip.Plugin{},
 		&logger.Plugin{},
 		&server.Plugin{},
-		&memory.Plugin{},
 		&httpPlugin.Plugin{},
 	)
 	assert.NoError(t, err)

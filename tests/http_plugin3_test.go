@@ -48,7 +48,6 @@ func TestDebugModeResponse(t *testing.T) {
 		cfg,
 		&logger.Plugin{},
 		&server.Plugin{},
-		&gzip.Plugin{},
 		&httpPlugin.Plugin{},
 	)
 	assert.NoError(t, err)
@@ -312,7 +311,6 @@ func TestStream103(t *testing.T) {
 		cfg,
 		&logger.Plugin{},
 		&server.Plugin{},
-		&gzip.Plugin{},
 		&httpPlugin.Plugin{},
 	)
 	assert.NoError(t, err)
@@ -614,7 +612,6 @@ func TestMTLS1(t *testing.T) {
 
 	err := cont.RegisterAll(
 		cfg,
-		&rpcPlugin.Plugin{},
 		&logger.Plugin{},
 		&server.Plugin{},
 		&httpPlugin.Plugin{},
@@ -709,7 +706,6 @@ func TestMTLS2(t *testing.T) {
 
 	err := cont.RegisterAll(
 		cfg,
-		&rpcPlugin.Plugin{},
 		&logger.Plugin{},
 		&server.Plugin{},
 		&httpPlugin.Plugin{},
@@ -800,7 +796,6 @@ func TestMTLS3(t *testing.T) {
 
 	err := cont.RegisterAll(
 		cfg,
-		&rpcPlugin.Plugin{},
 		&logger.Plugin{},
 		&server.Plugin{},
 		&httpPlugin.Plugin{},
@@ -891,7 +886,6 @@ func TestMTLS4(t *testing.T) {
 
 	err := cont.RegisterAll(
 		cfg,
-		&rpcPlugin.Plugin{},
 		&logger.Plugin{},
 		&server.Plugin{},
 		&httpPlugin.Plugin{},
@@ -982,7 +976,6 @@ func TestMTLS5(t *testing.T) {
 
 	err := cont.RegisterAll(
 		cfg,
-		&rpcPlugin.Plugin{},
 		&logger.Plugin{},
 		&server.Plugin{},
 		&httpPlugin.Plugin{},
@@ -1062,7 +1055,6 @@ func TestHTTPBigURLEncoded(t *testing.T) {
 		cfg,
 		&logger.Plugin{},
 		&server.Plugin{},
-		&gzip.Plugin{},
 		&httpPlugin.Plugin{},
 	)
 	assert.NoError(t, err)

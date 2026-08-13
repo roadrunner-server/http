@@ -20,11 +20,9 @@ import (
 	"testing"
 	"time"
 
-	_ "google.golang.org/genproto/protobuf/ptype" //nolint:revive,nolintlint
-
 	"tests/helpers"
 	mocklogger "tests/mock"
-	http3 "tests/test_plugins"
+	testplugins "tests/test_plugins"
 
 	"github.com/roadrunner-server/config/v6"
 	"github.com/roadrunner-server/endure/v2"
@@ -415,7 +413,6 @@ func TestSSL(t *testing.T) {
 
 	err := cont.RegisterAll(
 		cfg,
-		&rpcPlugin.Plugin{},
 		&logger.Plugin{},
 		&send.Plugin{},
 		&server.Plugin{},
@@ -573,7 +570,6 @@ func TestSSLRedirect(t *testing.T) {
 
 	err := cont.RegisterAll(
 		cfg,
-		&rpcPlugin.Plugin{},
 		&logger.Plugin{},
 		&send.Plugin{},
 		&server.Plugin{},
@@ -672,7 +668,6 @@ func TestSSLPushPipes(t *testing.T) {
 
 	err := cont.RegisterAll(
 		cfg,
-		&rpcPlugin.Plugin{},
 		&logger.Plugin{},
 		&server.Plugin{},
 		&httpPlugin.Plugin{},
@@ -1024,7 +1019,6 @@ func TestHTTP2Req(t *testing.T) {
 	l, oLogger := mocklogger.SlogTestLogger(slog.LevelDebug)
 	err := cont.RegisterAll(
 		cfg,
-		&rpcPlugin.Plugin{},
 		l,
 		&server.Plugin{},
 		&httpPlugin.Plugin{},
@@ -1120,7 +1114,6 @@ func TestH2CUpgrade(t *testing.T) {
 	l, oLogger := mocklogger.SlogTestLogger(slog.LevelDebug)
 	err := cont.RegisterAll(
 		cfg,
-		&rpcPlugin.Plugin{},
 		l,
 		&server.Plugin{},
 		&httpPlugin.Plugin{},
@@ -1213,7 +1206,6 @@ func TestH2C(t *testing.T) {
 	l, oLogger := mocklogger.SlogTestLogger(slog.LevelDebug)
 	err := cont.RegisterAll(
 		cfg,
-		&rpcPlugin.Plugin{},
 		l,
 		&server.Plugin{},
 		&httpPlugin.Plugin{},
@@ -1308,8 +1300,8 @@ func TestHttpMiddleware(t *testing.T) {
 		&logger.Plugin{},
 		&server.Plugin{},
 		&httpPlugin.Plugin{},
-		&http3.PluginMiddleware{},
-		&http3.PluginMiddleware2{},
+		&testplugins.PluginMiddleware{},
+		&testplugins.PluginMiddleware2{},
 	)
 	assert.NoError(t, err)
 
@@ -1411,7 +1403,6 @@ http:
   middleware: [ "pluginMiddleware", "pluginMiddleware2" ]
   uploads:
     forbid: [ "" ]
-  trusted_subnets: [ "10.0.0.0/8", "127.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "::1/128", "fc00::/7", "fe80::/10" ]
   pool:
     num_workers: 2
     max_jobs: 0
@@ -1434,8 +1425,8 @@ logs:
 		&logger.Plugin{},
 		&server.Plugin{},
 		&httpPlugin.Plugin{},
-		&http3.PluginMiddleware{},
-		&http3.PluginMiddleware2{},
+		&testplugins.PluginMiddleware{},
+		&testplugins.PluginMiddleware2{},
 	)
 	assert.NoError(t, err)
 
@@ -1518,8 +1509,8 @@ func TestHttpBrokenPipes(t *testing.T) {
 		&logger.Plugin{},
 		&server.Plugin{},
 		&httpPlugin.Plugin{},
-		&http3.PluginMiddleware{},
-		&http3.PluginMiddleware2{},
+		&testplugins.PluginMiddleware{},
+		&testplugins.PluginMiddleware2{},
 	)
 	assert.NoError(t, err)
 
@@ -2010,7 +2001,6 @@ func TestStaticBigFilePlugin(t *testing.T) {
 		&headers.Plugin{},
 		&send.Plugin{},
 		&httpPlugin.Plugin{},
-		&gzip.Plugin{},
 		&static.Plugin{},
 	)
 	assert.NoError(t, err)
@@ -2157,7 +2147,6 @@ func staticHeaders(port int) func(t *testing.T) {
 		}()
 
 		require.Equal(t, helpers.All("php_test_files/client.php"), string(b))
-		require.Equal(t, helpers.All("php_test_files/client.php"), string(b))
 	}
 }
 
@@ -2165,7 +2154,6 @@ func staticNotForbid(port int) func(t *testing.T) {
 	return func(t *testing.T) {
 		b, r, err := helpers.Get(fmt.Sprintf("http://127.0.0.1:%d/php_test_files/client.php", port))
 		require.NoError(t, err)
-		require.Equal(t, helpers.All("php_test_files/client.php"), b)
 		require.Equal(t, helpers.All("php_test_files/client.php"), b)
 		_ = r.Body.Close()
 	}

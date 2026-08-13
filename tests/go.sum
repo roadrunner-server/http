@@ -54,6 +54,8 @@ github.com/kr/pretty v0.3.1 h1:flRD4NNwYAUpkphVc1HcthR4KEIFJ65n8Mw5qdRn3LE=
 github.com/kr/pretty v0.3.1/go.mod h1:hoEshYVHaxMs3cyo3Yncou5ZscifuDolrwPKZanG3xk=
 github.com/kr/text v0.2.0 h1:5Nx0Ya0ZqY2ygV366QzturHI13Jq95ApcVaJBhpS+AY=
 github.com/kr/text v0.2.0/go.mod h1:eLer722TekiGuMkidMxC/pM04lWEeraHUUmBw8l2grE=
+github.com/kylelemons/godebug v1.1.0 h1:RPNrshWIDI6G2gRW9EHilWtl7Z6Sb1BR0xunSBf0SNc=
+github.com/kylelemons/godebug v1.1.0/go.mod h1:9/0rRGxNHcop5bhtWyNeEfOS8JIWk580+fNqagV/RAw=
 github.com/letsencrypt/challtestsrv v1.4.2 h1:0ON3ldMhZyWlfVNYYpFuWRTmZNnyfiL9Hh5YzC3JVwU=
 github.com/letsencrypt/challtestsrv v1.4.2/go.mod h1:GhqMqcSoeGpYd5zX5TgwA6er/1MbWzx/o7yuuVya+Wk=
 github.com/letsencrypt/pebble/v2 v2.10.0 h1:Wq6gYXlsY6ubqI3hhxsTzdyotvfdjFBxuwYqCLCnj/U=
@@ -118,8 +120,6 @@ github.com/roadrunner-server/informer/v6 v6.0.0-beta.3.0.20260812194959-55c516b2
 github.com/roadrunner-server/informer/v6 v6.0.0-beta.3.0.20260812194959-55c516b2a365/go.mod h1:JYSmwh7uts0NO/FOt311ml/rfL3OH+5ww3R4bQ2PvBM=
 github.com/roadrunner-server/logger/v6 v6.0.0-beta.3 h1:eoJKXAUSyykDfVX6eTUhmAn6Y8pS/LyI5fDP4H+G5rQ=
 github.com/roadrunner-server/logger/v6 v6.0.0-beta.3/go.mod h1:MwHb3AbltHYtu7nRpml5NeYu7O+W8rCpDBeNTTEoE1M=
-github.com/roadrunner-server/memory/v6 v6.0.0-beta.4 h1:jeqC7VH/FBuBcXTfOhPU/GafVUMS+OWNE3YkMKCXnQw=
-github.com/roadrunner-server/memory/v6 v6.0.0-beta.4/go.mod h1:T+em0XdZ4hYrlvmfckbFoH4PTSYYhuUp6kOPF5Bqm88=
 github.com/roadrunner-server/pool/v2 v2.0.0-beta.1 h1:jpYXFtdD6QGAdAGPgMxrNi3j1CegCRpb2y+A+3GnXFA=
 github.com/roadrunner-server/pool/v2 v2.0.0-beta.1/go.mod h1:Bo1wT7RtL3eyQHXBUohNhtj/yAmRt6Rq8smuBg5pWkY=
 github.com/roadrunner-server/resetter/v6 v6.0.0-beta.4.0.20260812195002-d8956d0fde3c h1:Ml5YNa4vF24bo8LRr+YhhzlcGvZ+a0Y960X73NQhhoo=
