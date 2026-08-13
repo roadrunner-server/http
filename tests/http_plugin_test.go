@@ -1181,7 +1181,7 @@ func TestH2CUpgrade(t *testing.T) {
 	r, err := client.Do(req)
 	require.NoError(t, err)
 
-	// Server.Protocols has no h2c upgrade mechanism; the request is served as plain HTTP/1.1
+	// h2c is prior-knowledge only; an upgrade request is served as plain HTTP/1.1
 	assert.Equal(t, "201 Created", r.Status)
 	require.NoError(t, r.Body.Close())
 
