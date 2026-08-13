@@ -14,7 +14,7 @@ server:
 http:
   address: 127.0.0.1:43239
   max_request_size: 1024
-  middleware: [ gzip, tracetestOtel ]
+  middleware: [ tracetestOtel, gzip ]
   pool:
     num_workers: 2
     allocate_timeout: 60s
