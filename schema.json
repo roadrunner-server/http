@@ -56,26 +56,6 @@
         ]
       }
     },
-    "trusted_subnets": {
-      "description": "List of subnets from which incoming requests are allowed. Defaults to typical private network ranges (192.168.*, 10.0.*, and 172.16.*) and local/loopback interfaces (127.*).",
-      "type": "array",
-      "items": {
-        "type": "string",
-        "examples": [
-          "10.0.0.0/8",
-          "127.0.0.0/8"
-        ]
-      },
-      "default": [
-        "10.0.0.0/8",
-        "127.0.0.0/8",
-        "172.16.0.0/12",
-        "192.168.0.0/16",
-        "::1/128",
-        "fc00::/7",
-        "fe80::/10"
-      ]
-    },
     "uploads": {
       "$ref": "#/$defs/Uploads"
     },

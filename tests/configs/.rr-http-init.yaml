@@ -15,21 +15,7 @@ http:
   pool:
     num_workers: 2
     allocate_timeout: 60s
-    destroy_timeout: 1s
-
-  # ssl:
-  #   address: :8892
-  #   redirect: false
-  #   key: "test-certs/localhost+2-key.pem"
-  #   cert: "test-certs/localhost+2.pem"
-  #   root_ca: "test-certs/rootCA.pem"
-  #   client_auth_type: require_and_verify_client_cert
-  # fcgi:
-  #   address: tcp://0.0.0.0:7921
-  # http2:
-  #   enabled: false
-  #   h2c: false
-  #   max_concurrent_streams: 128
+    destroy_timeout: 100ms
 logs:
   mode: development
   level: debug

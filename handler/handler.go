@@ -11,7 +11,7 @@ import (
 
 	"github.com/roadrunner-server/http/v6/api"
 
-	httpV2proto "github.com/roadrunner-server/api-go/v6/http/v2"
+	httpV1proto "github.com/roadrunner-server/api-go/v6/http/v1"
 	"github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/goridge/v4/pkg/frame"
 	"github.com/roadrunner-server/http/v6/config"
@@ -90,15 +90,15 @@ func NewHandler(cfg *config.Config, pool api.Pool, log *slog.Logger) (*Handler, 
 		},
 		protoRespPool: sync.Pool{
 			New: func() any {
-				return &httpV2proto.HttpHandlerResponse{
-					Headers: make(map[string]*httpV2proto.HttpHeaderValue),
+				return &httpV1proto.Response{
+					Headers: make(map[string]*httpV1proto.HeaderValue),
 					Status:  -1,
 				}
 			},
 		},
 		protoReqPool: sync.Pool{
 			New: func() any {
-				return &httpV2proto.HttpHandlerRequest{}
+				return &httpV1proto.Request{}
 			},
 		},
 		pldPool: sync.Pool{

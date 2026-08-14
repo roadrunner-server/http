@@ -2,503 +2,206 @@ package tests
 
 import (
 	"bytes"
-	"context"
 	"crypto/sha512"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
+	"net/http/httptest"
 	"os"
-	"os/exec"
+	"path"
 	"testing"
-	"time"
 
+	"tests/helpers"
+	"tests/testLog"
+
+	"github.com/roadrunner-server/gzip/v6"
+	httpPlugin "github.com/roadrunner-server/http/v6"
 	"github.com/roadrunner-server/http/v6/config"
 	"github.com/roadrunner-server/http/v6/handler"
-	"github.com/roadrunner-server/pool/v2/ipc/pipe"
-	"github.com/roadrunner-server/pool/v2/pool"
 	staticPool "github.com/roadrunner-server/pool/v2/pool/static_pool"
+	"github.com/roadrunner-server/server/v6"
 	"github.com/stretchr/testify/assert"
-	"tests/testLog"
+	"github.com/stretchr/testify/require"
 )
 
+// testFile is the file the upload tests post; the worker reports its metadata back.
 const testFile = "uploads_test.go"
 
-func TestHandler_Upload_File(t *testing.T) {
-	pl, err := staticPool.NewPool(t.Context(),
-		func(_ []string) *exec.Cmd {
-			return exec.Command("php", "php_test_files/http/client.php", "upload", "pipes")
+func TestHandler_Upload(t *testing.T) {
+	s := helpers.ServeHandler(t, []string{"php_test_files/http/client.php", "upload", "pipes"}, nil, nil)
+
+	for _, tt := range []struct {
+		name string
+		// field is the multipart field name the file is posted under
+		field string
+		// uploads overrides the handler uploads config; nil keeps the default
+		uploads *config.Uploads
+		// errNo is the PHP upload error the worker reports
+		errNo int
+		want  func(file string) string
+	}{
+		{
+			name:  "temp dir accepts the file",
+			field: "upload",
+			errNo: 0,
+			want:  flatUpload,
 		},
-		pipe.NewPipeFactory(testLog.SlogLogger()),
-		&pool.Config{
-			NumWorkers:      1,
-			AllocateTimeout: time.Second * 1000,
-			DestroyTimeout:  time.Second * 1000,
-		}, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	cfg := &config.Config{
-		MaxRequestSize:    1024,
-		InternalErrorCode: 500,
-		AccessLogs:        false,
-		Uploads: &config.Uploads{
-			Dir:       os.TempDir(),
-			Forbidden: map[string]struct{}{},
-			Allowed:   map[string]struct{}{},
+		{
+			name:  "nested field name keeps the array shape",
+			field: "upload[x][y][z][]",
+			errNo: 0,
+			want:  nestedUpload,
 		},
+		{
+			name:  "unwritable upload dir",
+			field: "upload",
+			uploads: &config.Uploads{
+				Dir:       "--------",
+				Forbidden: map[string]struct{}{},
+				Allowed:   map[string]struct{}{".go": {}},
+			},
+			errNo: 6, // UPLOAD_ERR_NO_TMP_DIR
+			want:  flatUpload,
+		},
+		{
+			name:  "forbidden extension",
+			field: "upload",
+			uploads: &config.Uploads{
+				Dir:       os.TempDir(),
+				Forbidden: map[string]struct{}{".go": {}},
+				Allowed:   map[string]struct{}{},
+			},
+			errNo: 8, // UPLOAD_ERR_EXTENSION
+			want:  flatUpload,
+		},
+		{
+			name:  "extension outside the allow list",
+			field: "upload",
+			uploads: &config.Uploads{
+				Dir:       os.TempDir(),
+				Forbidden: map[string]struct{}{},
+				Allowed:   map[string]struct{}{".php": {}},
+			},
+			errNo: 8,
+			want:  flatUpload,
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			url := s.URL
+			if tt.uploads != nil {
+				url = serveUploads(t, s.Pool, tt.uploads)
+			}
+
+			mb, contentType := uploadBody(t, tt.field)
+
+			code, body := sendBody(t, http.MethodPost, url, contentType, mb)
+
+			assert.Equal(t, 200, code)
+			assert.Equal(t, tt.want(fileString(testFile, tt.errNo, "application/octet-stream")), body)
+		})
 	}
+}
 
-	h, err := handler.NewHandler(cfg, pl, testLog.SlogLogger())
-	assert.NoError(t, err)
+// A finished multipart request leaves no upload temp files behind.
+func TestHTTPMultipartFormTmpFiles(t *testing.T) {
+	_, stop := helpers.Start(t, "configs/.rr-http-multipart.yaml", []any{
+		&server.Plugin{},
+		&gzip.Plugin{},
+		&httpPlugin.Plugin{},
+	}, helpers.WithConfigVersion("2023.3.1"), helpers.WithProbe("http://127.0.0.1:55667"))
 
-	hs := &http.Server{Addr: ":9021", Handler: h, ReadHeaderTimeout: time.Minute * 5}
+	tmpdir := os.TempDir()
+	png := path.Join(tmpdir, "test.png")
+
+	f, err := os.Create(png)
+	require.NoError(t, err)
+	require.NoError(t, f.Close())
+	t.Cleanup(func() { _ = os.Remove(png) })
+
+	var body bytes.Buffer
+	w := multipart.NewWriter(&body)
+
+	require.NoError(t, w.WriteField("name", "John"))
+	require.NoError(t, w.WriteField("age", "23"))
+
+	fw, err := w.CreateFormFile("photo", png)
+	require.NoError(t, err)
+
+	photo, err := os.Open(png)
+	require.NoError(t, err)
+
+	_, err = io.Copy(fw, photo)
+	require.NoError(t, err)
+	require.NoError(t, photo.Close())
+	require.NoError(t, w.Close())
+
+	code, _ := sendBody(t, http.MethodPost, "http://127.0.0.1:55667/employee", w.FormDataContentType(), &body)
+	assert.Equal(t, http.StatusOK, code)
+
+	// the handler clears the temp copies before the request goroutine returns, so
+	// stopping the container drains them
+	stop()
+
+	files, err := os.ReadDir(tmpdir)
+	require.NoError(t, err)
+
+	for _, fl := range files {
+		assert.NotContains(t, fl.Name(), "uploads")
+	}
+}
+
+// flatUpload is the response for a file posted under a plain field name.
+func flatUpload(file string) string {
+	return `{"upload":` + file + `}`
+}
+
+// nestedUpload is the response for a file posted under upload[x][y][z][].
+func nestedUpload(file string) string {
+	return `{"upload":{"x":{"y":{"z":[` + file + `]}}}}`
+}
+
+// serveUploads wraps the pool in a second handler with the given uploads config
+// and serves it on an ephemeral port.
+func serveUploads(t *testing.T, p *staticPool.Pool, uploads *config.Uploads) string {
+	t.Helper()
+
+	cfg := helpers.DefaultHandlerConfig()
+	cfg.Uploads = uploads
+
+	h, err := handler.NewHandler(cfg, p, testLog.SlogLogger())
+	require.NoError(t, err)
+
+	srv := httptest.NewServer(h)
+	t.Cleanup(srv.Close)
+
+	return srv.URL
+}
+
+// uploadBody builds a multipart body posting testFile under the given field name.
+func uploadBody(t *testing.T, field string) (*bytes.Buffer, string) {
+	t.Helper()
+
+	f, err := os.Open(testFile)
+	require.NoError(t, err)
+
 	defer func() {
-		errS := hs.Shutdown(context.Background())
-		if errS != nil {
-			t.Errorf("error during the shutdown: error %v", errS)
-		}
+		_ = f.Close()
 	}()
-
-	go func() {
-		errL := hs.ListenAndServe()
-		if errL != nil && !errors.Is(errL, http.ErrServerClosed) {
-			t.Errorf("error listening the interface: error %v", errL)
-		}
-	}()
-	time.Sleep(time.Millisecond * 10)
 
 	var mb bytes.Buffer
 	w := multipart.NewWriter(&mb)
 
-	f := mustOpen(testFile)
-	defer func() {
-		errC := f.Close()
-		if errC != nil {
-			t.Errorf("failed to close a file: error %v", errC)
-		}
-	}()
-	fw, err := w.CreateFormFile("upload", f.Name())
-	assert.NotNil(t, fw)
-	assert.NoError(t, err)
+	fw, err := w.CreateFormFile(field, f.Name())
+	require.NoError(t, err)
+
 	_, err = io.Copy(fw, f)
-	if err != nil {
-		t.Errorf("error copying the file: error %v", err)
-	}
+	require.NoError(t, err)
+	require.NoError(t, w.Close())
 
-	err = w.Close()
-	if err != nil {
-		t.Errorf("error closing the file: error %v", err)
-	}
-
-	req, err := http.NewRequest(http.MethodPost, "http://127.0.0.1"+hs.Addr, &mb) //nolint:noctx
-	assert.NoError(t, err)
-
-	req.Header.Set("Content-Type", w.FormDataContentType())
-
-	r, err := http.DefaultClient.Do(req)
-	assert.NoError(t, err)
-	defer func() {
-		errC := r.Body.Close()
-		if errC != nil {
-			t.Errorf("error closing the Body: error %v", errC)
-		}
-	}()
-
-	b, err := io.ReadAll(r.Body)
-	assert.NoError(t, err)
-
-	assert.NoError(t, err)
-	assert.Equal(t, 200, r.StatusCode)
-
-	fs := fileString(testFile, 0, "application/octet-stream")
-
-	assert.Equal(t, `{"upload":`+fs+`}`, string(b))
-}
-
-func TestHandler_Upload_NestedFile(t *testing.T) {
-	pl, err := staticPool.NewPool(t.Context(),
-		func(_ []string) *exec.Cmd {
-			return exec.Command("php", "php_test_files/http/client.php", "upload", "pipes")
-		},
-		pipe.NewPipeFactory(testLog.SlogLogger()),
-		&pool.Config{
-			NumWorkers:      1,
-			AllocateTimeout: time.Second * 1000,
-			DestroyTimeout:  time.Second * 1000,
-		}, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	cfg := &config.Config{
-		MaxRequestSize:    1024,
-		InternalErrorCode: 500,
-		AccessLogs:        false,
-		Uploads: &config.Uploads{
-			Dir:       os.TempDir(),
-			Forbidden: map[string]struct{}{},
-			Allowed:   map[string]struct{}{},
-		},
-	}
-
-	h, err := handler.NewHandler(cfg, pl, testLog.SlogLogger())
-
-	assert.NoError(t, err)
-
-	hs := &http.Server{Addr: ":9022", Handler: h, ReadHeaderTimeout: time.Minute * 5}
-	defer func() {
-		errS := hs.Shutdown(context.Background())
-		if errS != nil {
-			t.Errorf("error during the shutdown: error %v", errS)
-		}
-	}()
-
-	go func() {
-		errL := hs.ListenAndServe()
-		if errL != nil && !errors.Is(errL, http.ErrServerClosed) {
-			t.Errorf("error listening the interface: error %v", errL)
-		}
-	}()
-	time.Sleep(time.Millisecond * 10)
-
-	var mb bytes.Buffer
-	w := multipart.NewWriter(&mb)
-
-	f := mustOpen(testFile)
-	defer func() {
-		errC := hs.Close()
-		if errC != nil {
-			t.Errorf("failed to close a file: error %v", errC)
-		}
-	}()
-	fw, err := w.CreateFormFile("upload[x][y][z][]", f.Name())
-	assert.NotNil(t, fw)
-	assert.NoError(t, err)
-	_, err = io.Copy(fw, f)
-	if err != nil {
-		t.Errorf("error copying the file: error %v", err)
-	}
-
-	err = w.Close()
-	if err != nil {
-		t.Errorf("error closing the file: error %v", err)
-	}
-
-	req, err := http.NewRequest(http.MethodPost, "http://127.0.0.1"+hs.Addr, &mb) //nolint:noctx
-	assert.NoError(t, err)
-
-	req.Header.Set("Content-Type", w.FormDataContentType())
-
-	r, err := http.DefaultClient.Do(req)
-	assert.NoError(t, err)
-	defer func() {
-		errC := r.Body.Close()
-		if errC != nil {
-			t.Errorf("error closing the Body: error %v", errC)
-		}
-	}()
-
-	b, err := io.ReadAll(r.Body)
-	assert.NoError(t, err)
-
-	assert.NoError(t, err)
-	assert.Equal(t, 200, r.StatusCode)
-
-	fs := fileString(testFile, 0, "application/octet-stream")
-
-	assert.Equal(t, `{"upload":{"x":{"y":{"z":[`+fs+`]}}}}`, string(b))
-}
-
-func TestHandler_Upload_File_NoTmpDir(t *testing.T) {
-	pl, err := staticPool.NewPool(t.Context(),
-		func(_ []string) *exec.Cmd {
-			return exec.Command("php", "php_test_files/http/client.php", "upload", "pipes")
-		},
-		pipe.NewPipeFactory(testLog.SlogLogger()),
-		&pool.Config{
-			NumWorkers:      1,
-			AllocateTimeout: time.Second * 1000,
-			DestroyTimeout:  time.Second * 1000,
-		}, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	cfg := &config.Config{
-		MaxRequestSize:    1024,
-		InternalErrorCode: 500,
-		AccessLogs:        false,
-		Uploads: &config.Uploads{
-			Dir:       "--------",
-			Forbidden: map[string]struct{}{},
-			Allowed:   map[string]struct{}{".go": {}},
-		},
-	}
-
-	h, err := handler.NewHandler(cfg, pl, testLog.SlogLogger())
-	assert.NoError(t, err)
-
-	hs := &http.Server{Addr: ":9023", Handler: h, ReadHeaderTimeout: time.Minute * 5}
-	defer func() {
-		errS := hs.Shutdown(context.Background())
-		if errS != nil {
-			t.Errorf("error during the shutdown: error %v", err)
-		}
-	}()
-
-	go func() {
-		err = hs.ListenAndServe()
-		if err != nil && !errors.Is(err, http.ErrServerClosed) {
-			t.Errorf("error listening the interface: error %v", err)
-		}
-	}()
-	time.Sleep(time.Millisecond * 10)
-
-	var mb bytes.Buffer
-	w := multipart.NewWriter(&mb)
-
-	f := mustOpen(testFile)
-	defer func() {
-		errC := hs.Close()
-		if errC != nil {
-			t.Errorf("failed to close a file: error %v", errC)
-		}
-	}()
-	fw, err := w.CreateFormFile("upload", f.Name())
-	assert.NotNil(t, fw)
-	assert.NoError(t, err)
-	_, err = io.Copy(fw, f)
-	if err != nil {
-		t.Errorf("error copying the file: error %v", err)
-	}
-
-	err = w.Close()
-	if err != nil {
-		t.Errorf("error closing the file: error %v", err)
-	}
-
-	req, err := http.NewRequest(http.MethodPost, "http://127.0.0.1"+hs.Addr, &mb) //nolint:noctx
-	assert.NoError(t, err)
-
-	req.Header.Set("Content-Type", w.FormDataContentType())
-
-	r, err := http.DefaultClient.Do(req)
-	assert.NoError(t, err)
-	defer func() {
-		errC := r.Body.Close()
-		if errC != nil {
-			t.Errorf("error closing the Body: error %v", errC)
-		}
-	}()
-
-	b, err := io.ReadAll(r.Body)
-	assert.NoError(t, err)
-
-	assert.NoError(t, err)
-	assert.Equal(t, 200, r.StatusCode)
-
-	fs := fileString(testFile, 6, "application/octet-stream")
-
-	assert.Equal(t, `{"upload":`+fs+`}`, string(b))
-}
-
-func TestHandler_Upload_File_Forbids(t *testing.T) {
-	pl, err := staticPool.NewPool(t.Context(),
-		func(_ []string) *exec.Cmd {
-			return exec.Command("php", "php_test_files/http/client.php", "upload", "pipes")
-		},
-		pipe.NewPipeFactory(testLog.SlogLogger()),
-		&pool.Config{
-			NumWorkers:      1,
-			AllocateTimeout: time.Second * 1000,
-			DestroyTimeout:  time.Second * 1000,
-		}, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	cfg := &config.Config{
-		MaxRequestSize:    1024,
-		InternalErrorCode: 500,
-		AccessLogs:        false,
-		Uploads: &config.Uploads{
-			Dir:       os.TempDir(),
-			Forbidden: map[string]struct{}{".go": {}},
-			Allowed:   map[string]struct{}{},
-		},
-	}
-
-	h, err := handler.NewHandler(cfg, pl, testLog.SlogLogger())
-	assert.NoError(t, err)
-
-	hs := &http.Server{Addr: ":9024", Handler: h, ReadHeaderTimeout: time.Minute * 5}
-	defer func() {
-		errS := hs.Shutdown(context.Background())
-		if errS != nil {
-			t.Errorf("error during the shutdown: error %v", err)
-		}
-	}()
-
-	go func() {
-		err = hs.ListenAndServe()
-		if err != nil && !errors.Is(err, http.ErrServerClosed) {
-			t.Errorf("error listening the interface: error %v", err)
-		}
-	}()
-	time.Sleep(time.Millisecond * 10)
-
-	var mb bytes.Buffer
-	w := multipart.NewWriter(&mb)
-
-	f := mustOpen(testFile)
-	defer func() {
-		errC := hs.Close()
-		if errC != nil {
-			t.Errorf("failed to close a file: error %v", errC)
-		}
-	}()
-	fw, err := w.CreateFormFile("upload", f.Name())
-	assert.NotNil(t, fw)
-	assert.NoError(t, err)
-	_, err = io.Copy(fw, f)
-	if err != nil {
-		t.Errorf("error copying the file: error %v", err)
-	}
-
-	err = w.Close()
-	if err != nil {
-		t.Errorf("error closing the file: error %v", err)
-	}
-
-	req, err := http.NewRequest("POST", "http://127.0.0.1"+hs.Addr, &mb)
-	assert.NoError(t, err)
-
-	req.Header.Set("Content-Type", w.FormDataContentType())
-
-	r, err := http.DefaultClient.Do(req)
-	assert.NoError(t, err)
-	defer func() {
-		errC := r.Body.Close()
-		if errC != nil {
-			t.Errorf("error closing the Body: error %v", errC)
-		}
-	}()
-
-	b, err := io.ReadAll(r.Body)
-	assert.NoError(t, err)
-
-	assert.NoError(t, err)
-	assert.Equal(t, 200, r.StatusCode)
-
-	fs := fileString(testFile, 8, "application/octet-stream")
-
-	assert.Equal(t, `{"upload":`+fs+`}`, string(b))
-}
-
-func TestHandler_Upload_File_NotAllowed(t *testing.T) {
-	pl, err := staticPool.NewPool(t.Context(),
-		func(_ []string) *exec.Cmd {
-			return exec.Command("php", "php_test_files/http/client.php", "upload", "pipes")
-		},
-		pipe.NewPipeFactory(testLog.SlogLogger()),
-		&pool.Config{
-			NumWorkers:      1,
-			AllocateTimeout: time.Second * 1000,
-			DestroyTimeout:  time.Second * 1000,
-		}, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	cfg := &config.Config{
-		MaxRequestSize:    1024,
-		InternalErrorCode: 500,
-		AccessLogs:        false,
-		Uploads: &config.Uploads{
-			Dir:       os.TempDir(),
-			Forbidden: map[string]struct{}{},
-			Allowed:   map[string]struct{}{".php": {}},
-		},
-	}
-
-	h, err := handler.NewHandler(cfg, pl, testLog.SlogLogger())
-	assert.NoError(t, err)
-
-	hs := &http.Server{Addr: ":9024", Handler: h, ReadHeaderTimeout: time.Minute * 5}
-	defer func() {
-		errS := hs.Shutdown(context.Background())
-		if errS != nil {
-			t.Errorf("error during the shutdown: error %v", err)
-		}
-	}()
-
-	go func() {
-		err = hs.ListenAndServe()
-		if err != nil && !errors.Is(err, http.ErrServerClosed) {
-			t.Errorf("error listening the interface: error %v", err)
-		}
-	}()
-	time.Sleep(time.Millisecond * 10)
-
-	var mb bytes.Buffer
-	w := multipart.NewWriter(&mb)
-
-	f := mustOpen(testFile)
-	defer func() {
-		errC := hs.Close()
-		if errC != nil {
-			t.Errorf("failed to close a file: error %v", errC)
-		}
-	}()
-	fw, err := w.CreateFormFile("upload", f.Name())
-	assert.NotNil(t, fw)
-	assert.NoError(t, err)
-	_, err = io.Copy(fw, f)
-	if err != nil {
-		t.Errorf("error copying the file: error %v", err)
-	}
-
-	err = w.Close()
-	if err != nil {
-		t.Errorf("error closing the file: error %v", err)
-	}
-
-	req, err := http.NewRequest(http.MethodPost, "http://127.0.0.1"+hs.Addr, &mb) //nolint:noctx
-	assert.NoError(t, err)
-
-	req.Header.Set("Content-Type", w.FormDataContentType())
-
-	r, err := http.DefaultClient.Do(req)
-	assert.NoError(t, err)
-	defer func() {
-		errC := r.Body.Close()
-		if errC != nil {
-			t.Errorf("error closing the Body: error %v", errC)
-		}
-	}()
-
-	b, err := io.ReadAll(r.Body)
-	assert.NoError(t, err)
-
-	assert.NoError(t, err)
-	assert.Equal(t, 200, r.StatusCode)
-
-	fs := fileString(testFile, 8, "application/octet-stream")
-
-	assert.Equal(t, `{"upload":`+fs+`}`, string(b))
-}
-
-func mustOpen(f string) *os.File { //nolint:unparam
-	r, err := os.Open(f)
-	if err != nil {
-		panic(err)
-	}
-	return r
+	return &mb, w.FormDataContentType()
 }
 
 type fInfo struct {
@@ -509,7 +212,7 @@ type fInfo struct {
 	Sha512 string `json:"sha512,omitempty"`
 }
 
-func fileString(f string, errNo int, mime string) string { //nolint:unparam
+func fileString(f string, errNo int, mime string) string {
 	s, err := os.Stat(f)
 	if err != nil {
 		fmt.Println(fmt.Errorf("error stat the file, error: %w", err))

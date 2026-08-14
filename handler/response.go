@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	httpV2proto "github.com/roadrunner-server/api-go/v6/http/v2"
+	httpV1proto "github.com/roadrunner-server/api-go/v6/http/v1"
 	"github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/goridge/v4/pkg/frame"
 	"github.com/roadrunner-server/pool/v2/payload"
@@ -50,11 +50,11 @@ func (h *Handler) handlePROTOresponse(pld *payload.Payload, w http.ResponseWrite
 
 		// handle push headers
 		if rsp.GetHeaders() != nil && rsp.GetHeaders()[HTTP2Push] != nil {
-			push := rsp.GetHeaders()[HTTP2Push].GetValues()
+			push := rsp.GetHeaders()[HTTP2Push].GetValue()
 
 			if pusher, ok := w.(http.Pusher); ok {
 				for _, pushVal := range push {
-					err = pusher.Push(pushVal, nil)
+					err = pusher.Push(string(pushVal), nil)
 					if err != nil {
 						return err
 					}
@@ -68,8 +68,8 @@ func (h *Handler) handlePROTOresponse(pld *payload.Payload, w http.ResponseWrite
 
 		// write all headers from the response to the writer
 		for k, hv := range rsp.GetHeaders() {
-			for _, v := range hv.GetValues() {
-				w.Header().Add(k, v)
+			for _, v := range hv.GetValue() {
+				w.Header().Add(k, string(v))
 			}
 		}
 
@@ -99,9 +99,9 @@ func (h *Handler) handlePROTOresponse(pld *payload.Payload, w http.ResponseWrite
 	return nil
 }
 
-func handleProtoTrailers(h map[string]*httpV2proto.HttpHeaderValue) {
-	for _, tr := range h[Trailer].GetValues() {
-		for n := range strings.SplitSeq(tr, ",") {
+func handleProtoTrailers(h map[string]*httpV1proto.HeaderValue) {
+	for _, tr := range h[Trailer].GetValue() {
+		for n := range strings.SplitSeq(string(tr), ",") {
 			n = strings.Trim(n, "\t ")
 			if v, ok := h[n]; ok {
 				h["Trailer:"+n] = v

@@ -10,7 +10,7 @@ import (
 	"net/url"
 	"strings"
 
-	httpV2proto "github.com/roadrunner-server/api-go/v6/http/v2"
+	httpV1proto "github.com/roadrunner-server/api-go/v6/http/v1"
 	"github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/pool/v2/payload"
 	"google.golang.org/protobuf/proto"
@@ -166,7 +166,7 @@ func (r *Request) Close(log *slog.Logger, hr *http.Request) {
 
 // Payload request marshaled RoadRunner payload based on PSR7 data. values encode method is JSON. Make sure to open
 // files prior to calling this method.
-func (r *Request) Payload(p *payload.Payload, sendRawBody bool, req *httpV2proto.HttpHandlerRequest) error {
+func (r *Request) Payload(p *payload.Payload, sendRawBody bool, req *httpV1proto.Request) error {
 	const op = errors.Op("marshal_payload")
 
 	if r.Uploads != nil {
