@@ -12,7 +12,7 @@ require (
 	github.com/roadrunner-server/goridge/v4 v4.0.0-beta.3
 	github.com/roadrunner-server/gzip/v6 v6.0.0-beta.2
 	github.com/roadrunner-server/headers/v6 v6.0.0-beta.2
-	github.com/roadrunner-server/http/v6 v6.0.0-beta.8
+	github.com/roadrunner-server/http/v6 v6.0.0-beta.9
 	github.com/roadrunner-server/informer/v6 v6.0.0-beta.3.0.20260812194959-55c516b2a365
 	github.com/roadrunner-server/logger/v6 v6.0.0-beta.3
 	github.com/roadrunner-server/pool/v2 v2.0.0-beta.1
