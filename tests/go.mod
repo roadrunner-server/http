@@ -21,7 +21,7 @@ require (
 	github.com/roadrunner-server/send/v6 v6.0.0-beta.4
 	github.com/roadrunner-server/server/v6 v6.0.0-beta.6
 	github.com/roadrunner-server/static/v6 v6.0.0-beta.4
-	github.com/stretchr/testify v1.12.0
+	github.com/stretchr/testify v1.12.1
 	github.com/yookoala/gofast v0.8.0
 	golang.org/x/net v0.58.0
 )
@@ -102,5 +102,4 @@ require (
 	golang.org/x/text v0.41.0 // indirect
 	golang.org/x/tools/godoc v0.1.0-deprecated // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
