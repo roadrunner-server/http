@@ -1,8 +1,8 @@
 module github.com/roadrunner-server/http/v6
 
-go 1.26
+go 1.27
 
-toolchain go1.26.6
+toolchain go1.27.0
 
 require (
 	github.com/caddyserver/certmagic v0.25.4
@@ -18,14 +18,14 @@ require (
 	github.com/roadrunner-server/goridge/v4 v4.0.0-beta.3
 	github.com/roadrunner-server/pool/v2 v2.0.0-beta.1
 	github.com/roadrunner-server/tcplisten v1.5.2
-	github.com/stretchr/testify v1.12.0
+	github.com/stretchr/testify v1.12.1
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.70.0
 	go.opentelemetry.io/contrib/propagators/jaeger v1.45.0
 	go.opentelemetry.io/otel v1.45.0
 	go.opentelemetry.io/otel/trace v1.45.0
 	golang.org/x/net v0.58.0
 	golang.org/x/sys v0.47.0
-	google.golang.org/genproto v0.0.0-20260818201246-1b0934165a6f
+	google.golang.org/genproto v0.0.0-20260819154853-08b0e4226688
 	google.golang.org/protobuf v1.36.12
 )
 
@@ -65,5 +65,4 @@ require (
 	golang.org/x/crypto v0.55.0 // indirect
 	golang.org/x/sync v0.22.0 // indirect
 	golang.org/x/text v0.41.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
