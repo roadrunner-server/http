@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"net/http"
+	"slices"
 	"strings"
 
 	httpV1proto "github.com/roadrunner-server/api-go/v6/http/v1"
@@ -48,6 +49,13 @@ func (h *Handler) handlePROTOresponse(pld *payload.Payload, w http.ResponseWrite
 			return err
 		}
 
+		// The provided code must be a valid HTTP 1xx-5xx status code.
+		if rsp.Status < 100 || rsp.Status >= 600 {
+			http.Error(w, fmt.Sprintf("unknown status code from worker: %d", rsp.Status), http.StatusInternalServerError)
+			return errors.Errorf("unknown status code from worker: %d", rsp.Status)
+		}
+		status := int(rsp.Status)
+
 		// handle push headers
 		if rsp.GetHeaders() != nil && rsp.GetHeaders()[HTTP2Push] != nil {
 			push := rsp.GetHeaders()[HTTP2Push].GetValue()
@@ -66,6 +74,18 @@ func (h *Handler) handlePROTOresponse(pld *payload.Payload, w http.ResponseWrite
 			handleProtoTrailers(rsp.GetHeaders())
 		}
 
+		switch {
+		case status == http.StatusSwitchingProtocols:
+			h.log.Error("101 Switching Protocols is not supported, the frame was ignored")
+			return nil
+		case informational(status):
+			if len(pld.Body) != 0 {
+				h.log.Warn("informational response body was dropped", "status", status)
+			}
+			writeInformational(status, rsp.GetHeaders(), w)
+			return nil
+		}
+
 		// write all headers from the response to the writer
 		for k, hv := range rsp.GetHeaders() {
 			for _, v := range hv.GetValue() {
@@ -73,13 +93,7 @@ func (h *Handler) handlePROTOresponse(pld *payload.Payload, w http.ResponseWrite
 			}
 		}
 
-		// The provided code must be a valid HTTP 1xx-5xx status code.
-		if rsp.Status < 100 || rsp.Status >= 600 {
-			http.Error(w, fmt.Sprintf("unknown status code from worker: %d", rsp.Status), http.StatusInternalServerError)
-			return errors.Errorf("unknown status code from worker: %d", rsp.Status)
-		}
-
-		w.WriteHeader(int(rsp.Status))
+		w.WriteHeader(status)
 	}
 
 	// do not write body if it is empty
@@ -97,6 +111,38 @@ func (h *Handler) handlePROTOresponse(pld *payload.Payload, w http.ResponseWrite
 	}
 
 	return nil
+}
+
+func informational(status int) bool {
+	return status >= 100 && status < 200 && status != http.StatusSwitchingProtocols
+}
+
+// writeInformational sends a 1xx response
+func writeInformational(status int, headers map[string]*httpV1proto.HeaderValue, w http.ResponseWriter) {
+	hdr := w.Header()
+	saved := make(map[string][]string, len(headers))
+
+	for k := range headers {
+		ck := http.CanonicalHeaderKey(k)
+		if _, ok := saved[ck]; !ok {
+			saved[ck] = slices.Clone(hdr[ck])
+		}
+	}
+
+	for k, hv := range headers {
+		for _, v := range hv.GetValue() {
+			hdr.Add(k, string(v))
+		}
+	}
+
+	w.WriteHeader(status)
+	for ck, prev := range saved {
+		if prev == nil {
+			hdr.Del(ck)
+			continue
+		}
+		hdr[ck] = prev
+	}
 }
 
 func handleProtoTrailers(h map[string]*httpV1proto.HeaderValue) {

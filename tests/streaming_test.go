@@ -5,6 +5,8 @@ import (
 	"context"
 	"io"
 	"net/http"
+	"net/http/httptrace"
+	"net/textproto"
 	"os"
 	"strconv"
 	"strings"
@@ -55,26 +57,43 @@ func TestStreamDie(t *testing.T) {
 	require.Equal(t, 1, rr.Logs.FilterMessageSnippet("read stream").Len())
 }
 
-// The worker sends four informational responses (100 to 103, the last one an
-// Early Hints with a Link header) before the 200 carrying the body; the headers
-// of all of them reach the client.
+type hint struct {
+	code   int
+	header http.Header
+}
+
 func TestStream103(t *testing.T) {
 	helpers.Start(t, "configs/.rr-stream-103.yaml", []any{
 		&server.Plugin{},
 		&httpPlugin.Plugin{},
 	}, helpers.WithConfigVersion("2023.3.0"), helpers.WithTCPProbe("127.0.0.1:19983"))
 
-	header := requireStream(t, "http://127.0.0.1:19983", 10)
+	var hints []hint
+	ctx := httptrace.WithClientTrace(t.Context(), &httptrace.ClientTrace{
+		Got1xxResponse: func(code int, header textproto.MIMEHeader) error {
+			hints = append(hints, hint{code, http.Header(header).Clone()})
+			return nil
+		},
+	})
 
-	for k, v := range map[string]string{
-		"Link":  "</style111.css>; rel=preload; as=style",
-		"X-100": "100",
-		"X-101": "101",
-		"X-102": "102",
-		"X-103": "103",
-		"X-200": "200",
-	} {
-		require.Equal(t, v, header.Get(k))
+	header := requireStreamCtx(t, ctx, "http://127.0.0.1:19983", 10)
+
+	require.Len(t, hints, 3)
+
+	require.Equal(t, http.StatusContinue, hints[0].code)
+	require.Equal(t, "100", hints[0].header.Get("X-100"))
+
+	require.Equal(t, http.StatusProcessing, hints[1].code)
+	require.Equal(t, "102", hints[1].header.Get("X-102"))
+	require.Empty(t, hints[1].header.Get("X-100"), "an interim response must carry only its own headers")
+
+	require.Equal(t, http.StatusEarlyHints, hints[2].code)
+	require.Equal(t, "103", hints[2].header.Get("X-103"))
+	require.Equal(t, "</style111.css>; rel=preload; as=style", hints[2].header.Get("Link"))
+
+	require.Equal(t, "200", header.Get("X-200"))
+	for _, k := range []string{"Link", "X-100", "X-101", "X-102", "X-103"} {
+		require.Empty(t, header.Get(k), "%s leaked into the final response", k)
 	}
 }
 
@@ -130,12 +149,18 @@ func TestHTTPBigRespMaxReqSize(t *testing.T) {
 
 // requireStream issues a GET, requires a 200 and reads the streamed body line by
 // line: the workers write the 1-based index of every chunk they send, so wantLines
-// lines in that order say the chunks arrived one by one and intact. The response
-// headers are returned with the body already closed.
-func requireStream(t *testing.T, url string, wantLines int) http.Header {
+// lines in that order say the chunks arrived one by one and intact.
+func requireStream(t *testing.T, url string, wantLines int) {
+	t.Helper()
+	requireStreamCtx(t, t.Context(), url, wantLines)
+}
+
+// requireStreamCtx is requireStream with a caller-supplied context and returns
+// the final response headers with the body already closed.
+func requireStreamCtx(t *testing.T, ctx context.Context, url string, wantLines int) http.Header {
 	t.Helper()
 
-	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	require.NoError(t, err)
 
 	resp, err := http.DefaultClient.Do(req)

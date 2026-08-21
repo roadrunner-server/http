@@ -26,8 +26,9 @@ type wrapper struct {
 	read  int
 	write int
 
-	// TwoXXSent is true if the response headers with >= 2xx code were sent
-	// 1xx header might be sent unlimited number of times
+	// wc is true once the final response header went out: a status >= 200, or
+	// a 101, which net/http treats as final. Informational 1xx headers may be
+	// written any number of times before that.
 	wc bool
 
 	w    http.ResponseWriter
@@ -41,13 +42,12 @@ func (w *wrapper) Read(b []byte) (int, error) {
 }
 
 func (w *wrapper) WriteHeader(code int) {
-	w.code = code
 	if w.wc {
 		return
 	}
 
-	// do not allow sending 200 twice
-	if code >= 100 && code < 200 {
+	if code >= 200 || code == http.StatusSwitchingProtocols {
+		w.code = code
 		w.wc = true
 	}
 

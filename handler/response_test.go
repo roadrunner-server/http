@@ -290,6 +290,165 @@ func TestHandleProtoTrailers_RenamesAnnouncedHeaders(t *testing.T) {
 	}
 }
 
+type hintRecorder struct {
+	hdr   http.Header
+	hints []hintFrame
+	code  int
+	body  []byte
+	wrote bool
+}
+
+type hintFrame struct {
+	code   int
+	header http.Header
+}
+
+func (h *hintRecorder) Header() http.Header {
+	if h.hdr == nil {
+		h.hdr = http.Header{}
+	}
+	return h.hdr
+}
+
+func (h *hintRecorder) WriteHeader(code int) {
+	if h.wrote {
+		return
+	}
+	if code >= 100 && code < 200 && code != http.StatusSwitchingProtocols {
+		h.hints = append(h.hints, hintFrame{code, h.Header().Clone()})
+		return
+	}
+	h.wrote = true
+	h.code = code
+}
+
+func (h *hintRecorder) Write(b []byte) (int, error) {
+	if !h.wrote {
+		h.WriteHeader(http.StatusOK)
+	}
+	h.body = append(h.body, b...)
+	return len(b), nil
+}
+
+func TestWrite_EarlyHints_ScopedToInformationalResponse(t *testing.T) {
+	h := newTestHandler(t, defaultCfg(), nil)
+	rr := &hintRecorder{}
+
+	hint := &payload.Payload{
+		Codec: frame.CodecProto,
+		Context: marshalRsp(t, http.StatusEarlyHints, map[string]*httpV1proto.HeaderValue{
+			"Link": headerValue("</a.css>; rel=preload"),
+		}),
+	}
+	if err := h.Write(hint, rr); err != nil {
+		t.Fatal(err)
+	}
+
+	if len(rr.hints) != 1 || rr.hints[0].code != http.StatusEarlyHints {
+		t.Fatalf("hints = %+v, want a single 103", rr.hints)
+	}
+	if got := rr.hints[0].header.Get("Link"); got != "</a.css>; rel=preload" {
+		t.Errorf("hint Link = %q, want the preload link", got)
+	}
+	if got := rr.Header().Get("Link"); got != "" {
+		t.Errorf("Link = %q, want it removed after the informational response", got)
+	}
+	if rr.wrote {
+		t.Error("the informational frame must not close the response")
+	}
+
+	final := &payload.Payload{
+		Codec: frame.CodecProto,
+		Context: marshalRsp(t, http.StatusNotFound, map[string]*httpV1proto.HeaderValue{
+			"X-Marker": headerValue("probe"),
+		}),
+		Body: []byte("body"),
+	}
+	if err := h.Write(final, rr); err != nil {
+		t.Fatal(err)
+	}
+
+	if rr.code != http.StatusNotFound {
+		t.Errorf("status = %d, want %d", rr.code, http.StatusNotFound)
+	}
+	if got := rr.Header().Get("X-Marker"); got != "probe" {
+		t.Errorf("X-Marker = %q, want %q", got, "probe")
+	}
+	if got := rr.Header().Get("Link"); got != "" {
+		t.Errorf("Link = %q, want it absent from the final response", got)
+	}
+	if string(rr.body) != "body" {
+		t.Errorf("body = %q, want %q", rr.body, "body")
+	}
+}
+
+func TestWrite_EarlyHints_PreexistingHeaderRestored(t *testing.T) {
+	h := newTestHandler(t, defaultCfg(), nil)
+	rr := &hintRecorder{}
+	rr.Header().Set("Link", "</mw.css>; rel=preload")
+
+	hint := &payload.Payload{
+		Codec: frame.CodecProto,
+		Context: marshalRsp(t, http.StatusEarlyHints, map[string]*httpV1proto.HeaderValue{
+			"Link": headerValue("</worker.css>; rel=preload"),
+		}),
+	}
+	if err := h.Write(hint, rr); err != nil {
+		t.Fatal(err)
+	}
+
+	want := []string{"</mw.css>; rel=preload", "</worker.css>; rel=preload"}
+	if got := rr.hints[0].header.Values("Link"); len(got) != 2 || got[0] != want[0] || got[1] != want[1] {
+		t.Errorf("hint Link = %v, want %v", got, want)
+	}
+	if got := rr.Header().Values("Link"); len(got) != 1 || got[0] != want[0] {
+		t.Errorf("Link = %v, want only the pre-existing %q", got, want[0])
+	}
+}
+
+func TestWrite_EarlyHints_BodyDropped(t *testing.T) {
+	h := newTestHandler(t, defaultCfg(), nil)
+	rr := &hintRecorder{}
+
+	hint := &payload.Payload{
+		Codec:   frame.CodecProto,
+		Context: marshalRsp(t, http.StatusEarlyHints, nil),
+		Body:    []byte("bogus"),
+	}
+	if err := h.Write(hint, rr); err != nil {
+		t.Fatal(err)
+	}
+
+	if len(rr.body) != 0 {
+		t.Errorf("body = %q, want empty", rr.body)
+	}
+	if rr.wrote {
+		t.Error("the informational frame must not close the response")
+	}
+}
+
+func TestWrite_SwitchingProtocols_Dropped(t *testing.T) {
+	h := newTestHandler(t, defaultCfg(), nil)
+	rr := &hintRecorder{}
+
+	pld := &payload.Payload{
+		Codec: frame.CodecProto,
+		Context: marshalRsp(t, http.StatusSwitchingProtocols, map[string]*httpV1proto.HeaderValue{
+			"Upgrade": headerValue("websocket"),
+		}),
+	}
+	if err := h.Write(pld, rr); err != nil {
+		t.Fatal(err)
+	}
+
+	if rr.wrote || len(rr.hints) != 0 {
+		t.Errorf("recorder = %+v, want no writes for a 101 frame", rr)
+	}
+	if got := rr.Header().Get("Upgrade"); got != "" {
+		t.Errorf("Upgrade = %q, want no headers from a dropped frame", got)
+	}
+}
+
 func TestWrite_Trailers_RenamedOnTheWire(t *testing.T) {
 	h := newTestHandler(t, defaultCfg(), nil)
 
