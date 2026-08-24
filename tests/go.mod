@@ -6,22 +6,22 @@ toolchain go1.27.0
 
 require (
 	github.com/quic-go/quic-go v0.61.0
-	github.com/roadrunner-server/config/v6 v6.0.0-beta.3
+	github.com/roadrunner-server/config/v6 v6.0.0-beta.4
 	github.com/roadrunner-server/context v1.3.0
 	github.com/roadrunner-server/endure/v2 v2.6.2
-	github.com/roadrunner-server/fileserver/v6 v6.0.0-beta.5
+	github.com/roadrunner-server/fileserver/v6 v6.0.0-beta.6
 	github.com/roadrunner-server/goridge/v4 v4.0.0-beta.3
-	github.com/roadrunner-server/gzip/v6 v6.0.0-beta.2
-	github.com/roadrunner-server/headers/v6 v6.0.0-beta.2
-	github.com/roadrunner-server/http/v6 v6.0.0-beta.9
-	github.com/roadrunner-server/informer/v6 v6.0.0-beta.4
-	github.com/roadrunner-server/logger/v6 v6.0.0-beta.3
+	github.com/roadrunner-server/gzip/v6 v6.0.0-beta.3
+	github.com/roadrunner-server/headers/v6 v6.0.0-beta.3
+	github.com/roadrunner-server/http/v6 v6.0.0-beta.10
+	github.com/roadrunner-server/informer/v6 v6.0.0-beta.5
+	github.com/roadrunner-server/logger/v6 v6.0.0-beta.4
 	github.com/roadrunner-server/pool/v2 v2.0.0-beta.1
-	github.com/roadrunner-server/resetter/v6 v6.0.0-beta.5
-	github.com/roadrunner-server/rpc/v6 v6.0.0-beta.5
-	github.com/roadrunner-server/send/v6 v6.0.0-beta.4
-	github.com/roadrunner-server/server/v6 v6.0.0-beta.6
-	github.com/roadrunner-server/static/v6 v6.0.0-beta.4
+	github.com/roadrunner-server/resetter/v6 v6.0.0-beta.6
+	github.com/roadrunner-server/rpc/v6 v6.0.0-beta.6
+	github.com/roadrunner-server/send/v6 v6.0.0-beta.5
+	github.com/roadrunner-server/server/v6 v6.0.0-beta.7
+	github.com/roadrunner-server/static/v6 v6.0.0-beta.5
 	github.com/stretchr/testify v1.12.1
 	github.com/yookoala/gofast v0.8.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.70.0
