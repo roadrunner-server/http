@@ -5,6 +5,11 @@
   "title": "roadrunner-http",
   "type": "object",
   "additionalProperties": false,
+  "dependentRequired": {
+    "proxy_protocol": [
+      "address"
+    ]
+  },
   "properties": {
     "address": {
       "description": "Host and/or port to listen on for HTTP traffic. If omitted, RoadRunner will not listen for HTTP requests.",
@@ -21,6 +26,10 @@
       "default": 500,
       "minimum": 100,
       "maximum": 599
+    },
+    "proxy_protocol": {
+      "description": "Requires PROXY protocol on the plain HTTP TCP listener only. Omit to disable.",
+      "$ref": "#/$defs/ProxyProtocol"
     },
     "max_request_size": {
       "description": "Maximum request size in MB. Defaults to 1 GB if zero or omitted.",
@@ -205,6 +214,35 @@
     }
   },
   "$defs": {
+    "ProxyProtocol": {
+      "description": "PROXY protocol v1/v2. Trusted peers must send a header; every other peer is rejected. TCP4/TCP6 headers supply client addresses; UNKNOWN/LOCAL retain socket addresses.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "trusted_proxies"
+      ],
+      "properties": {
+        "trusted_proxies": {
+          "description": "Explicit IP addresses or CIDRs of immediate TCP peers allowed to send PROXY headers. This is separate from trust for HTTP forwarding headers.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "examples": [
+              "10.20.0.10",
+              "10.20.0.0/24",
+              "2001:db8::/32"
+            ]
+          }
+        },
+        "read_header_timeout": {
+          "description": "Time allowed to read the PROXY header. Omitted or zero means 5s; negative values are invalid. Does not control HTTP or TLS timeouts.",
+          "$ref": "https://raw.githubusercontent.com/roadrunner-server/roadrunner/refs/heads/master/schemas/config/3.0.schema.json#/definitions/Duration",
+          "default": "5s"
+        }
+      }
+    },
     "Uploads": {
       "type": "object",
       "additionalProperties": false,
@@ -250,6 +288,23 @@
       "description": "Settings required to set up manual or automatic HTTPS for your server. Either `key` and `cert` *or* `acme` is required, but not both.",
       "type": "object",
       "additionalProperties": false,
+      "dependentSchemas": {
+        "proxy_protocol": {
+          "anyOf": [
+            {
+              "required": [
+                "key",
+                "cert"
+              ]
+            },
+            {
+              "required": [
+                "acme"
+              ]
+            }
+          ]
+        }
+      },
       "dependentRequired": {
         "key": [
           "cert"
@@ -325,6 +380,10 @@
             "domains",
             "email"
           ]
+        },
+        "proxy_protocol": {
+          "description": "Requires a PROXY header before TLS on the application HTTPS listener only. Does not wrap temporary ACME challenge listeners. Omit to disable.",
+          "$ref": "#/$defs/ProxyProtocol"
         },
         "redirect": {
           "description": "Whether to automatically redirect from HTTP to HTTPS.",

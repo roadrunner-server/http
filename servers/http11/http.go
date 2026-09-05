@@ -16,14 +16,16 @@ import (
 	"github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/http/v6/config"
 	"github.com/roadrunner-server/http/v6/middleware"
+	"github.com/roadrunner-server/http/v6/servers/proxyprotocol"
 )
 
 type Server struct {
-	log          *slog.Logger
-	http         *http.Server
-	address      string
-	redirect     bool
-	redirectPort int
+	log           *slog.Logger
+	http          *http.Server
+	address       string
+	redirect      bool
+	redirectPort  int
+	proxyProtocol *proxyprotocol.Config
 }
 
 func NewHTTPServer(handler http.Handler, cfg *config.Config, errLog *log.Logger, log *slog.Logger) servers.InternalServer[any] {
@@ -40,10 +42,11 @@ func NewHTTPServer(handler http.Handler, cfg *config.Config, errLog *log.Logger,
 		protocols.SetHTTP1(true)
 		protocols.SetUnencryptedHTTP2(true)
 		return &Server{
-			log:          log,
-			redirect:     redirect,
-			redirectPort: redirectPort,
-			address:      cfg.Address,
+			log:           log,
+			redirect:      redirect,
+			redirectPort:  redirectPort,
+			address:       cfg.Address,
+			proxyProtocol: cfg.ProxyProtocol,
 			http: &http.Server{
 				Handler:           handler,
 				Protocols:         protocols,
@@ -57,10 +60,11 @@ func NewHTTPServer(handler http.Handler, cfg *config.Config, errLog *log.Logger,
 		}
 	}
 	return &Server{
-		log:          log,
-		redirect:     redirect,
-		redirectPort: redirectPort,
-		address:      cfg.Address,
+		log:           log,
+		redirect:      redirect,
+		redirectPort:  redirectPort,
+		address:       cfg.Address,
+		proxyProtocol: cfg.ProxyProtocol,
 		http: &http.Server{
 			ReadTimeout:       time.Minute * 5,
 			WriteTimeout:      time.Minute * 5,
@@ -89,9 +93,14 @@ func (s *Server) Serve(mdwr map[string]api.Middleware, order []string) error {
 	if err != nil {
 		return errors.E(op, err)
 	}
+	defer func() { _ = l.Close() }()
+	listener, err := s.proxyProtocol.Wrap(l)
+	if err != nil {
+		return errors.E(op, err)
+	}
 
 	s.log.Debug("http server was started", "address", s.address)
-	err = s.http.Serve(l)
+	err = s.http.Serve(listener)
 	if err != nil && !stderr.Is(err, http.ErrServerClosed) {
 		return errors.E(op, err)
 	}
