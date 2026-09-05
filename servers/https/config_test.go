@@ -3,8 +3,10 @@ package https
 import (
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/roadrunner-server/http/v6/acme"
+	"github.com/roadrunner-server/http/v6/servers/proxyprotocol"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -203,6 +205,16 @@ func TestSSL_InitDefaultsACME(t *testing.T) {
 	valid := &SSL{Acme: &acme.Config{Email: "user@example.com", Domains: []string{"example.com"}}}
 	require.NoError(t, valid.InitDefaults())
 	assert.Equal(t, "rr_cache_dir", valid.Acme.CacheDir)
+}
+
+func TestSSL_InitDefaultsACMEProxyProtocol(t *testing.T) {
+	cfg := &SSL{
+		Acme:          &acme.Config{Email: "user@example.com", Domains: []string{"example.com"}},
+		ProxyProtocol: &proxyprotocol.Config{TrustedProxies: []string{"127.0.0.1"}},
+	}
+
+	require.NoError(t, cfg.InitDefaults())
+	assert.Equal(t, 5*time.Second, cfg.ProxyProtocol.ReadHeaderTimeout)
 }
 
 func TestSSL_EnableACME(t *testing.T) {

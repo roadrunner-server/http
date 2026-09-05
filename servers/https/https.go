@@ -105,6 +105,11 @@ func (s *Server) Serve(mdwr map[string]api.Middleware, order []string) error {
 	if err != nil {
 		return errors.E(op, err)
 	}
+	defer func() { _ = l.Close() }()
+	listener, err := s.cfg.ProxyProtocol.Wrap(l)
+	if err != nil {
+		return errors.E(op, err)
+	}
 
 	/*
 		ACME powered server
@@ -112,7 +117,7 @@ func (s *Server) Serve(mdwr map[string]api.Middleware, order []string) error {
 	if s.cfg.EnableACME() {
 		s.log.Debug("https(acme) server was started", "address", s.cfg.Address)
 		err = s.https.ServeTLS(
-			l,
+			listener,
 			"",
 			"",
 		)
@@ -125,7 +130,7 @@ func (s *Server) Serve(mdwr map[string]api.Middleware, order []string) error {
 
 	s.log.Debug("https server was started", "address", s.cfg.Address)
 	err = s.https.ServeTLS(
-		l,
+		listener,
 		s.cfg.Cert,
 		s.cfg.Key,
 	)

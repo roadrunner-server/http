@@ -8,6 +8,7 @@ require (
 	github.com/caddyserver/certmagic v0.25.4
 	github.com/google/go-cmp v0.7.0
 	github.com/mholt/acmez v1.2.0
+	github.com/pires/go-proxyproto v0.15.0
 	github.com/prometheus/client_golang v1.24.1
 	github.com/quic-go/quic-go v0.62.0
 	github.com/roadrunner-server/api-go/v6 v6.0.0-beta.14

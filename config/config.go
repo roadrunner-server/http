@@ -6,6 +6,7 @@ import (
 	"github.com/roadrunner-server/http/v6/servers/fcgi"
 	"github.com/roadrunner-server/http/v6/servers/http3"
 	"github.com/roadrunner-server/http/v6/servers/https"
+	"github.com/roadrunner-server/http/v6/servers/proxyprotocol"
 
 	"github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/pool/v2/pool"
@@ -17,6 +18,8 @@ type Config struct {
 	RawBody bool `mapstructure:"raw_body"`
 	// Host and port to handle as http server.
 	Address string `mapstructure:"address"`
+	// ProxyProtocol applies only to the plain HTTP listener.
+	ProxyProtocol *proxyprotocol.Config `mapstructure:"proxy_protocol"`
 	// AccessLogs turn on/off, logged at Info log level, default: false
 	AccessLogs bool `mapstructure:"access_logs"`
 	// List of the middleware names (order will be preserved)
@@ -73,6 +76,12 @@ func (c *Config) EnableFCGI() bool {
 
 // InitDefaults must populate HTTP values using given HTTP source. Must return error if HTTP is not valid.
 func (c *Config) InitDefaults() error {
+	if c.ProxyProtocol != nil {
+		if err := c.ProxyProtocol.InitDefaults(c.Address); err != nil {
+			return errors.E(errors.Op("http.proxy_protocol"), err)
+		}
+	}
+
 	if c.Pool == nil {
 		c.Pool = &pool.Config{}
 	}
