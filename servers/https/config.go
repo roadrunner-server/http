@@ -48,7 +48,7 @@ func (h2 *HTTP2) EnableHTTP2() bool {
 type SSL struct {
 	// Address to listen as HTTPS server, defaults to 0.0.0.0:443.
 	Address string
-	// ProxyProtocol is read before TLS on the application listener, not ACME challenge listeners.
+	// ProxyProtocol applies before TLS on the application listener. ACME challenge listeners are separate.
 	ProxyProtocol *proxyprotocol.Config `mapstructure:"proxy_protocol"`
 	// ACME configuration
 	Acme *acme.Config `mapstructure:"acme"`

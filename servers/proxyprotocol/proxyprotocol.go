@@ -19,7 +19,7 @@ type Config struct {
 	policy proxyproto.ConnPolicyFunc
 }
 
-// InitDefaults validates the listener address and compiles its trusted-peer policy.
+// InitDefaults validates the TCP address and builds the proxy trust policy.
 func (c *Config) InitDefaults(address string) error {
 	c.policy = nil
 	_, port, err := net.SplitHostPort(strings.TrimPrefix(address, "tcp://"))
@@ -44,7 +44,7 @@ func (c *Config) InitDefaults(address string) error {
 		return fmt.Errorf("trusted_proxies: %w", err)
 	}
 	c.policy = func(opts proxyproto.ConnPolicyOptions) (proxyproto.Policy, error) {
-		// Match the kernel peer's IP, not its interface zone (which the policy cannot parse).
+		// The trust policy cannot parse IPv6 interface zones.
 		if addr, ok := opts.Upstream.(*net.TCPAddr); ok && addr.Zone != "" {
 			peer := *addr
 			peer.Zone = ""
@@ -55,7 +55,7 @@ func (c *Config) InitDefaults(address string) error {
 	return nil
 }
 
-// Wrap leaves a nil configuration disabled. Otherwise InitDefaults must have succeeded.
+// Wrap returns the original listener for a nil config. Other configs require InitDefaults.
 func (c *Config) Wrap(listener net.Listener) (net.Listener, error) {
 	if c == nil {
 		return listener, nil
@@ -72,7 +72,7 @@ func (c *Config) Wrap(listener net.Listener) (net.Listener, error) {
 		ConnPolicy:        c.policy,
 		ReadHeaderTimeout: c.ReadHeaderTimeout,
 		ValidateHeader: func(h *proxyproto.Header) error {
-			// LOCAL (including v1 UNKNOWN) retains socket addresses, regardless of transport.
+			// LOCAL and v1 UNKNOWN retain the socket addresses.
 			if h.Command.IsLocal() || h.TransportProtocol == proxyproto.TCPv4 || h.TransportProtocol == proxyproto.TCPv6 {
 				return nil
 			}

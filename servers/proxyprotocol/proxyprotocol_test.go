@@ -119,14 +119,13 @@ func TestWrapHeaders(t *testing.T) {
 			server, client := tcpPair(t, time.Second)
 			_, err := io.WriteString(client, tt.header+payload)
 			require.NoError(t, err)
-			// Half-close complete input so parser rejection cannot be a read timeout.
+			// Close input so parser rejection cannot depend on a read timeout.
 			require.NoError(t, client.CloseWrite())
 			body, err := io.ReadAll(server)
 			if tt.reject {
 				require.Error(t, err)
 				assert.Empty(t, body, "rejected connections must not expose application bytes")
-				var timeout net.Error
-				if errors.As(err, &timeout) {
+				if timeout, ok := errors.AsType[net.Error](err); ok {
 					assert.False(t, timeout.Timeout(), "a safety deadline is not a rejection")
 				}
 				return
@@ -150,6 +149,22 @@ func TestWrapHeaderTimeout(t *testing.T) {
 	require.Error(t, err)
 	assert.Zero(t, n)
 	assert.Less(t, time.Since(start), 2*time.Second, "header timeout must fire before the 5s safety deadline")
+}
+
+func TestWrapHeaderDeadlineRestored(t *testing.T) {
+	server, client := tcpPair(t, 100*time.Millisecond)
+	_, err := io.WriteString(client, proxyLine)
+	require.NoError(t, err)
+	require.Equal(t, "192.0.2.1:12345", server.RemoteAddr().String())
+
+	// Wait past the header deadline without HTTP resetting it.
+	time.Sleep(200 * time.Millisecond)
+	_, err = io.WriteString(client, payload)
+	require.NoError(t, err)
+	body := make([]byte, len(payload))
+	_, err = io.ReadFull(server, body)
+	require.NoError(t, err)
+	assert.Equal(t, payload, string(body))
 }
 
 func TestWrapDropsUntrustedAndContinues(t *testing.T) {
@@ -217,7 +232,7 @@ func v2Frame(command, transport byte, body string) string {
 
 func tcpListener(t *testing.T) net.Listener {
 	t.Helper()
-	ln, err := (&net.ListenConfig{}).Listen(t.Context(), "tcp", "127.0.0.1:0")
+	ln, err := new(net.ListenConfig).Listen(t.Context(), "tcp", "127.0.0.1:0")
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = ln.Close() })
 	require.NoError(t, ln.(*net.TCPListener).SetDeadline(time.Now().Add(5*time.Second)))

@@ -45,7 +45,8 @@ func TestHTTPRejectsPeers(t *testing.T) {
 				ts.Config.ErrorLog = log.New(io.Discard, "", 0)
 				cfg := &proxyprotocol.Config{TrustedProxies: []string{"127.0.0.1", "::1"}, ReadHeaderTimeout: 100 * time.Millisecond}
 				if tt.untrusted {
-					cfg.TrustedProxies = []string{"192.0.2.1"} // Trusting the advertised client must not trust the socket peer.
+					// Trust applies to the socket peer, not the address in the header.
+					cfg.TrustedProxies = []string{"192.0.2.1"}
 				}
 				require.NoError(t, cfg.InitDefaults(ts.Listener.Addr().String()))
 				var err error
@@ -89,7 +90,7 @@ func TestHTTPSlowPeerAndClose(t *testing.T) {
 			}))
 			t.Cleanup(ts.Close)
 			ts.Config.ConnState = func(_ net.Conn, state http.ConnState) {
-				// RemoteAddr here would parse the header in the accept loop and block it.
+				// RemoteAddr would block the accept loop until the header arrives.
 				if state == http.StateNew {
 					accepted <- struct{}{}
 				}
@@ -113,7 +114,8 @@ func TestHTTPSlowPeerAndClose(t *testing.T) {
 			case <-time.After(5 * time.Second):
 				t.Fatal("silent peer was not accepted")
 			}
-			assertHTTPResponse(t, proxyHTTPPeer(t, ts)) // Its 5s deadline is far below the pending header's 30s timeout.
+			// This request must finish before the silent peer's 30s header timeout.
+			assertHTTPResponse(t, proxyHTTPPeer(t, ts))
 			select {
 			case <-finished:
 				t.Fatal("a connection closed before Server.Close")
@@ -139,40 +141,11 @@ func TestHTTPSlowPeerAndClose(t *testing.T) {
 	}
 }
 
-func TestHTTPHeaderDeadlineRestored(t *testing.T) {
-	for _, scheme := range []string{"http", "https"} {
-		t.Run(scheme, func(t *testing.T) {
-			ts := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				w.Header().Set("X-Remote-Addr", r.RemoteAddr)
-				w.Header().Set("X-Request-URI", handler.URI(r))
-			}))
-			t.Cleanup(ts.Close)
-			cfg := &proxyprotocol.Config{TrustedProxies: []string{"127.0.0.1", "::1"}, ReadHeaderTimeout: 100 * time.Millisecond}
-			require.NoError(t, cfg.InitDefaults(ts.Listener.Addr().String()))
-			var err error
-			ts.Listener, err = cfg.Wrap(ts.Listener)
-			require.NoError(t, err)
-			if scheme == "https" {
-				ts.StartTLS()
-			} else {
-				ts.Start()
-			}
-			conn := proxyHTTPPeer(t, ts)
-			assertHTTPResponse(t, conn)
-			// The response synchronizes completed header processing; this timer tests deadline expiry, not packet ordering.
-			timer := time.NewTimer(2 * cfg.ReadHeaderTimeout)
-			defer timer.Stop()
-			<-timer.C
-			assertHTTPResponse(t, conn) // Same socket, without another PROXY header.
-		})
-	}
-}
-
 func TestHTTPWebSocket(t *testing.T) {
 	for _, scheme := range []string{"ws", "wss"} {
 		t.Run(scheme, func(t *testing.T) {
 			done := make(chan error, 1)
-			handler := websocket.Handler(func(ws *websocket.Conn) {
+			wsHandler := websocket.Handler(func(ws *websocket.Conn) {
 				err := ws.SetDeadline(time.Now().Add(5 * time.Second))
 				var text string
 				if err == nil {
@@ -183,7 +156,7 @@ func TestHTTPWebSocket(t *testing.T) {
 				}
 				done <- err
 			})
-			ts := httptest.NewUnstartedServer(middleware.NewLogMiddleware(handler, true, slog.New(slog.NewTextHandler(io.Discard, nil))))
+			ts := httptest.NewUnstartedServer(middleware.NewLogMiddleware(wsHandler, true, slog.New(slog.NewTextHandler(io.Discard, nil))))
 			t.Cleanup(ts.Close)
 			cfg := &proxyprotocol.Config{TrustedProxies: []string{"127.0.0.1", "::1"}}
 			require.NoError(t, cfg.InitDefaults(ts.Listener.Addr().String()))
@@ -238,7 +211,7 @@ func tlsHTTPPeer(t *testing.T, ts *httptest.Server, conn net.Conn) *tls.Conn {
 func proxyHTTPPeer(t *testing.T, ts *httptest.Server) net.Conn {
 	t.Helper()
 	conn := dialHTTPPeer(t, ts)
-	// The SSL TLV claims TLS and certificate verification, but is not authentication.
+	// The SSL TLV must not change TLS state or the request scheme.
 	addresses := "\xc0\x00\x02\x01\xc6\x33\x64\x02\x30\x39\x01\xbb"
 	_, err := io.WriteString(conn, v2Frame(0x21, 0x11, addresses+"\x20\x00\x05\x07\x00\x00\x00\x00"))
 	require.NoError(t, err)
@@ -255,8 +228,8 @@ func assertPeerClosed(t *testing.T, conn net.Conn) {
 	n, err := conn.Read(make([]byte, 1))
 	require.Zero(t, n, "rejected peer received application bytes")
 	require.Error(t, err)
-	var timeout net.Error
-	require.False(t, errors.As(err, &timeout) && timeout.Timeout(), "client safety deadline is not a peer close: %v", err)
+	timeout, ok := errors.AsType[net.Error](err)
+	require.False(t, ok && timeout.Timeout(), "client safety deadline is not a peer close: %v", err)
 }
 
 func assertHTTPResponse(t *testing.T, conn net.Conn) {

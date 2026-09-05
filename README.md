@@ -2,7 +2,7 @@
 
 ## PROXY Protocol
 
-Enable PROXY protocol v1/v2 independently for plain HTTP and HTTPS TCP listeners:
+Plain HTTP and HTTPS TCP listeners have separate PROXY protocol settings. Both support v1 and v2:
 
 ```yaml
 http:
@@ -19,25 +19,18 @@ http:
       read_header_timeout: 5s
 ```
 
-Omit a block to leave that listener unchanged. When enabled, `trusted_proxies`
-must explicitly list the immediate proxies' IP addresses or CIDRs. Trusted peers
-must send a PROXY header, including health checks; all other connections are
-dropped. There is no mixed direct/proxied mode on an enabled listener. The header
-timeout defaults to 5s when omitted or zero; negative values are invalid.
+Omit `proxy_protocol` to leave that listener unchanged. An enabled listener accepts connections only from `trusted_proxies`. This list must contain the IP addresses or CIDR ranges of the immediate proxies. Each connection must start with a PROXY header, including health check connections. The listener drops all other connections.
 
-For HTTPS, send the PROXY header **before** the TLS handshake. HTTP/1.1, h2c,
-TLS HTTP/2, and existing Go-middleware WebSocket upgrades retain their normal
-behavior. TCP4/TCP6 headers set the client address seen by handlers, access logs,
-and PHP's `REMOTE_ADDR`. Valid v1 `UNKNOWN` and v2 `LOCAL` headers instead retain
-the socket addresses. TLVs are ignored; they do not change TLS state or URL scheme.
-PROXY metadata applies to the whole connection, so a proxy must not multiplex
-different client identities onto one backend connection.
+If you omit `read_header_timeout` or set it to zero, the timeout is `5s`. Negative values are invalid.
 
-These options do not affect FastCGI, HTTP/3, or CertMagic's temporary ACME challenge
-listeners. Route challenge traffic without PROXY headers to those listeners.
-`proxy_ip_parser` and `http.trusted_subnets` remain separate HTTP forwarding-header
-settings. With PROXY enabled, `RemoteAddr` identifies the advertised client rather
-than the immediate proxy; account for that when configuring forwarding-header trust.
+For HTTPS, send the PROXY header before the TLS handshake. HTTP/1.1, h2c, TLS HTTP/2, and WebSocket upgrades through Go middleware continue to work.
 
-The parser (`go-proxyproto` v0.15.0) may reject fragmented v1 headers and limits
-the v2 address/TLV payload to 4096 bytes. Prefer v2 where the proxy supports it.
+TCP4 and TCP6 headers set the client address in handlers, access logs, and PHP's `REMOTE_ADDR`. Valid v1 `UNKNOWN` and v2 `LOCAL` headers retain the socket addresses. The parser ignores TLVs. They do not change TLS state or the URL scheme.
+
+PROXY metadata applies to the whole connection. A proxy must use separate backend connections for different client identities.
+
+These settings do not affect FastCGI, HTTP/3, or CertMagic's temporary ACME challenge listeners. Send challenge traffic to those listeners without PROXY headers.
+
+`proxy_ip_parser` and `http.trusted_subnets` control HTTP forwarding headers separately. With PROXY enabled, `RemoteAddr` contains the advertised client address instead of the immediate proxy address. Check forwarding header trust settings for this address change.
+
+The parser (`go-proxyproto` v0.15.0) can reject fragmented v1 headers. It limits the v2 address and TLV payload to 4096 bytes. Use v2 if the proxy supports it.

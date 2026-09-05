@@ -162,19 +162,20 @@ func TestProxyProtocolInit(t *testing.T) {
 	cert, key, _ := proxyProtocolTLS(t)
 	plain := "  address: 127.0.0.1:0\n"
 	ssl := fmt.Sprintf("  ssl:\n    address: 127.0.0.1:0\n    cert: %q\n    key: %q\n", cert, key)
-	for _, tt := range []struct{ name, section string }{
-		{"empty_plain", plain + "  proxy_protocol: {}\n"},
-		{"empty_ssl", ssl + "    proxy_protocol: {}\n"},
-		{"plain_without_http", ssl + "  proxy_protocol: {trusted_proxies: [127.0.0.1]}\n"},
-		{"ssl_without_tls", plain + "  ssl:\n    proxy_protocol: {trusted_proxies: [127.0.0.1]}\n"},
-		{"negative_timeout", plain + "  proxy_protocol: {trusted_proxies: [127.0.0.1], read_header_timeout: -1s}\n"},
-		{"invalid_timeout", ssl + "    proxy_protocol: {trusted_proxies: [127.0.0.1], read_header_timeout: later}\n"},
-		{"invalid_ip", plain + "  proxy_protocol: {trusted_proxies: [localhost]}\n"},
-		{"invalid_cidr", ssl + "    proxy_protocol: {trusted_proxies: [127.0.0.1/99]}\n"},
+	for _, tt := range []struct{ name, section, wantError string }{
+		{"empty_plain", plain + "  proxy_protocol: {}\n", "trusted_proxies must contain at least one IP address or CIDR"},
+		{"empty_ssl", ssl + "    proxy_protocol: {}\n", "trusted_proxies must contain at least one IP address or CIDR"},
+		{"plain_without_http", ssl + "  proxy_protocol: {trusted_proxies: [127.0.0.1]}\n", "requires a TCP listen address"},
+		{"ssl_without_tls", plain + "  ssl:\n    proxy_protocol: {trusted_proxies: [127.0.0.1]}\n", "requires an enabled HTTPS listener"},
+		{"negative_timeout", plain + "  proxy_protocol: {trusted_proxies: [127.0.0.1], read_header_timeout: -1s}\n", "read_header_timeout must not be negative"},
+		{"invalid_timeout", ssl + "    proxy_protocol: {trusted_proxies: [127.0.0.1], read_header_timeout: later}\n", "'ssl.proxy_protocol.read_header_timeout' time: invalid duration"},
+		{"invalid_ip", plain + "  proxy_protocol: {trusted_proxies: [localhost]}\n", `given string "localhost" is not a valid IP address`},
+		{"invalid_cidr", ssl + "    proxy_protocol: {trusted_proxies: [127.0.0.1/99]}\n", `given string "127.0.0.1/99" is not a valid IP range`},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			_ = helpers.StartExpectInitError(t, "", []any{&server.Plugin{}, &httpPlugin.Plugin{}},
+			err := helpers.StartExpectInitError(t, "", []any{&server.Plugin{}, &httpPlugin.Plugin{}},
 				helpers.WithInlineConfig(fmt.Sprintf(proxyProtocolConfig, tt.section)), helpers.WithObservedLogger())
+			require.ErrorContains(t, err, tt.wantError)
 		})
 	}
 }
@@ -208,7 +209,7 @@ func proxyProtocolTLS(t *testing.T) (string, string, *x509.CertPool) {
 
 func proxyProtocolAddresses(t *testing.T) (string, string) {
 	t.Helper()
-	// Plugin servers are private; reserve both ports together, then release for Serve.
+	// Reserve distinct ports, then release them for the plugin listeners.
 	plain, err := new(net.ListenConfig).Listen(t.Context(), "tcp4", "127.0.0.1:0")
 	require.NoError(t, err)
 	defer func() { _ = plain.Close() }()
@@ -225,7 +226,7 @@ func proxyProtocolV2(ip string) string {
 		src, dst, family = v4, net.IPv4(192, 0, 2, 1).To4(), 0x11
 		length = 12
 	}
-	// v2 PROXY, INET{,6}/STREAM, address length, addresses, ports 12345 -> 443.
+	// Encode v2 PROXY with TCP addresses and ports 12345 and 443.
 	header := []byte("\r\n\r\n\x00\r\nQUIT\n\x21")
 	header = append(header, family, 0, length)
 	header = append(header, src...)
