@@ -9,6 +9,7 @@ import (
 
 	rrerrors "github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/http/v6/acme"
+	"github.com/roadrunner-server/http/v6/servers/proxyprotocol"
 )
 
 type ClientAuthType string
@@ -47,6 +48,8 @@ func (h2 *HTTP2) EnableHTTP2() bool {
 type SSL struct {
 	// Address to listen as HTTPS server, defaults to 0.0.0.0:443.
 	Address string
+	// ProxyProtocol applies before TLS on the application listener. ACME challenge listeners are separate.
+	ProxyProtocol *proxyprotocol.Config `mapstructure:"proxy_protocol"`
 	// ACME configuration
 	Acme *acme.Config `mapstructure:"acme"`
 	// Redirect when enabled forces all http connections to switch to https.
@@ -84,6 +87,16 @@ func (s *SSL) InitDefaults() error {
 
 	if s.Address == "" {
 		s.Address = "127.0.0.1:443"
+	}
+
+	if s.ProxyProtocol != nil {
+		const op = rrerrors.Op("http.ssl.proxy_protocol")
+		if s.Acme == nil && (s.Cert == "" || s.Key == "") {
+			return rrerrors.E(op, "requires an enabled HTTPS listener (cert/key or acme)")
+		}
+		if err := s.ProxyProtocol.InitDefaults(s.Address); err != nil {
+			return rrerrors.E(op, err)
+		}
 	}
 
 	return nil

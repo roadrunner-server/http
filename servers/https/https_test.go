@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/roadrunner-server/http/v6/api"
+	"github.com/roadrunner-server/http/v6/servers/proxyprotocol"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -285,4 +286,31 @@ func TestServeBadAddress(t *testing.T) {
 
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "invalid Protocol")
+}
+
+func TestServeClosesListenerOnSetupError(t *testing.T) {
+	for _, mode := range []string{"disabled", "enabled", "uninitialized"} {
+		t.Run(mode, func(t *testing.T) {
+			listener, err := new(net.ListenConfig).Listen(t.Context(), "tcp", "127.0.0.1:0")
+			require.NoError(t, err)
+			address := listener.Addr().String()
+			require.NoError(t, listener.Close())
+
+			cfg := &SSL{Address: address, Cert: "missing.pem", Key: "missing.key"}
+			if mode != "disabled" {
+				cfg.ProxyProtocol = &proxyprotocol.Config{TrustedProxies: []string{"127.0.0.1"}}
+				if mode == "enabled" {
+					require.NoError(t, cfg.InitDefaults())
+				}
+			}
+			srv, err := NewHTTPSServer(http.NotFoundHandler(), cfg, nil, nil, discardLogger())
+			require.NoError(t, err)
+			require.Error(t, srv.Serve(nil, nil))
+
+			// ServeTLS can fail before net/http takes ownership of the listener.
+			listener, err = new(net.ListenConfig).Listen(t.Context(), "tcp", address)
+			require.NoError(t, err)
+			require.NoError(t, listener.Close())
+		})
+	}
 }
