@@ -285,7 +285,7 @@ func TestServeBadAddress(t *testing.T) {
 	}}, []string{"known"})
 
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "invalid Protocol")
+	assert.Contains(t, err.Error(), "invalid protocol")
 }
 
 func TestServeClosesListenerOnSetupError(t *testing.T) {

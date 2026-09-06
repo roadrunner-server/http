@@ -1,7 +1,11 @@
 package http
 
 import (
+	"fmt"
+	"math"
 	"net/http"
+	"reflect"
+	"strconv"
 
 	"github.com/quic-go/quic-go/http3"
 	"github.com/roadrunner-server/http/v6/acme"
@@ -12,6 +16,7 @@ import (
 	httpServer "github.com/roadrunner-server/http/v6/servers/http11"
 	http3Server "github.com/roadrunner-server/http/v6/servers/http3"
 	httpsServer "github.com/roadrunner-server/http/v6/servers/https"
+	"github.com/roadrunner-server/tcplisten"
 )
 
 // ------- PRIVATE ---------
@@ -71,6 +76,12 @@ func (p *Plugin) applyBundledMiddleware() {
 }
 
 func (p *Plugin) unmarshal(cfg api.Configurer) error {
+	for _, key := range []string{"http.unix_socket", "http.fcgi.unix_socket"} {
+		if err := validateUnixSocketIDs(cfg, key); err != nil {
+			return err
+		}
+	}
+
 	// unmarshal general section
 	err := cfg.UnmarshalKey(PluginName, &p.cfg)
 	if err != nil {
@@ -101,5 +112,57 @@ func (p *Plugin) unmarshal(cfg api.Configurer) error {
 		return err
 	}
 
+	// Viper can omit empty maps when it decodes the parent section.
+	if cfg.Has("http.unix_socket") {
+		p.cfg.UnixSocket = &tcplisten.UnixSocketOptions{}
+		if err = cfg.UnmarshalKey("http.unix_socket", p.cfg.UnixSocket); err != nil {
+			return err
+		}
+	}
+	if cfg.Has("http.fcgi.unix_socket") {
+		if p.cfg.FCGIConfig == nil {
+			p.cfg.FCGIConfig = &fcgi.FCGI{}
+		}
+		p.cfg.FCGIConfig.UnixSocket = &tcplisten.UnixSocketOptions{}
+		if err = cfg.UnmarshalKey("http.fcgi.unix_socket", p.cfg.FCGIConfig.UnixSocket); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Check raw IDs before weak decoding can convert booleans or truncate fractions.
+func validateUnixSocketIDs(cfg api.Configurer, key string) error {
+	if !cfg.Has(key) {
+		return nil
+	}
+	var options map[string]any
+	if err := cfg.UnmarshalKey(key, &options); err != nil {
+		return fmt.Errorf("%s: %w", key, err)
+	}
+	for _, field := range []string{"uid", "gid"} {
+		if options[field] == nil {
+			continue
+		}
+		value := reflect.ValueOf(options[field])
+		var valid bool
+		switch value.Kind() { //nolint:exhaustive // Other kinds fail validation.
+		case reflect.String:
+			id, err := strconv.ParseInt(value.String(), 0, strconv.IntSize)
+			valid = err == nil && id >= 0 && id < 4294967295
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			id := value.Int()
+			valid = id >= 0 && id < 4294967295
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+			valid = value.Uint() < 4294967295
+		case reflect.Float32, reflect.Float64:
+			id := value.Float()
+			valid = id >= 0 && id < 4294967295 && math.Trunc(id) == id
+		}
+		if !valid {
+			return fmt.Errorf("%s.%s: must be an integer between 0 and 4294967294", key, field)
+		}
+	}
 	return nil
 }

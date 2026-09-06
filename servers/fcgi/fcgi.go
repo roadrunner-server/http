@@ -4,9 +4,11 @@ import (
 	stderr "errors"
 	"log"
 	"log/slog"
+	"net"
 	"net/http"
 	"net/http/fcgi"
 	"slices"
+	"sync"
 	"time"
 
 	"github.com/roadrunner-server/http/v6/api"
@@ -20,6 +22,10 @@ type Server struct {
 	cfg  *FCGI
 	log  *slog.Logger
 	fcgi *http.Server
+
+	mu       sync.Mutex
+	listener net.Listener
+	stopped  bool
 }
 
 func NewFCGIServer(handler http.Handler, cfg *FCGI, log *slog.Logger, errLog *log.Logger) servers.InternalServer[any] {
@@ -41,13 +47,26 @@ func (s *Server) Serve(mdwr map[string]api.Middleware, order []string) error {
 		applyMiddleware(s.fcgi, mdwr, order, s.log)
 	}
 
-	l, err := tcplisten.CreateListener(s.cfg.Address)
+	// Hold the lock through bind so Stop cannot miss a new listener.
+	s.mu.Lock()
+	if s.stopped {
+		s.mu.Unlock()
+		return nil
+	}
+	l, err := tcplisten.CreateListenerWithOptions(s.cfg.Address, s.cfg.UnixSocket)
 	if err != nil {
+		s.mu.Unlock()
 		return errors.E(op, err)
 	}
+	s.listener = l
+	s.mu.Unlock()
+	defer s.Stop()
 
 	err = fcgi.Serve(l, s.fcgi.Handler)
-	if err != nil && !stderr.Is(err, http.ErrServerClosed) {
+	s.mu.Lock()
+	stopped := s.stopped
+	s.mu.Unlock()
+	if err != nil && (!stopped || !stderr.Is(err, net.ErrClosed)) {
 		return errors.E(op, err)
 	}
 
@@ -59,9 +78,16 @@ func (s *Server) Server() any {
 }
 
 func (s *Server) Stop() {
-	err := s.fcgi.Close()
-	if err != nil && !stderr.Is(err, http.ErrServerClosed) {
-		s.log.Error("fcgi shutdown", "error", err)
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.stopped {
+		return
+	}
+	s.stopped = true
+	if s.listener != nil {
+		if err := s.listener.Close(); err != nil && !stderr.Is(err, net.ErrClosed) {
+			s.log.Error("fcgi shutdown", "error", err)
+		}
 	}
 }
 

@@ -25,7 +25,10 @@ type stubConfigurer struct {
 	httpCfg      *config.Config
 }
 
-func (c *stubConfigurer) Has(string) bool    { return c.has }
+func (c *stubConfigurer) Has(section string) bool {
+	return c.has && (section == PluginName || section == c.errSection)
+}
+
 func (c *stubConfigurer) Experimental() bool { return c.experimental }
 
 func (c *stubConfigurer) UnmarshalKey(name string, out any) error {
@@ -87,7 +90,7 @@ func TestInit_SectionDisabled(t *testing.T) {
 }
 
 func TestInit_UnmarshalErrorPerSection(t *testing.T) {
-	sections := []string{PluginName, sectionHTTPS, sectionHTTP2, sectionUploads, sectionFCGI}
+	sections := []string{PluginName, sectionHTTPS, sectionHTTP2, sectionUploads, sectionFCGI, "http.unix_socket", "http.fcgi.unix_socket"}
 
 	for _, section := range sections {
 		t.Run(section, func(t *testing.T) {

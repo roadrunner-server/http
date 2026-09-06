@@ -4,12 +4,16 @@ import (
 	"io"
 	"log"
 	"log/slog"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/roadrunner-server/http/v6/api"
+	"github.com/stretchr/testify/require"
 )
 
 // recordingMiddleware appends its name to trace when the wrapped chain runs.
@@ -88,4 +92,61 @@ func TestStop_IsIdempotent(t *testing.T) {
 
 	srv.Stop()
 	srv.Stop()
+	require.NoError(t, srv.Serve(nil, nil), "Stop before Serve must prevent bind")
+}
+
+func TestStop_ConcurrentServe(t *testing.T) {
+	for range 30 {
+		srv := testServer(http.NotFoundHandler())
+		srv.cfg.Address = "127.0.0.1:0"
+		t.Cleanup(srv.Stop)
+		start := make(chan struct{})
+		done := make(chan error, 1)
+		go func() {
+			<-start
+			done <- srv.Serve(nil, nil)
+		}()
+		var stops sync.WaitGroup
+		for range 2 {
+			stops.Go(func() {
+				<-start
+				srv.Stop()
+			})
+		}
+		close(start)
+		select {
+		case err := <-done:
+			require.NoError(t, err)
+		case <-time.After(5 * time.Second):
+			t.Fatal("Serve did not stop")
+		}
+		stops.Wait()
+		if srv.listener != nil {
+			_, err := srv.listener.Accept()
+			require.ErrorIs(t, err, net.ErrClosed)
+		}
+	}
+}
+
+func TestServe_UnexpectedListenerClose(t *testing.T) {
+	srv := testServer(http.NotFoundHandler())
+	srv.cfg.Address = "127.0.0.1:0"
+	t.Cleanup(srv.Stop)
+	done := make(chan error, 1)
+	go func() { done <- srv.Serve(nil, nil) }()
+	var listener net.Listener
+	require.Eventually(t, func() bool {
+		srv.mu.Lock()
+		defer srv.mu.Unlock()
+		listener = srv.listener
+		return listener != nil
+	}, 5*time.Second, 10*time.Millisecond)
+	require.NoError(t, listener.Close())
+	select {
+	case err := <-done:
+		require.ErrorContains(t, err, "serve_fcgi")
+		require.ErrorContains(t, err, net.ErrClosed.Error())
+	case <-time.After(5 * time.Second):
+		t.Fatal("Serve did not return the listener error")
+	}
 }

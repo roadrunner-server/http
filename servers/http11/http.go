@@ -23,6 +23,7 @@ type Server struct {
 	log           *slog.Logger
 	http          *http.Server
 	address       string
+	unixSocket    *tcplisten.UnixSocketOptions
 	redirect      bool
 	redirectPort  int
 	proxyProtocol *proxyprotocol.Config
@@ -46,6 +47,7 @@ func NewHTTPServer(handler http.Handler, cfg *config.Config, errLog *log.Logger,
 			redirect:      redirect,
 			redirectPort:  redirectPort,
 			address:       cfg.Address,
+			unixSocket:    cfg.UnixSocket,
 			proxyProtocol: cfg.ProxyProtocol,
 			http: &http.Server{
 				Handler:           handler,
@@ -64,6 +66,7 @@ func NewHTTPServer(handler http.Handler, cfg *config.Config, errLog *log.Logger,
 		redirect:      redirect,
 		redirectPort:  redirectPort,
 		address:       cfg.Address,
+		unixSocket:    cfg.UnixSocket,
 		proxyProtocol: cfg.ProxyProtocol,
 		http: &http.Server{
 			ReadTimeout:       time.Minute * 5,
@@ -89,7 +92,7 @@ func (s *Server) Serve(mdwr map[string]api.Middleware, order []string) error {
 		s.http.Handler = middleware.Redirect(s.http.Handler, s.redirectPort)
 	}
 
-	l, err := tcplisten.CreateListener(s.address)
+	l, err := tcplisten.CreateListenerWithOptions(s.address, s.unixSocket)
 	if err != nil {
 		return errors.E(op, err)
 	}
