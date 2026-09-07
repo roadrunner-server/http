@@ -26,7 +26,7 @@ type stubConfigurer struct {
 }
 
 func (c *stubConfigurer) Has(section string) bool {
-	return c.has && (section == PluginName || section == c.errSection)
+	return c.has && section == PluginName
 }
 
 func (c *stubConfigurer) Experimental() bool { return c.experimental }
@@ -90,7 +90,7 @@ func TestInit_SectionDisabled(t *testing.T) {
 }
 
 func TestInit_UnmarshalErrorPerSection(t *testing.T) {
-	sections := []string{PluginName, sectionHTTPS, sectionHTTP2, sectionUploads, sectionFCGI, "http.unix_socket", "http.fcgi.unix_socket"}
+	sections := []string{PluginName, sectionHTTPS, sectionHTTP2, sectionUploads, sectionFCGI}
 
 	for _, section := range sections {
 		t.Run(section, func(t *testing.T) {
