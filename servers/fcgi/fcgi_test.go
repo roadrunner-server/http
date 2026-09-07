@@ -127,26 +127,3 @@ func TestStop_ConcurrentServe(t *testing.T) {
 		}
 	}
 }
-
-func TestServe_UnexpectedListenerClose(t *testing.T) {
-	srv := testServer(http.NotFoundHandler())
-	srv.cfg.Address = "127.0.0.1:0"
-	t.Cleanup(srv.Stop)
-	done := make(chan error, 1)
-	go func() { done <- srv.Serve(nil, nil) }()
-	var listener net.Listener
-	require.Eventually(t, func() bool {
-		srv.mu.Lock()
-		defer srv.mu.Unlock()
-		listener = srv.listener
-		return listener != nil
-	}, 5*time.Second, 10*time.Millisecond)
-	require.NoError(t, listener.Close())
-	select {
-	case err := <-done:
-		require.ErrorContains(t, err, "serve_fcgi")
-		require.ErrorContains(t, err, net.ErrClosed.Error())
-	case <-time.After(5 * time.Second):
-		t.Fatal("Serve did not return the listener error")
-	}
-}

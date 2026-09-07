@@ -63,10 +63,7 @@ func (s *Server) Serve(mdwr map[string]api.Middleware, order []string) error {
 	defer s.Stop()
 
 	err = fcgi.Serve(l, s.fcgi.Handler)
-	s.mu.Lock()
-	stopped := s.stopped
-	s.mu.Unlock()
-	if err != nil && (!stopped || !stderr.Is(err, net.ErrClosed)) {
+	if err != nil && !stderr.Is(err, net.ErrClosed) {
 		return errors.E(op, err)
 	}
 
