@@ -25,7 +25,10 @@ type stubConfigurer struct {
 	httpCfg      *config.Config
 }
 
-func (c *stubConfigurer) Has(string) bool    { return c.has }
+func (c *stubConfigurer) Has(section string) bool {
+	return c.has && section == PluginName
+}
+
 func (c *stubConfigurer) Experimental() bool { return c.experimental }
 
 func (c *stubConfigurer) UnmarshalKey(name string, out any) error {

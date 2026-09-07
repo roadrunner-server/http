@@ -8,17 +8,24 @@
   "dependentRequired": {
     "proxy_protocol": [
       "address"
+    ],
+    "unix_socket": [
+      "address"
     ]
   },
   "properties": {
     "address": {
-      "description": "Host and/or port to listen on for HTTP traffic. If omitted, RoadRunner will not listen for HTTP requests.",
+      "description": "TCP address or filesystem UNIX socket for HTTP traffic. If omitted, RoadRunner will not listen for HTTP requests.",
       "type": "string",
       "minLength": 1,
       "examples": [
         "127.0.0.1:8080",
-        ":8080"
+        ":8080",
+        "unix:///path/to/http.sock"
       ]
+    },
+    "unix_socket": {
+      "$ref": "https://raw.githubusercontent.com/roadrunner-server/tcplisten/v1.6.0/schema.json"
     },
     "internal_error_code": {
       "description": "HTTP status code to use for internal RoadRunner errors. Defaults to 500 if omitted.",
@@ -438,15 +445,18 @@
       "additionalProperties": false,
       "properties": {
         "address": {
-          "description": "Host and/or port to listen on for FCGI requests.",
+          "description": "TCP address or filesystem UNIX socket for FCGI requests.",
           "type": "string",
           "minLength": 1,
           "examples": [
             "0.0.0.0:9000",
             "127.0.0.1:9000",
             "localhost:9000",
-            "unix:/path/to/socket.sock"
+            "unix:///path/to/socket.sock"
           ]
+        },
+        "unix_socket": {
+          "$ref": "https://raw.githubusercontent.com/roadrunner-server/tcplisten/v1.6.0/schema.json"
         }
       },
       "required": [

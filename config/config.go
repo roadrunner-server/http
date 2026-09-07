@@ -10,6 +10,7 @@ import (
 
 	"github.com/roadrunner-server/errors"
 	"github.com/roadrunner-server/pool/v2/pool"
+	"github.com/roadrunner-server/tcplisten"
 )
 
 // Config configures RoadRunner HTTP server.
@@ -18,6 +19,8 @@ type Config struct {
 	RawBody bool `mapstructure:"raw_body"`
 	// Host and port to handle as http server.
 	Address string `mapstructure:"address"`
+	// UnixSocket sets attributes on the plain HTTP UNIX socket only.
+	UnixSocket *tcplisten.UnixSocketOptions `mapstructure:"unix_socket"`
 	// ProxyProtocol applies only to the plain HTTP listener.
 	ProxyProtocol *proxyprotocol.Config `mapstructure:"proxy_protocol"`
 	// AccessLogs turn on/off, logged at Info log level, default: false
@@ -125,6 +128,15 @@ func (c *Config) InitDefaults() error {
 // Valid validates the configuration.
 func (c *Config) Valid() error {
 	const op = errors.Op("validation")
+	if err := c.UnixSocket.Validate(c.Address); err != nil {
+		return errors.E(op, err)
+	}
+	if c.FCGIConfig != nil {
+		if err := c.FCGIConfig.Valid(); err != nil {
+			return err
+		}
+	}
+
 	if c.Uploads == nil {
 		return errors.E(op, errors.Str("malformed uploads config"))
 	}

@@ -74,8 +74,8 @@ github.com/roadrunner-server/goridge/v4 v4.0.0-beta.3 h1:+kUw00/fpqwdMWrPMYW+OZH
 github.com/roadrunner-server/goridge/v4 v4.0.0-beta.3/go.mod h1:1aHppV68y/VqRED/AsfNg59sft9aQOhqgr5Z5n49jbM=
 github.com/roadrunner-server/pool/v2 v2.0.0-beta.1 h1:jpYXFtdD6QGAdAGPgMxrNi3j1CegCRpb2y+A+3GnXFA=
 github.com/roadrunner-server/pool/v2 v2.0.0-beta.1/go.mod h1:Bo1wT7RtL3eyQHXBUohNhtj/yAmRt6Rq8smuBg5pWkY=
-github.com/roadrunner-server/tcplisten v1.5.2 h1:nn8yXYrhRDkfQ9AAu4V075uT4fZRmOnpxkawgE+bWPA=
-github.com/roadrunner-server/tcplisten v1.5.2/go.mod h1:DufGBz7Dlx2KrNe/4RukEvGMTqZKB0Uve1GztwcyyR8=
+github.com/roadrunner-server/tcplisten v1.6.0 h1:xfFeA2PZTmwJdwc/InhJGq200ew/lfTDReF3oa4AyI4=
+github.com/roadrunner-server/tcplisten v1.6.0/go.mod h1:M01BcmhsBiek8WfkiRQwVXwVamgZ5YV36Wa0hz937dA=
 github.com/shirou/gopsutil v3.21.11+incompatible h1:+1+c1VGhc88SSonWP6foOcLhvnKlUeu/erjjvaPEYiI=
 github.com/shirou/gopsutil v3.21.11+incompatible/go.mod h1:5b4v6he4MtMOwMlS0TUMTu2PcXUg8+E1lC7eC3UO/RA=
 github.com/stretchr/testify v1.12.1 h1:EuwCh5fleGS7H32xRwO3wRGT7DxrDhLAT6FF8MpWDWE=

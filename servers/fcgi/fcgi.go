@@ -4,6 +4,7 @@ import (
 	stderr "errors"
 	"log"
 	"log/slog"
+	"net"
 	"net/http"
 	"net/http/fcgi"
 	"slices"
@@ -20,6 +21,8 @@ type Server struct {
 	cfg  *FCGI
 	log  *slog.Logger
 	fcgi *http.Server
+
+	listener net.Listener
 }
 
 func NewFCGIServer(handler http.Handler, cfg *FCGI, log *slog.Logger, errLog *log.Logger) servers.InternalServer[any] {
@@ -41,13 +44,15 @@ func (s *Server) Serve(mdwr map[string]api.Middleware, order []string) error {
 		applyMiddleware(s.fcgi, mdwr, order, s.log)
 	}
 
-	l, err := tcplisten.CreateListener(s.cfg.Address)
+	l, err := tcplisten.CreateListenerWithOptions(s.cfg.Address, s.cfg.UnixSocket)
 	if err != nil {
 		return errors.E(op, err)
 	}
+	s.listener = l
+	defer s.Stop()
 
 	err = fcgi.Serve(l, s.fcgi.Handler)
-	if err != nil && !stderr.Is(err, http.ErrServerClosed) {
+	if err != nil && !stderr.Is(err, net.ErrClosed) {
 		return errors.E(op, err)
 	}
 
@@ -59,9 +64,10 @@ func (s *Server) Server() any {
 }
 
 func (s *Server) Stop() {
-	err := s.fcgi.Close()
-	if err != nil && !stderr.Is(err, http.ErrServerClosed) {
-		s.log.Error("fcgi shutdown", "error", err)
+	if s.listener != nil {
+		if err := s.listener.Close(); err != nil && !stderr.Is(err, net.ErrClosed) {
+			s.log.Error("fcgi shutdown", "error", err)
+		}
 	}
 }
 
