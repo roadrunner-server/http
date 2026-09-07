@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/http/fcgi"
 	"slices"
-	"sync"
 	"time"
 
 	"github.com/roadrunner-server/http/v6/api"
@@ -23,7 +22,6 @@ type Server struct {
 	log  *slog.Logger
 	fcgi *http.Server
 
-	mu       sync.Mutex
 	listener net.Listener
 }
 
@@ -50,9 +48,7 @@ func (s *Server) Serve(mdwr map[string]api.Middleware, order []string) error {
 	if err != nil {
 		return errors.E(op, err)
 	}
-	s.mu.Lock()
 	s.listener = l
-	s.mu.Unlock()
 	defer s.Stop()
 
 	err = fcgi.Serve(l, s.fcgi.Handler)
@@ -68,8 +64,6 @@ func (s *Server) Server() any {
 }
 
 func (s *Server) Stop() {
-	s.mu.Lock()
-	defer s.mu.Unlock()
 	if s.listener != nil {
 		if err := s.listener.Close(); err != nil && !stderr.Is(err, net.ErrClosed) {
 			s.log.Error("fcgi shutdown", "error", err)

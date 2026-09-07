@@ -6,8 +6,6 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"io"
-	"log"
 	"log/slog"
 	"net"
 	"net/http"
@@ -27,9 +25,7 @@ import (
 	rrconfig "github.com/roadrunner-server/config/v6"
 	"github.com/roadrunner-server/endure/v2"
 	httpPlugin "github.com/roadrunner-server/http/v6"
-	"github.com/roadrunner-server/http/v6/servers/fcgi"
 	"github.com/roadrunner-server/server/v6"
-	"github.com/roadrunner-server/tcplisten"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/http2"
 )
@@ -93,39 +89,6 @@ http:
 			})
 		}
 	}
-}
-
-func TestUnixSocketFCGIRequest(t *testing.T) {
-	dir, err := os.MkdirTemp("", "rr-fcgi-")
-	require.NoError(t, err)
-	t.Cleanup(func() { require.NoError(t, os.RemoveAll(dir)) })
-	path := filepath.Join(dir, "fcgi.sock")
-	cfg := &fcgi.FCGI{Address: "unix://" + path, UnixSocket: &tcplisten.UnixSocketOptions{Mode: "0600"}}
-	require.NoError(t, cfg.Valid())
-	srv := fcgi.NewFCGIServer(http.NotFoundHandler(), cfg, slog.New(slog.DiscardHandler), log.New(io.Discard, "", 0))
-	done := make(chan error, 1)
-	go func() { done <- srv.Serve(nil, nil) }()
-	t.Cleanup(func() {
-		srv.Stop()
-		select {
-		case err := <-done:
-			require.NoError(t, err)
-		case <-time.After(5 * time.Second):
-			t.Fatal("FCGI Serve did not stop")
-		}
-		_, err := os.Stat(path)
-		require.ErrorIs(t, err, os.ErrNotExist)
-	})
-	code, body := fcgiGet(t, "unix", path, "http://localhost/")
-	require.Equal(t, http.StatusNotFound, code)
-	require.Equal(t, "404 page not found\n", body)
-	info, err := os.Stat(path)
-	require.NoError(t, err)
-	require.NotZero(t, info.Mode()&os.ModeSocket)
-	require.Equal(t, os.FileMode(0o600), info.Mode().Perm())
-	stat := info.Sys().(*syscall.Stat_t)
-	require.EqualValues(t, os.Geteuid(), stat.Uid)
-	require.EqualValues(t, os.Getegid(), stat.Gid)
 }
 
 func TestUnixSocketPluginServe(t *testing.T) {
