@@ -129,7 +129,7 @@ func (c *Config) InitDefaults() error {
 func (c *Config) Valid() error {
 	const op = errors.Op("validation")
 	if err := c.UnixSocket.Validate(c.Address); err != nil {
-		return errors.E(errors.Op("http.unix_socket"), err)
+		return errors.E(op, err)
 	}
 	if c.FCGIConfig != nil {
 		if err := c.FCGIConfig.Valid(); err != nil {
