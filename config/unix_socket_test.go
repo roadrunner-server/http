@@ -12,6 +12,10 @@ import (
 
 func TestUnixSocketValidation(t *testing.T) {
 	for _, field := range []string{"http.unix_socket", "http.fcgi.unix_socket"} {
+		op := "validation"
+		if field == "http.fcgi.unix_socket" {
+			op = field
+		}
 		for _, tt := range []struct {
 			name, address string
 			options       *tcplisten.UnixSocketOptions
@@ -47,7 +51,7 @@ func TestUnixSocketValidation(t *testing.T) {
 				}
 				err := cfg.InitDefaults()
 				if wantErr != "" {
-					require.ErrorContains(t, err, field)
+					require.ErrorContains(t, err, op)
 					require.ErrorContains(t, err, wantErr)
 				} else {
 					require.NoError(t, err)

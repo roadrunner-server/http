@@ -13,7 +13,6 @@ import (
 	"path/filepath"
 	"slices"
 	"strconv"
-	"strings"
 	"sync"
 	"syscall"
 	"testing"
@@ -81,7 +80,7 @@ http:
 				logger := mocklogger.NewLogger(slog.New(slog.DiscardHandler))
 				err := new(httpPlugin.Plugin).Init(provider, logger, new(server.Plugin))
 				if tt.wantErr != "" {
-					require.ErrorContains(t, err, strings.TrimPrefix(key, "http."))
+					require.ErrorContains(t, err, "http_plugin_init")
 					require.ErrorContains(t, err, tt.wantErr)
 					return
 				}
