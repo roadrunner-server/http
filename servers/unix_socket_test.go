@@ -102,11 +102,18 @@ func TestServeUnixSocket(t *testing.T) {
 				t.Cleanup(client.CloseIdleConnections)
 				req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, "http://localhost/", nil)
 				require.NoError(t, err)
-				resp, err := client.Do(req)
-				require.NoError(t, err)
-				defer func() { _ = resp.Body.Close() }()
-				require.Equal(t, http.StatusNotFound, resp.StatusCode)
-				require.Equal(t, major, resp.ProtoMajor)
+				var status, protoMajor int
+				require.Eventually(t, func() bool {
+					resp, errR := client.Do(req)
+					if errR != nil {
+						return false
+					}
+					_ = resp.Body.Close()
+					status, protoMajor = resp.StatusCode, resp.ProtoMajor
+					return true
+				}, 5*time.Second, 10*time.Millisecond, "HTTP server did not accept a request")
+				require.Equal(t, http.StatusNotFound, status)
+				require.Equal(t, major, protoMajor)
 			})
 		}
 	}

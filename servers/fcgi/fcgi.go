@@ -25,7 +25,6 @@ type Server struct {
 
 	mu       sync.Mutex
 	listener net.Listener
-	stopped  bool
 }
 
 func NewFCGIServer(handler http.Handler, cfg *FCGI, log *slog.Logger, errLog *log.Logger) servers.InternalServer[any] {
@@ -47,17 +46,11 @@ func (s *Server) Serve(mdwr map[string]api.Middleware, order []string) error {
 		applyMiddleware(s.fcgi, mdwr, order, s.log)
 	}
 
-	// Hold the lock through bind so Stop cannot miss a new listener.
-	s.mu.Lock()
-	if s.stopped {
-		s.mu.Unlock()
-		return nil
-	}
 	l, err := tcplisten.CreateListenerWithOptions(s.cfg.Address, s.cfg.UnixSocket)
 	if err != nil {
-		s.mu.Unlock()
 		return errors.E(op, err)
 	}
+	s.mu.Lock()
 	s.listener = l
 	s.mu.Unlock()
 	defer s.Stop()
@@ -77,10 +70,6 @@ func (s *Server) Server() any {
 func (s *Server) Stop() {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if s.stopped {
-		return
-	}
-	s.stopped = true
 	if s.listener != nil {
 		if err := s.listener.Close(); err != nil && !stderr.Is(err, net.ErrClosed) {
 			s.log.Error("fcgi shutdown", "error", err)
