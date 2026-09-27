@@ -72,7 +72,6 @@ func NewHTTPSServer(handler http.Handler, cfg *SSL, cfgHTTP2 *HTTP2, errLog *log
 			cfg.Acme.AltTLSALPNPort,
 			logger,
 		)
-
 		if err != nil {
 			return nil, err
 		}
@@ -82,10 +81,10 @@ func NewHTTPSServer(handler http.Handler, cfg *SSL, cfgHTTP2 *HTTP2, errLog *log
 	}
 
 	if cfgHTTP2 != nil && cfgHTTP2.EnableHTTP2() {
-		err := initHTTP2(httpsServer, cfgHTTP2.MaxConcurrentStreams)
-		if err != nil {
-			return nil, err
-		}
+		var p http.Protocols
+		p.SetHTTP2(true)
+		httpsServer.Protocols = &p
+		httpsServer.HTTP2.MaxConcurrentStreams = int(cfgHTTP2.MaxConcurrentStreams)
 	}
 
 	return &Server{
