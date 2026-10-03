@@ -122,7 +122,7 @@ func TestWriteLog_BuildsNothingWhenLevelDisabled(t *testing.T) {
 	}))}
 
 	bw := &wrapper{code: http.StatusOK}
-	req := httptest.NewRequest(http.MethodGet, "/some/path?a=1&b=2", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/some/path?a=1&b=2", nil)
 	req.Header.Set("User-Agent", "test-agent/1.0")
 	req.Header.Set("Referer", "http://example.com/from")
 	start := time.Now()
@@ -143,7 +143,7 @@ func TestWriteLog_EmittedWhenLevelEnabled(t *testing.T) {
 	l := &lm{log: slog.New(slog.NewTextHandler(&buf, &slog.HandlerOptions{Level: slog.LevelInfo}))}
 
 	bw := &wrapper{code: http.StatusOK, read: 3, write: 7}
-	req := httptest.NewRequest(http.MethodGet, "/some/path", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/some/path", nil)
 
 	l.writeLog(false, req, bw, time.Now())
 
