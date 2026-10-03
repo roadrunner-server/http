@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"bufio"
+	"context"
 	"io"
 	"log/slog"
 	"net"
@@ -131,6 +132,10 @@ func (l *lm) Log(next http.Handler, accessLogs bool) http.Handler {
 }
 
 func (l *lm) writeLog(accessLog bool, r *http.Request, bw *wrapper, start time.Time) {
+	if !l.log.Enabled(context.Background(), slog.LevelInfo) {
+		return
+	}
+
 	if !accessLog {
 		l.log.Info("http log",
 			"status", bw.code,

@@ -1,8 +1,13 @@
 package middleware
 
 import (
+	"bytes"
+	"io"
+	"log/slog"
 	"net/http"
+	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -109,4 +114,40 @@ func TestWrapper_ResetClearsState(t *testing.T) {
 	assert.False(t, w.wc)
 	assert.Zero(t, w.read)
 	assert.Zero(t, w.write)
+}
+
+func TestWriteLog_BuildsNothingWhenLevelDisabled(t *testing.T) {
+	l := &lm{log: slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{
+		Level: slog.LevelError,
+	}))}
+
+	bw := &wrapper{code: http.StatusOK}
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/some/path?a=1&b=2", nil)
+	req.Header.Set("User-Agent", "test-agent/1.0")
+	req.Header.Set("Referer", "http://example.com/from")
+	start := time.Now()
+
+	access := testing.AllocsPerRun(100, func() {
+		l.writeLog(true, req, bw, start)
+	})
+	assert.Zero(t, access, "a discarded access-log line must allocate nothing")
+
+	plain := testing.AllocsPerRun(100, func() {
+		l.writeLog(false, req, bw, start)
+	})
+	assert.Zero(t, plain, "a discarded log line must allocate nothing")
+}
+
+func TestWriteLog_EmittedWhenLevelEnabled(t *testing.T) {
+	var buf bytes.Buffer
+	l := &lm{log: slog.New(slog.NewTextHandler(&buf, &slog.HandlerOptions{Level: slog.LevelInfo}))}
+
+	bw := &wrapper{code: http.StatusOK, read: 3, write: 7}
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/some/path", nil)
+
+	l.writeLog(false, req, bw, time.Now())
+
+	assert.Contains(t, buf.String(), "http log")
+	assert.Contains(t, buf.String(), "read_bytes=3")
+	assert.Contains(t, buf.String(), "write_bytes=7")
 }
