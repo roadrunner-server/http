@@ -82,9 +82,10 @@ func NewHTTPSServer(handler http.Handler, cfg *SSL, cfgHTTP2 *HTTP2, errLog *log
 
 	if cfgHTTP2 != nil && cfgHTTP2.EnableHTTP2() {
 		var p http.Protocols
+		p.SetHTTP1(true)
 		p.SetHTTP2(true)
 		httpsServer.Protocols = &p
-		httpsServer.HTTP2.MaxConcurrentStreams = int(cfgHTTP2.MaxConcurrentStreams)
+		httpsServer.HTTP2 = &http.HTTP2Config{MaxConcurrentStreams: int(cfgHTTP2.MaxConcurrentStreams)}
 	}
 
 	return &Server{

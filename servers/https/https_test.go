@@ -15,7 +15,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"slices"
 	"testing"
 	"time"
 
@@ -243,7 +242,18 @@ func TestNewHTTPSServerHTTP2(t *testing.T) {
 			https := newTestServer(t, &SSL{Address: "127.0.0.1:8443", Port: 8443}, tt.cfg)
 
 			assert.Equal(t, tt.wantH2C, tt.cfg.EnableHTTP2())
-			assert.Equal(t, tt.wantH2C, slices.Contains(https.TLSConfig.NextProtos, "h2"))
+			if !tt.wantH2C {
+				assert.Nil(t, https.Protocols)
+				assert.Nil(t, https.HTTP2)
+				return
+			}
+
+			require.NotNil(t, https.Protocols)
+			assert.True(t, https.Protocols.HTTP1())
+			assert.True(t, https.Protocols.HTTP2())
+			assert.False(t, https.Protocols.UnencryptedHTTP2())
+			require.NotNil(t, https.HTTP2)
+			assert.Equal(t, 42, https.HTTP2.MaxConcurrentStreams)
 		})
 	}
 }
