@@ -26,7 +26,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.47.0
 	golang.org/x/net v0.59.0
 	golang.org/x/sys v0.48.0
-	google.golang.org/genproto v0.0.0-20260928230214-8a89bd6388cc
+	google.golang.org/genproto v0.0.0-20261005182115-fad411399dd8
 	google.golang.org/protobuf v1.36.12
 )
 
