@@ -38,30 +38,7 @@ func NewHTTPServer(handler http.Handler, cfg *config.Config, errLog *log.Logger,
 		redirectPort = cfg.SSLConfig.Port
 	}
 
-	if cfg.HTTP2Config != nil && cfg.HTTP2Config.H2C {
-		protocols := new(http.Protocols)
-		protocols.SetHTTP1(true)
-		protocols.SetUnencryptedHTTP2(true)
-		return &Server{
-			log:           log,
-			redirect:      redirect,
-			redirectPort:  redirectPort,
-			address:       cfg.Address,
-			unixSocket:    cfg.UnixSocket,
-			proxyProtocol: cfg.ProxyProtocol,
-			http: &http.Server{
-				Handler:           handler,
-				Protocols:         protocols,
-				HTTP2:             &http.HTTP2Config{MaxConcurrentStreams: int(cfg.HTTP2Config.MaxConcurrentStreams)},
-				ReadTimeout:       time.Minute * 5,
-				WriteTimeout:      time.Minute * 5,
-				IdleTimeout:       time.Hour,
-				ReadHeaderTimeout: time.Minute * 5,
-				ErrorLog:          errLog,
-			},
-		}
-	}
-	return &Server{
+	srv := &Server{
 		log:           log,
 		redirect:      redirect,
 		redirectPort:  redirectPort,
@@ -77,6 +54,15 @@ func NewHTTPServer(handler http.Handler, cfg *config.Config, errLog *log.Logger,
 			ErrorLog:          errLog,
 		},
 	}
+	if cfg.HTTP2Config != nil && cfg.HTTP2Config.H2C {
+		protocols := new(http.Protocols)
+		protocols.SetHTTP1(true)
+		protocols.SetUnencryptedHTTP2(true)
+		srv.http.Protocols = protocols
+		srv.http.HTTP2 = &http.HTTP2Config{MaxConcurrentStreams: int(cfg.HTTP2Config.MaxConcurrentStreams)}
+	}
+
+	return srv
 }
 
 // Serve is a blocking function
