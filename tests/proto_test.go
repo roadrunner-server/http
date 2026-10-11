@@ -101,7 +101,6 @@ func TestH2C(t *testing.T) {
 	require.Equal(t, 1, rr.Logs.FilterMessageSnippet("http server was started").Len())
 }
 
-// The http3 server is behind the experimental features flag.
 func TestHttp3(t *testing.T) {
 	skipWithoutTrustedCA(t)
 
@@ -109,7 +108,7 @@ func TestHttp3(t *testing.T) {
 		&rpcPlugin.Plugin{},
 		&server.Plugin{},
 		&httpPlugin.Plugin{},
-	}, helpers.WithExperimentalFeatures(), helpers.WithTCPProbe("127.0.0.1:34554"))
+	}, helpers.WithTCPProbe("127.0.0.1:34554"))
 
 	roundTripper := &http3.Transport{TLSClientConfig: mtlsConfig(t)}
 	t.Cleanup(func() {

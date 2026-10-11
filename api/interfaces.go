@@ -40,8 +40,6 @@ type Middleware interface {
 }
 
 type Configurer interface {
-	// Experimental checks if RR runs in experimental mode.
-	Experimental() bool
 	// UnmarshalKey takes a single key and unmarshal it into a Struct.
 	UnmarshalKey(name string, out any) error
 	// Has checks if the config section exists.

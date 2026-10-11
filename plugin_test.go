@@ -19,17 +19,14 @@ import (
 // stubConfigurer serves a single prepared http config and can be told to fail
 // on exactly one configuration section.
 type stubConfigurer struct {
-	has          bool
-	experimental bool
-	errSection   string
-	httpCfg      *config.Config
+	has        bool
+	errSection string
+	httpCfg    *config.Config
 }
 
 func (c *stubConfigurer) Has(section string) bool {
 	return c.has && section == PluginName
 }
-
-func (c *stubConfigurer) Experimental() bool { return c.experimental }
 
 func (c *stubConfigurer) UnmarshalKey(name string, out any) error {
 	if name == c.errSection {
@@ -123,15 +120,12 @@ func TestInit_NoServerConfigured_FailsValidation(t *testing.T) {
 
 func TestInit_PopulatesPluginState(t *testing.T) {
 	p := &Plugin{}
-	cfg := &stubConfigurer{has: true, experimental: true, httpCfg: servableConfig()}
+	cfg := &stubConfigurer{has: true, httpCfg: servableConfig()}
 
 	if err := p.Init(cfg, stubLoggerProvider{}, &stubWorkerServer{uid: 501, gid: 20}); err != nil {
 		t.Fatal(err)
 	}
 
-	if !p.experimentalFeatures {
-		t.Error("experimentalFeatures is false")
-	}
 	if p.cfg.UID != 501 || p.cfg.GID != 20 {
 		t.Errorf("uid/gid = %d/%d, want 501/20", p.cfg.UID, p.cfg.GID)
 	}

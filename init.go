@@ -17,7 +17,7 @@ import (
 // ------- PRIVATE ---------
 
 func (p *Plugin) initServers() error {
-	if p.cfg.EnableHTTP3() && p.experimentalFeatures {
+	if p.cfg.EnableHTTP3() {
 		http3Srv, err := http3Server.NewHTTP3server(p, nilOr(p.cfg), p.cfg.HTTP3Config, p.log)
 		if err != nil {
 			return err
