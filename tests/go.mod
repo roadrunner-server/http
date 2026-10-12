@@ -18,7 +18,7 @@ require (
 	github.com/roadrunner-server/logger/v6 v6.0.0-beta.4
 	github.com/roadrunner-server/pool/v2 v2.0.0-beta.1
 	github.com/roadrunner-server/resetter/v6 v6.0.0-beta.6
-	github.com/roadrunner-server/rpc/v6 v6.0.0-beta.6
+	github.com/roadrunner-server/rpc/v6 v6.0.0
 	github.com/roadrunner-server/send/v6 v6.0.0-beta.5
 	github.com/roadrunner-server/server/v6 v6.0.0-beta.7
 	github.com/roadrunner-server/static/v6 v6.0.0-beta.5
