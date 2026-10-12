@@ -16,8 +16,8 @@ require (
 	github.com/roadrunner-server/context v1.3.0
 	github.com/roadrunner-server/endure/v2 v2.6.2
 	github.com/roadrunner-server/errors v1.5.0
-	github.com/roadrunner-server/goridge/v4 v4.0.0-beta.3
-	github.com/roadrunner-server/pool/v2 v2.0.0-beta.1
+	github.com/roadrunner-server/goridge/v4 v4.0.0
+	github.com/roadrunner-server/pool/v2 v2.0.0
 	github.com/roadrunner-server/tcplisten v1.6.0
 	github.com/stretchr/testify v1.12.1
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.72.0
