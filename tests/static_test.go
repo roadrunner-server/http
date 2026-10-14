@@ -78,7 +78,8 @@ func TestStaticBigFile(t *testing.T) {
 	})
 }
 
-// A path pointing outside the served directory is never answered with a file.
+// Dot segments are resolved within the static root; malformed request targets
+// are rejected before reaching the middleware.
 func TestStaticPathTraversal(t *testing.T) {
 	const addr = "127.0.0.1:21603"
 
@@ -105,10 +106,9 @@ func TestStaticPathTraversal(t *testing.T) {
 		})
 	}
 
-	// plain dot segments do reach the middleware, which refuses to leave its root
+	// The static middleware canonicalizes dot segments and serves only from its root.
 	t.Run("dotSegments", func(t *testing.T) {
-		code, _ := helpers.GetBody(t, "http://"+addr+"/../../sample.txt")
-		require.Equal(t, http.StatusForbidden, code)
+		requireSampleServed(t, "http://"+addr+"/../../sample.txt")
 	})
 }
 
