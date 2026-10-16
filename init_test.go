@@ -47,9 +47,8 @@ func TestNilOr(t *testing.T) {
 
 func TestInitServers_OneServerPerEnabledSection(t *testing.T) {
 	p := &Plugin{
-		log:                  slog.New(slog.DiscardHandler),
-		experimentalFeatures: true,
-		servers:              make([]servers.InternalServer[any], 0, 4),
+		log:     slog.New(slog.DiscardHandler),
+		servers: make([]servers.InternalServer[any], 0, 4),
 		cfg: &config.Config{
 			Address:     "127.0.0.1:8080",
 			SSLConfig:   &https.SSL{Address: "127.0.0.1:8443", Key: "server.key", Cert: "server.crt"},
@@ -63,24 +62,6 @@ func TestInitServers_OneServerPerEnabledSection(t *testing.T) {
 	}
 	if len(p.servers) != 4 {
 		t.Fatalf("servers = %d, want 4 (http3, http, https, fcgi)", len(p.servers))
-	}
-}
-
-func TestInitServers_HTTP3NeedsExperimentalMode(t *testing.T) {
-	p := &Plugin{
-		log:     slog.New(slog.DiscardHandler),
-		servers: make([]servers.InternalServer[any], 0, 4),
-		cfg: &config.Config{
-			Address:     "127.0.0.1:8080",
-			HTTP3Config: &http3.Config{Address: "127.0.0.1:8444"},
-		},
-	}
-
-	if err := p.initServers(); err != nil {
-		t.Fatal(err)
-	}
-	if len(p.servers) != 1 {
-		t.Fatalf("servers = %d, want only the plain http server", len(p.servers))
 	}
 }
 

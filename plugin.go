@@ -52,8 +52,7 @@ type Plugin struct {
 	server api.Server
 	log    *slog.Logger
 	// stdlog passed to the http/https/fcgi servers to log their internal messages
-	stdLog               *stdlog.Logger
-	experimentalFeatures bool
+	stdLog *stdlog.Logger
 
 	// http configuration
 	cfg *config.Config
@@ -87,9 +86,6 @@ func (p *Plugin) Init(cfg api.Configurer, log api.Logger, srv api.Server) error 
 	if err != nil {
 		return errors.E(op, err)
 	}
-
-	// check if we have experimental features enabled
-	p.experimentalFeatures = cfg.Experimental()
 
 	// get permissions
 	p.cfg.UID = srv.UID()
