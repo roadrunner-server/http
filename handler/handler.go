@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/roadrunner-server/http/v6/api"
@@ -211,7 +212,11 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 
 			// we should not exit from the loop here, since after sending close signal, it should be closed from the SDK side
-			h.log.Error("write response (chunk) error",
+			level := slog.LevelError
+			if stderr.Is(err, syscall.EPIPE) {
+				level = slog.LevelWarn
+			}
+			h.log.Log(r.Context(), level, "write response (chunk) error",
 				"start", start,
 				"elapsed", time.Since(start).Milliseconds(),
 				"error", err)
