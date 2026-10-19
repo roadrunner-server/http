@@ -189,7 +189,7 @@ func TestHTTP2_InitDefaults(t *testing.T) {
 func TestSSL_InitDefaultsAddress(t *testing.T) {
 	empty := &SSL{}
 	require.NoError(t, empty.InitDefaults())
-	assert.Equal(t, "127.0.0.1:443", empty.Address)
+	assert.Equal(t, ":443", empty.Address)
 
 	explicit := &SSL{Address: "0.0.0.0:8443"}
 	require.NoError(t, explicit.InitDefaults())

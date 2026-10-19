@@ -11,7 +11,7 @@ http:
     trusted_proxies: ["10.20.0.0/24"]
     read_header_timeout: 5s
   ssl:
-    address: 0.0.0.0:8443
+    address: :8443
     cert: server.pem
     key: server-key.pem
     proxy_protocol:

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"net"
 	"strings"
 
 	"github.com/roadrunner-server/http/v6/servers/fcgi"
@@ -107,6 +108,7 @@ func (c *Config) InitDefaults() error {
 	}
 
 	if c.SSLConfig != nil {
+		c.SSLConfig.Address = InheritHost(c.Address, c.SSLConfig.Address)
 		err := c.SSLConfig.InitDefaults()
 		if err != nil {
 			return err
@@ -123,6 +125,25 @@ func (c *Config) InitDefaults() error {
 	}
 
 	return c.Valid()
+}
+
+// InheritHost ensures an SSL listener without an explicit host binds to the same address as the parent.
+func InheritHost(httpAddr, sslAddr string) string {
+	if sslAddr == "" {
+		sslAddr = ":443"
+	}
+	if !strings.HasPrefix(sslAddr, ":") {
+		return sslAddr
+	}
+	httpAddr = strings.TrimPrefix(httpAddr, "tcp://")
+	if strings.Contains(httpAddr, "://") {
+		return sslAddr
+	}
+	host, _, err := net.SplitHostPort(httpAddr)
+	if err != nil || host == "" {
+		return sslAddr
+	}
+	return net.JoinHostPort(host, sslAddr[1:])
 }
 
 // Valid validates the configuration.

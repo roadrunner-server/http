@@ -86,7 +86,7 @@ func (s *SSL) InitDefaults() error {
 	}
 
 	if s.Address == "" {
-		s.Address = "127.0.0.1:443"
+		s.Address = ":443"
 	}
 
 	if s.ProxyProtocol != nil {
