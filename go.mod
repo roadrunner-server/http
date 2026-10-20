@@ -8,9 +8,9 @@ require (
 	github.com/caddyserver/certmagic v0.25.6
 	github.com/google/go-cmp v0.7.0
 	github.com/mholt/acmez v1.2.0
-	github.com/pires/go-proxyproto v0.15.0
+	github.com/pires/go-proxyproto v0.16.0
 	github.com/prometheus/client_golang v1.25.0
-	github.com/quic-go/quic-go v0.64.0
+	github.com/quic-go/quic-go v0.64.1
 	github.com/roadrunner-server/api-go/v6 v6.1.0
 	github.com/roadrunner-server/api-plugins/v6 v6.0.0
 	github.com/roadrunner-server/context v1.4.0
@@ -26,7 +26,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.47.0
 	golang.org/x/net v0.61.0
 	golang.org/x/sys v0.49.0
-	google.golang.org/genproto v0.0.0-20261012220534-4341edf3f941
+	google.golang.org/genproto v0.0.0-20261019180522-ce908d29299b
 	google.golang.org/protobuf v1.36.12
 )
 
@@ -39,7 +39,7 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/klauspost/cpuid/v2 v2.4.0 // indirect
+	github.com/klauspost/cpuid/v2 v2.4.1 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/libdns/libdns v1.1.1 // indirect
 	github.com/mholt/acmez/v3 v3.1.7 // indirect
