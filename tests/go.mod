@@ -5,7 +5,7 @@ go 1.27
 toolchain go1.27.2
 
 require (
-	github.com/quic-go/quic-go v0.63.0
+	github.com/quic-go/quic-go v0.64.0
 	github.com/roadrunner-server/config/v6 v6.0.0
 	github.com/roadrunner-server/context v1.4.0
 	github.com/roadrunner-server/endure/v2 v2.7.0

@@ -10,7 +10,7 @@ require (
 	github.com/mholt/acmez v1.2.0
 	github.com/pires/go-proxyproto v0.15.0
 	github.com/prometheus/client_golang v1.25.0
-	github.com/quic-go/quic-go v0.63.0
+	github.com/quic-go/quic-go v0.64.0
 	github.com/roadrunner-server/api-go/v6 v6.1.0
 	github.com/roadrunner-server/api-plugins/v6 v6.0.0
 	github.com/roadrunner-server/context v1.4.0
