@@ -26,7 +26,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.47.0
 	golang.org/x/net v0.61.0
 	golang.org/x/sys v0.49.0
-	google.golang.org/genproto v0.0.0-20261019180522-ce908d29299b
+	google.golang.org/genproto v0.0.0-20261026165753-2ffab32bce7e
 	google.golang.org/protobuf v1.36.12
 )
 
@@ -47,7 +47,7 @@ require (
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/prometheus/client_model v0.6.3 // indirect
 	github.com/prometheus/common v0.72.1 // indirect
-	github.com/prometheus/procfs v0.22.0 // indirect
+	github.com/prometheus/procfs v0.23.0 // indirect
 	github.com/quic-go/qpack v0.6.0 // indirect
 	github.com/roadrunner-server/events v1.1.0 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
