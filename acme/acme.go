@@ -17,15 +17,34 @@ const (
 )
 
 func IssueCertificates(cacheDir, email, challengeType string, domains []string, useProduction bool, altHTTPPort, altTLSAlpnPort int, log *slog.Logger) (*tls.Config, error) {
+	cfg, cache := newConfig(cacheDir, email, challengeType, useProduction, altHTTPPort, altTLSAlpnPort)
+
+	for _, domain := range domains {
+		err := cfg.ObtainCertAsync(context.Background(), domain)
+		if err != nil {
+			cache.Stop()
+			return nil, err
+		}
+	}
+
+	err := cfg.ManageSync(context.Background(), domains)
+	if err != nil {
+		cache.Stop()
+		return nil, err
+	}
+
+	return cfg.TLSConfig(), nil
+}
+
+func newConfig(cacheDir, email, challengeType string, useProduction bool, altHTTPPort, altTLSAlpnPort int) (*certmagic.Config, *certmagic.Cache) {
+	var cfg *certmagic.Config
 	cache := certmagic.NewCache(certmagic.CacheOptions{
 		GetConfigForCert: func(_ certmagic.Certificate) (*certmagic.Config, error) {
-			return &certmagic.Config{
-				Storage: &certmagic.FileStorage{Path: cacheDir},
-			}, nil
+			return cfg, nil
 		},
 	})
 
-	cfg := certmagic.New(cache, certmagic.Config{
+	cfg = certmagic.New(cache, certmagic.Config{
 		Storage: &certmagic.FileStorage{Path: cacheDir},
 	})
 
@@ -54,19 +73,7 @@ func IssueCertificates(cacheDir, email, challengeType string, domains []string, 
 		myAcme.DisableTLSALPNChallenge = true
 	}
 
-	cfg.Issuers = append(cfg.Issuers, myAcme)
+	cfg.Issuers = []certmagic.Issuer{myAcme}
 
-	for _, domain := range domains {
-		err := cfg.ObtainCertAsync(context.Background(), domain)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	err := cfg.ManageSync(context.Background(), domains)
-	if err != nil {
-		return nil, err
-	}
-
-	return cfg.TLSConfig(), nil
+	return cfg, cache
 }
