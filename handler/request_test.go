@@ -325,3 +325,59 @@ func TestPackDataTree_EmptyTreeWritesNothing(t *testing.T) {
 		t.Errorf("Body = %q, want nil", pld.Body)
 	}
 }
+
+func TestPayloadJSON(t *testing.T) {
+	tests := []struct {
+		name        string
+		request     Request
+		wantBody    string
+		wantUploads string
+		wantError   bool
+	}{
+		{
+			name:     "form text",
+			request:  Request{Parsed: true, body: dataTree{"field": "<value>"}},
+			wantBody: `{"field":"<value>"}`,
+		},
+		{
+			name:     "nested form",
+			request:  Request{Parsed: true, body: dataTree{"field": dataTree{"nested": []string{"one", "two"}}}},
+			wantBody: `{"field":{"nested":["one","two"]}}`,
+		},
+		{
+			name:      "invalid form text",
+			request:   Request{Parsed: true, body: dataTree{"field": "\xff"}},
+			wantError: true,
+		},
+		{
+			name:        "upload name",
+			request:     Request{Uploads: &Uploads{tree: fileTree{"file": &FileUpload{Name: "<file>.txt"}}}},
+			wantUploads: `{"file":{"name":"<file>.txt","mime":"","size":0,"error":0,"tmpName":""}}`,
+		},
+		{
+			name:      "invalid upload name",
+			request:   Request{Uploads: &Uploads{tree: fileTree{"file": &FileUpload{Name: "\xff.txt"}}}},
+			wantError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			pld := &payload.Payload{}
+			protoReq := &httpV1proto.Request{}
+			err := tt.request.Payload(pld, false, protoReq)
+			if (err != nil) != tt.wantError {
+				t.Fatalf("Payload() error = %v, want error %v", err, tt.wantError)
+			}
+			if tt.wantError {
+				return
+			}
+			if string(pld.Body) != tt.wantBody {
+				t.Errorf("Body = %q, want %q", pld.Body, tt.wantBody)
+			}
+			if string(protoReq.GetUploads()) != tt.wantUploads {
+				t.Errorf("Uploads = %q, want %q", protoReq.GetUploads(), tt.wantUploads)
+			}
+		})
+	}
+}
