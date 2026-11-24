@@ -5,6 +5,7 @@
 ### Bug Fixes
 
 * Apply the configured ACME issuer settings and use the same configuration for certificate renewal.
+* Remove multipart temp files when the request fails to parse.
 
 ## [6.1.0](https://github.com/roadrunner-server/http/compare/v6.0.0...v6.1.0) (2026-10-16)
 

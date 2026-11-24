@@ -154,14 +154,16 @@ func (r *Request) Open(log *slog.Logger, dir string, forbid, allow map[string]st
 
 // Close clears all temp file uploads
 func (r *Request) Close(log *slog.Logger, hr *http.Request) {
+	// The HTTP/3 and FastCGI servers do not remove multipart temp files after the handler returns.
+	if hr.MultipartForm != nil {
+		_ = hr.MultipartForm.RemoveAll()
+	}
+
 	if r.Uploads == nil {
 		return
 	}
 
 	r.Uploads.Clear(log)
-	if hr.MultipartForm != nil {
-		_ = hr.MultipartForm.RemoveAll()
-	}
 }
 
 // Payload request marshaled RoadRunner payload based on PSR7 data. values encode method is JSON. Make sure to open
