@@ -1,9 +1,11 @@
 package handler
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
 	"fmt"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -101,6 +103,52 @@ func TestServeHTTP_TruncatedMultipart_Returns400(t *testing.T) {
 
 	if rr.Code != http.StatusBadRequest {
 		t.Errorf("expected 400, got %d", rr.Code)
+	}
+}
+
+func TestServeHTTP_MultipartTreeConflict_RemovesTempFiles(t *testing.T) {
+	tmp := t.TempDir()
+	// multipart.Reader writes file parts past defaultMaxMemory to os.TempDir().
+	t.Setenv("TMPDIR", tmp)
+
+	// "a" and "a[b]" conflict in the upload tree, so parseUploads fails after the spill.
+	var body bytes.Buffer
+	mw := multipart.NewWriter(&body)
+	for _, part := range []struct {
+		name string
+		size int
+	}{
+		{name: "a", size: 1},
+		{name: "a[b]", size: defaultMaxMemory + 1},
+	} {
+		fw, err := mw.CreateFormFile(part.name, "f.bin")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err = fw.Write(bytes.Repeat([]byte("x"), part.size)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := mw.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	h := newTestHandler(t, defaultCfg(), nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/", &body)
+	req.Header.Set("Content-Type", mw.FormDataContentType())
+
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d", rr.Code)
+	}
+	left, err := os.ReadDir(tmp)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(left) != 0 {
+		t.Errorf("expected no temp files, got %d", len(left))
 	}
 }
 
