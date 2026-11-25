@@ -13,14 +13,14 @@
 		"spiral/goridge": "^4.0",
 		"roadrunner-php/centrifugo": "^2.0",
 		"roadrunner-php/app-logger": "^1.0",
-		"open-telemetry/sdk": "^0.0.10",
+		"open-telemetry/sdk": "^1.17",
 		"psr/http-factory": "^1.0",
 		"spiral/roadrunner-kv": "^4.0",
-		"spiral/roadrunner-http": "^3.5",
+		"spiral/roadrunner-http": "^4.2",
 		"spiral/roadrunner-worker": "^3.5",
-		"roadrunner-php/roadrunner-api-dto": "^1.6",
+		"roadrunner-php/roadrunner-api-dto": "^2.3",
 		"spiral/roadrunner-services": "^2.0",
-		"php-http/guzzle7-adapter": "^1.0"
+		"guzzlehttp/guzzle": "^8.6"
 	},
 	"autoload": {
 		"psr-4": {
