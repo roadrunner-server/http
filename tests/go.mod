@@ -15,7 +15,7 @@ require (
 	github.com/roadrunner-server/headers/v6 v6.0.0
 	github.com/roadrunner-server/http/v6 v6.1.0
 	github.com/roadrunner-server/informer/v6 v6.0.0
-	github.com/roadrunner-server/logger/v6 v6.0.0
+	github.com/roadrunner-server/logger/v6 v6.0.1
 	github.com/roadrunner-server/pool/v2 v2.0.0
 	github.com/roadrunner-server/resetter/v6 v6.0.0
 	github.com/roadrunner-server/rpc/v6 v6.0.0
