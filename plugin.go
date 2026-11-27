@@ -118,12 +118,12 @@ func (p *Plugin) Serve() chan error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	var err error
-	p.pool, err = p.server.NewPool(context.Background(), p.cfg.Pool, map[string]string{RrMode: RrModeHTTP}, p.log)
+	pl, err := p.server.NewPool(context.Background(), p.cfg.Pool, map[string]string{RrMode: RrModeHTTP}, p.log)
 	if err != nil {
 		errCh <- err
 		return errCh
 	}
+	p.pool = pl
 
 	p.handler, err = handler.NewHandler(
 		p.cfg,

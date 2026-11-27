@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"testing"
 
+	"github.com/roadrunner-server/http/v6/api"
 	"github.com/roadrunner-server/pool/v2/fsm"
 	"github.com/roadrunner-server/pool/v2/payload"
 	staticPool "github.com/roadrunner-server/pool/v2/pool/static_pool"
@@ -47,40 +48,46 @@ func newWorkerInState(t *testing.T, state int64) *worker.Process {
 func TestPluginStatusAndReady(t *testing.T) {
 	tests := []struct {
 		name       string
-		workers    []*worker.Process
+		pool       api.Pool
 		statusCode int
 		readyCode  int
 	}{
 		{
+			name:       "nil pool",
+			pool:       nil,
+			statusCode: http.StatusServiceUnavailable,
+			readyCode:  http.StatusServiceUnavailable,
+		},
+		{
 			name:       "no workers",
-			workers:    nil,
+			pool:       &mockPool{},
 			statusCode: http.StatusServiceUnavailable,
 			readyCode:  http.StatusServiceUnavailable,
 		},
 		{
 			name:       "ready worker",
-			workers:    []*worker.Process{newWorkerInState(t, fsm.StateReady)},
+			pool:       &mockPool{workers: []*worker.Process{newWorkerInState(t, fsm.StateReady)}},
 			statusCode: http.StatusOK,
 			readyCode:  http.StatusOK,
 		},
 		{
 			name:       "inactive worker",
-			workers:    []*worker.Process{newWorkerInState(t, fsm.StateInactive)},
+			pool:       &mockPool{workers: []*worker.Process{newWorkerInState(t, fsm.StateInactive)}},
 			statusCode: http.StatusServiceUnavailable,
 			readyCode:  http.StatusServiceUnavailable,
 		},
 		{
-			// a busy worker is active but not ready, which is what separates the two
+			// An active working worker satisfies both status and readiness.
 			name:       "working worker",
-			workers:    []*worker.Process{newWorkerInState(t, fsm.StateWorking)},
+			pool:       &mockPool{workers: []*worker.Process{newWorkerInState(t, fsm.StateWorking)}},
 			statusCode: http.StatusOK,
-			readyCode:  http.StatusServiceUnavailable,
+			readyCode:  http.StatusOK,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := &Plugin{pool: &mockPool{workers: tt.workers}}
+			p := &Plugin{pool: tt.pool}
 
 			st, err := p.Status()
 			require.NoError(t, err)
